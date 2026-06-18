@@ -16,6 +16,14 @@
         <% } %>
       </header>
     <% } %>
+    <% if (index && (post.excerpt || post.description)){ %>
+      <div class="article-entry article-excerpt" itemprop="description">
+        <%- post.description || post.excerpt %>
+        <p class="article-more-link">
+          <a href="<%- url_for(post.path) %>"><%= __('read_more') || 'Read More' %> &raquo;</a>
+        </p>
+      </div>
+    <% } %>
     <% if (!index){ %>
     <div class="e-content article-entry" itemprop="articleBody">
       <%- post.content %>
