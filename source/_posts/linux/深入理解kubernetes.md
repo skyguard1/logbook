@@ -5,1905 +5,1905 @@ categories:
   - linux
 ---
 
-<h1 data-lines="1" data-sign="62c27ab3baaf6d48088fda6c1970462f" id="%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3kubernetes" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3kubernetes" class="anchor"></a>深入理解kubernetes</h1><p data-lines="1" data-type="p" data-sign="331ffb3029dd4f571a12543ed95823e8">标题不要有空格，?、:、| 等非法字符，可以有 ()</p><div data-sign="df7dcfd570e0a7f2008833669b96438d" data-type="codeBlock" data-lines="9"><pre class="prism language-text" style="position: relative; z-index: 2;"><code class="language-text"># @Date    <span class="token operator">:</span> <span class="token number">2021</span><span class="token operator">-</span><span class="token number">06</span><span class="token operator">-</span><span class="token number">13</span> <span class="token number">18</span><span class="token operator">:</span><span class="token number">12</span><span class="token operator">:</span><span class="token number">07</span>
-# @Author  <span class="token operator">:</span> <span class="token function">xixie</span> <span class="token punctuation">(</span>xixie@tencent<span class="token punctuation">.</span>com<span class="token punctuation">)</span>
-# @Link    <span class="token operator">:</span> http<span class="token operator">:</span><span class="token operator">/</span><span class="token operator">/</span>www<span class="token punctuation">.</span>xiaoxiyouran<span class="token punctuation">.</span>xyz
-# @Version <span class="token operator">:</span> <span class="token number">1.0</span><span class="token number">.0</span>
-# @Description <span class="token operator">:</span>
-# @Flag    <span class="token operator">:</span> 真正聪明人都在下笨功夫。 <span class="token operator">--</span> 曾国藩
-</code></pre></div><dir data-lines="2" data-sign="bdb44091c5b3599c8f4d163c2f2aebec-2" class="toc"><p class="toc-title">目录</p><li class="toc-li"><a class="level-1" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3kubernetes">深入理解kubernetes</a></li><li class="toc-li"><a class="level-1" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E8%A6%81%E7%82%B9">要点</a></li><li class="toc-li"><a class="level-1" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E6%95%B4%E7%90%86">整理</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-2" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E5%AD%97%E6%AE%B5">字段</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-2" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E6%A0%87%E6%B3%A8%E5%92%8C%E5%BF%85%E7%9F%A5">标注和必知</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-2" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E5%91%BD%E5%90%8D%E7%A9%BA%E9%97%B4%E5%92%8C%E8%B5%84%E6%BA%90">命名空间和资源</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-2" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E5%B8%B8%E7%94%A8%E6%8C%87%E4%BB%A4">常用指令</a></li><li class="toc-li"><a class="level-1" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E7%8E%AF%E5%A2%83">环境</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-2" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E9%9B%86%E7%BE%A4%E5%AE%89%E8%A3%85">集群安装</a></li><li class="toc-li"><a class="level-1" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#k8s-%E4%BB%8B%E7%BB%8D">k8s 介绍</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-2" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E5%BE%AE%E6%9C%8D%E5%8A%A1">微服务</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-2" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E8%99%9A%E6%8B%9F%E6%9C%BA%E5%92%8C%E5%AE%B9%E5%99%A8">虚拟机和容器</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-2" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#docker">Docker</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-2" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#k8s-%E7%BB%84%E6%88%90">k8s 组成</a></li><li class="toc-li"><a class="level-1" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#docker-%E5%92%8C-k8s">Docker 和 k8s</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-2" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E4%BD%BF%E7%94%A8docker">使用Docker</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-3" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E5%AE%89%E8%A3%85docker">安装Docker</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-3" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E5%88%9B%E5%BB%BA%E5%BA%94%E7%94%A8">创建应用</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-3" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E6%9E%84%E5%BB%BA%E9%95%9C%E5%83%8F">构建镜像</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-3" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E9%95%9C%E5%83%8F%E5%88%86%E5%B1%82">镜像分层</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-3" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E8%BF%90%E8%A1%8C%E9%95%9C%E5%83%8F">运行镜像</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-3" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E6%9F%A5%E7%9C%8B%E5%AE%B9%E5%99%A8%E5%86%85%E9%83%A8">查看容器内部</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-3" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E5%81%9C%E6%AD%A2%E5%92%8C%E5%88%A0%E9%99%A4%E5%AE%B9%E5%99%A8">停止和删除容器</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-3" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E5%90%91%E4%BB%93%E5%BA%93%E6%8E%A8%E9%80%81%E9%95%9C%E5%83%8F">向仓库推送镜像</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-2" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E4%BD%BF%E7%94%A8-kubernetes-%E9%9B%86%E7%BE%A4">使用 kubernetes 集群</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-3" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E5%AE%89%E8%A3%85%E9%9B%86%E7%BE%A4%E7%9A%84%E6%96%B9%E5%BC%8F">安装集群的方式</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-3" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#minikue-%E5%90%AF%E5%8A%A8k8s-%E9%9B%86%E7%BE%A4">Minikue 启动k8s 集群</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-3" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#gke-%E5%88%9B%E5%BB%BA%E4%B8%89%E8%8A%82%E7%82%B9%E9%9B%86%E7%BE%A4">GKE 创建三节点集群</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-4" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E9%83%A8%E7%BD%B2-nodejs-%E5%BA%94%E7%94%A8">部署 Node.js 应用</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-5" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#pod">pod</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-5" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E5%88%9B%E5%BB%BA%E5%A4%96%E9%83%A8%E8%AE%BF%E9%97%AE%E7%9A%84%E6%9C%8D%E5%8A%A1">创建外部访问的服务</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-5" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E7%B3%BB%E7%BB%9F%E9%80%BB%E8%BE%91%E9%83%A8%E5%88%86">系统逻辑部分</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-4" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E6%B0%B4%E5%B9%B3%E4%BC%B8%E7%BC%A9-pod-%E8%8A%82%E7%82%B9">水平伸缩 pod 节点</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-3" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#pod-%E8%BF%90%E8%A1%8C%E5%9C%A8%E5%93%AA%E4%B8%AA%E8%8A%82%E7%82%B9%E4%B8%8A">pod 运行在哪个节点上</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-3" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#dashboard">Dashboard</a></li><li class="toc-li"><a class="level-1" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#pod-3">pod</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-2" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#pod-4">Pod</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-2" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E6%A0%87%E7%AD%BE">标签</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-3" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#pod-%E8%B0%83%E5%BA%A6%E5%88%B0%E7%89%B9%E5%AE%9A%E8%8A%82%E7%82%B9">pod 调度到特定节点</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-2" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E6%B3%A8%E8%A7%A3">注解</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-2" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E5%91%BD%E5%90%8D%E7%A9%BA%E9%97%B4">命名空间</a></li><li class="toc-li"><a class="level-1" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E6%89%98%E7%AE%A1%E9%9B%86%E7%BE%A4">托管集群</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-2" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E4%BF%9D%E6%8C%81%E8%BF%9B%E7%A8%8B%E5%81%A5%E5%BA%B7">保持进程健康</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-3" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E5%AD%98%E6%B4%BB%E6%8E%A2%E9%92%88">存活探针</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-2" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#replicationcontroller">ReplicationController</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-2" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E4%BD%BF%E7%94%A8replicaset-%E6%9B%BF%E6%8D%A2-replicationcontroller">使用ReplicaSet 替换 ReplicationController</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-2" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#daemonset-%E5%9C%A8%E6%AF%8F%E4%B8%AA%E8%8A%82%E7%82%B9%E4%B8%8A%E8%BF%90%E8%A1%8C%E4%B8%80%E4%B8%AApod">DaemonSet: 在每个节点上运行一个pod</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-2" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#job%EF%BC%9A%E8%BF%90%E8%A1%8C%E5%8D%95%E4%B8%AA%E4%BB%BB%E5%8A%A1%E7%9A%84-pod">Job：运行单个任务的 pod</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-2" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#cronjob-%E5%AE%9A%E6%9C%9F%E6%89%A7%E8%A1%8C">CronJob: 定期执行</a></li><li class="toc-li"><a class="level-1" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E6%9C%8D%E5%8A%A1">服务</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-2" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E8%BF%9E%E6%8E%A5%E9%9B%86%E7%BE%A4%E5%86%85%E9%83%A8%E7%9A%84-service">连接集群内部的 Service</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-2" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E8%BF%9E%E6%8E%A5%E9%9B%86%E7%BE%A4%E5%A4%96%E9%83%A8%E7%9A%84-service">连接集群外部的 Service</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-2" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E5%B0%86%E6%9C%8D%E5%8A%A1%E6%9A%B4%E9%9C%B2%E7%BB%99%E5%A4%96%E9%83%A8%E5%AE%A2%E6%88%B7%E7%AB%AF">将服务暴露给外部客户端</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-3" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#nodeport">NodePort</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-3" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#loadbalancer">LoadBalancer</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-3" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#ingress">Ingress</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-2" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E5%B0%B1%E7%BB%AA%E6%8E%A2%E9%92%88">就绪探针</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-2" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#headless%E6%9C%8D%E5%8A%A1">headless服务</a></li><li class="toc-li"><a class="level-1" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E5%8D%B7">卷</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-2" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#emptydir">emptyDir</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-2" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#gitrepo">gitRepo</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-2" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#hostpath">hostPath</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-2" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#nfs">nfs</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-2" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#pv-%E5%92%8C-pvc">PV 和 PVC</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-2" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#storageclass">StorageClass</a></li><li class="toc-li"><a class="level-1" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#configmap-%E5%92%8C-secret">ConfigMap 和 Secret</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-2" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#configmap">ConfigMap</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-2" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#secret">Secret</a></li><li class="toc-li"><a class="level-1" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E4%BB%8E%E5%BA%94%E7%94%A8%E8%AE%BF%E9%97%AE-pod-%E5%85%83%E6%95%B0%E6%8D%AE%E5%8F%8A%E5%85%B6%E5%AE%83%E8%B5%84%E6%BA%90">从应用访问 pod 元数据及其它资源</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-2" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#downward-api">Downward API</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-2" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E4%B8%8E-k8s-api-%E6%9C%8D%E5%8A%A1%E5%99%A8%E4%BA%A4%E4%BA%92">与 k8s API 服务器交互</a></li><li class="toc-li"><a class="level-1" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#deployment">Deployment</a></li><li class="toc-li"><a class="level-1" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E9%83%A8%E7%BD%B2%E6%9C%89%E7%8A%B6%E6%80%81%E5%A4%9A%E5%89%AF%E6%9C%AC">部署有状态多副本</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-2" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#statefulset">StatefulSet</a></li><li class="toc-li"><a class="level-1" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#kubernetes-%E6%9C%BA%E7%90%86">kubernetes 机理</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-2" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E6%9E%B6%E6%9E%84">架构</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-3" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E7%BD%91%E7%BB%9C%E9%80%9A%E4%BF%A1">网络通信</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-2" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E6%9C%8D%E5%8A%A1-3">服务</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-2" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E9%AB%98%E5%8F%AF%E7%94%A8%E9%9B%86%E7%BE%A4">高可用集群</a></li><li class="toc-li"><a class="level-1" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#kubernetes-api-%E6%9C%8D%E5%8A%A1%E5%99%A8%E7%9A%84%E5%AE%89%E5%85%A8%E9%98%B2%E6%8A%A4">kubernetes API 服务器的安全防护</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-2" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E8%AE%A4%E8%AF%81%E6%9C%BA%E5%88%B6">认证机制</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-3" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#serviceaccount">ServiceAccount</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-2" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#rbac">RBAC</a></li><li class="toc-li"><a class="level-1" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E8%8A%82%E7%82%B9%E5%92%8C%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8">节点和网络安全</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-2" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E4%BD%BF%E7%94%A8%E8%8A%82%E7%82%B9%E7%9A%84linux%E5%91%BD%E5%90%8D%E7%A9%BA%E9%97%B4">使用节点的Linux命名空间</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-3" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E4%BD%BF%E7%94%A8%E8%8A%82%E7%82%B9%E7%9A%84%E7%BD%91%E7%BB%9C%E5%91%BD%E5%90%8D%E7%A9%BA%E9%97%B4%E5%92%8C%E7%AB%AF%E5%8F%A3">使用节点的网络命名空间和端口</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-3" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E4%BB%85%E7%BB%91%E5%AE%9A%E8%8A%82%E7%82%B9%E7%9A%84%E7%AB%AF%E5%8F%A3">仅绑定节点的端口</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-2" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E9%85%8D%E7%BD%AE%E8%8A%82%E7%82%B9%E5%AE%89%E5%85%A8%E4%B8%8A%E4%B8%8B%E6%96%87">配置节点安全上下文</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-2" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#podsecuritypolicy">PodSecurityPolicy</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-2" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#networkpolicy">NetworkPolicy</a></li><li class="toc-li"><a class="level-1" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E8%B5%84%E6%BA%90%E7%AE%A1%E7%90%86">资源管理</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-2" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E5%AE%B9%E5%99%A8%E7%94%B3%E8%AF%B7%E8%B5%84%E6%BA%90">容器申请资源</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-2" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E9%99%90%E5%88%B6%E5%AE%B9%E5%99%A8%E8%B5%84%E6%BA%90">限制容器资源</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-2" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#pod-qos-%E7%AD%89%E7%BA%A7">pod QoS 等级</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-2" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#limitrange">LimitRange</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-2" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#resourcequota">ResourceQuota</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-2" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E7%9B%91%E6%8E%A7-pod-%E8%B5%84%E6%BA%90%E4%BD%BF%E7%94%A8%E9%87%8F">监控 pod 资源使用量</a></li><li class="toc-li"><a class="level-1" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E8%87%AA%E5%8A%A8%E6%A8%AA%E5%90%91%E4%BC%B8%E7%BC%A9">自动横向伸缩</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-2" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#pod-%E7%9A%84%E6%A8%AA%E5%90%91%E4%BC%B8%E7%BC%A9">pod 的横向伸缩</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-3" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E6%89%A9%E7%BC%A9%E5%AE%B9%E9%80%9F%E5%BA%A6">扩缩容速度</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-3" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#resource-%E5%BA%A6%E9%87%8F%E7%B1%BB%E5%9E%8B">Resource 度量类型</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-3" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E8%87%AA%E5%8A%A8%E9%85%8D%E7%BD%AE%E8%B5%84%E6%BA%90%E8%AF%B7%E6%B1%82">自动配置资源请求</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-2" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E9%9B%86%E7%BE%A4%E8%8A%82%E7%82%B9%E7%9A%84%E6%A8%AA%E5%90%91%E4%BC%B8%E7%BC%A9">集群节点的横向伸缩</a></li><li class="toc-li"><a class="level-1" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E9%AB%98%E7%BA%A7%E8%B0%83%E5%BA%A6">高级调度</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-2" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E6%B1%A1%E7%82%B9%E5%92%8C%E5%AE%B9%E5%BF%8D%E5%BA%A6">污点和容忍度</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-2" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E8%8A%82%E7%82%B9%E4%BA%B2%E7%BC%98%E6%80%A7">节点亲缘性</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-2" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#pod-%E9%97%B4%E4%BA%B2%E7%BC%98%E6%80%A7">pod 间亲缘性</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-2" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#pod-%E9%97%B4%E9%9D%9E%E4%BA%B2%E7%BC%98%E6%80%A7">pod 间非亲缘性</a></li><li class="toc-li"><a class="level-1" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E5%BC%80%E5%8F%91%E5%BA%94%E7%94%A8">开发应用</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-2" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#pod-%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F">pod 生命周期</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-2" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E5%A6%A5%E5%96%84%E5%A4%84%E7%90%86client-%E8%AF%B7%E6%B1%82">妥善处理client 请求</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-2" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E5%BA%94%E7%94%A8%E5%9C%A8k8s%E4%B8%AD%E5%90%88%E7%90%86%E7%AE%A1%E7%90%86">应用在k8s中合理管理</a></li><li class="toc-li"><a class="level-1" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#k8s%E5%BA%94%E7%94%A8%E6%89%A9%E5%B1%95">k8s应用扩展</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-2" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E8%87%AA%E5%AE%9A%E4%B9%89api%E5%AF%B9%E8%B1%A1">自定义API对象</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-2" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E8%87%AA%E5%AE%9A%E4%B9%89api%E6%9C%8D%E5%8A%A1%E5%99%A8">自定义API服务器</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-2" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E4%BD%BF%E7%94%A8k8s%E6%9C%8D%E5%8A%A1%E7%9B%AE%E5%BD%95%E6%89%A9%E5%B1%95">使用k8s服务目录扩展</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-2" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#paas">PaaS</a></li><li class="toc-li"><a class="level-1" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E8%87%B4%E8%B0%A2">致谢</a></li><li class="toc-li"><a class="level-1" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E5%8F%82%E8%80%83%E5%8F%8A%E6%89%A9%E5%B1%95">参考及扩展</a></li></dir><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="357a51800ca9f053afa626cd11cd8786">kubernetes，简称K8s，是用8代替8个字符“ubernete”而成的缩写。是一个开源的，用于管理云平台中多个主机上的容器化的应用。 k8s 作为学习云原生的入门技术，熟练运用k8s 就相当于打开了 云原生的大门。 本文通过笔者阅读书籍整理完成，希望能帮助想学习云原生、以及正在学习云原生的童鞋快速掌握核心要点。 学习k8s和大家学习linux差不多，看似复杂，但掌握了日常熟悉的指令和运行机理就能愉快的使用了。 本文的重点和难点是服务、kubernetes 机理部分。 </p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><h1 data-lines="1" data-sign="34879a45a77899e84dcc7f6ebfad42e6" id="%E8%A6%81%E7%82%B9" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E8%A6%81%E7%82%B9" class="anchor"></a>要点</h1><p data-lines="2" data-type="p" data-sign="5901b002a0be088ee0be92f81daf4b28">Kubemetes采用的是指令式模型， 你不必判断出部署的资源的当前状态， 然后向它们发送命令来将资源状态切换到你期望的那样。 你需要做的就是<strong>告诉 Kuberetes你希望的状态</strong>， 然后Kubemetes 会采取相关的必要措施来将集群的状态 切换到你期望的样子。</p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="f434029bac5876152f3a9b2533a0a3ef">1： 资源：定义了一份资源，意味着将创建一个对象(Pod) 或  新加了某种规则(类似于打补丁，NetworkPolicy)</p><p data-lines="2" data-type="p" data-sign="c709980bff64201ef0d333649ca7ed55">2： 每个种类的 资源都对应一个 <strong>控制器</strong>，负责资源的管理。 </p><p data-lines="2" data-type="p" data-sign="f6f68ae57fa372d114c1a0bef7546973">3： pod 可以看成远行单个应用的 虚拟机，但可能被频繁地自动迁移而无需人工介入 </p><p data-lines="2" data-type="p" data-sign="e7c7d6ec2b1ecc5dd90b01055bf08b09">集群管理和部署的最小单位。 </p><ul class="cherry-list__default" data-lines="2" data-sign="79102e44d7594301e9e8c981a54d0f08list2"><li>无状态服务： 新的IP名和主机地址</li><li>有状态服务: StatefulSet, 一致的主机名 和 持久化状态</li></ul><p data-lines="1" data-type="p" data-sign="4c23bbf4c0ff6bc1e16a8abc161c9b84">pod 中应用写入磁盘的数据<strong>随时</strong> 会丢失 【包括运行时， 容器重启，会在新的写入层写入】</p><blockquote data-lines="2" data-sign="6e0bb45d799a2d3b6fa478353e3ae439_2">记住，pod 是随时可能会被重启</blockquote><p data-lines="2" data-type="p" data-sign="cb02ae29d07da40c4a51613ddaeb44f5">4： 容器重启原因：</p><ul class="cherry-list__default" data-lines="3" data-sign="7800e9648bb2e321940a030a210f1b5blist3"><li>进程崩溃了</li><li>存活探针返回失败</li><li>节点内存耗尽，进程被 OOM</li></ul><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><blockquote data-lines="2" data-sign="65977647e522c01ab85d03676bb9013e_2">需要 Pod 级别的存储卷， 和 Pod 同生命周期， 防止容器重启丢失数据， 例如挂载 emptyDir 卷，看容器启动日志<br><br>容器重启以指数时间避退，直到满5分钟。特别注意，容器重启并不影响 Pod 数量变化【理论上所有Pod 都是一样，即使换新的 Pod，容器还是会重启】</blockquote><p data-lines="5" data-type="br" data-sign="br5">&nbsp;</p><p data-lines="1" data-type="p" data-sign="b5eb9403914a0173179605224c3ff30f">5： 控制 Pod 的启动顺序</p><ul class="cherry-list__default" data-lines="4" data-sign="e4859b711de5ee3c4df3b5cbf59af212list4"><li>Init 容器： Pod 中可以有任意多个 initContainers，初始化容器用来控制 Pod 与 Pod 之间 启动 的先后顺序<br></li><li>就绪探针: 一个应用依赖于另一个应用，若依赖无法工作，则 阻止 当前应用成为服务 端点<ul class="cherry-list__default"><li>Deployment 滚动升级中会应用 就绪探针， 避免错误版本的出现</li></ul></li></ul><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="804d4af08f36fa3a947b3335907a606d">6： localhost 一般指节点，而非 pod</p><p data-lines="2" data-type="p" data-sign="f49216510d01791dd0ffc19cb27f6b41">7： 当Pod 关闭的时候，可能工作节点上 kube-proxy 还没来得及修改 Iptables，还是会将通信转移到 关闭的 Pod 上去。 </p><blockquote data-lines="2" data-sign="3d792fb50ac8e5699d7f8d34c8d5676c_2">推荐是 Pod 等一段时间再关闭【等多长时间是个问题， 和 TCP 断开连接等2MSL再关闭差不多】，直到 kube-proxy 已修改 路由表</blockquote><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="25061db9e2f2072f8663fe8e47465edd">8： 服务目录可以在kubernetes 中轻松配置和暴露服务</p><p data-lines="2" data-type="p" data-sign="d907cacf06f3ae5c64a39cee80f48413">9： Kubernetes 可以通过单个 JSON 或 YAML 清单部署 一 组资源  </p><p data-lines="2" data-type="p" data-sign="32791aba6e0db64aa34e0b2f47f48fc9">10：Endpoint， 有站点的意思（URL）， REST endpoint, 就是一个 http 请求而已。 </p><p data-lines="2" data-type="p" data-sign="01b71db478585eadec6d7dfaaad4b587">Endpoint 资源指 Service 下覆盖的 pod 的ip:端口 列表</p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><h1 data-lines="1" data-sign="36acdd4913aacfc1aef9a34dab850d99" id="%E6%95%B4%E7%90%86" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E6%95%B4%E7%90%86" class="anchor"></a>整理</h1><h2 data-lines="2" data-sign="cbd5eba77a3c5edcd69fec8c170e8d67" id="%E5%AD%97%E6%AE%B5" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E5%AD%97%E6%AE%B5" class="anchor"></a>字段</h2><p data-lines="2" data-type="p" data-sign="9e48127ca75c693844548e17a3c2bc3a">1： 在定义 manifest 时， 常用的一些字段罗列如下： </p><blockquote data-lines="3" data-sign="5e4ba2c23e0622f0dc360d654333d030_3">备注： 常用字段，非全部。 <br><br><a rel="nofollow" href="https://share.mubu.com/doc/2n0iYCbQNal">在线文档</a></blockquote><p data-lines="2" data-type="p" data-sign="08b5b4c48b6f6637998bb10e798404db" style=""><img alt="" src="./深入理解kubernetes - 游戏知识库 - KM平台_files/cos-file-url(2)" style="position: relative; z-index: 2;" class="amplify"></p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><h2 data-lines="1" data-sign="4f9380439c8542e1c003412c715ab388" id="%E6%A0%87%E6%B3%A8%E5%92%8C%E5%BF%85%E7%9F%A5" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E6%A0%87%E6%B3%A8%E5%92%8C%E5%BF%85%E7%9F%A5" class="anchor"></a>标注和必知</h2><p data-lines="2" data-type="p" data-sign="937de350318491e32ec223d09eb9fd05">1： 常见的注解整列</p><blockquote data-lines="2" data-sign="273cef4e2240d8261dd40b18ad8ef7ba_2"><a rel="nofollow" href="https://share.mubu.com/doc/w-VRMG2Eal">在线文档</a></blockquote><p data-lines="2" data-type="p" data-sign="3802b15f43fb4ecff036da90ea490240" style=""><img alt="" src="./深入理解kubernetes - 游戏知识库 - KM平台_files/cos-file-url(3)" style="position: relative; z-index: 2;" class="amplify"></p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><h2 data-lines="1" data-sign="dc19bb4a93b3c4485901b096cd005388" id="%E5%91%BD%E5%90%8D%E7%A9%BA%E9%97%B4%E5%92%8C%E8%B5%84%E6%BA%90" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E5%91%BD%E5%90%8D%E7%A9%BA%E9%97%B4%E5%92%8C%E8%B5%84%E6%BA%90" class="anchor"></a>命名空间和资源</h2><p data-lines="2" data-type="p" data-sign="31a5d490d1e2a74d50fb827c51449ace">1: k8s 中整理的命名空间和常用资源如下：</p><blockquote data-lines="2" data-sign="811166a55dda1a0c90716565fff13ee6_2"><a rel="nofollow" href="https://share.mubu.com/doc/b_CYIA-IGl">在线文档</a></blockquote><p data-lines="2" data-type="p" data-sign="0bca1588f17959a034ec3d09131ea454" style=""><img alt="" src="./深入理解kubernetes - 游戏知识库 - KM平台_files/cos-file-url(4)" style="position: relative; z-index: 2;" class="amplify"></p><p data-lines="2" data-type="br" data-sign="br2">&nbsp;</p><h2 data-lines="1" data-sign="e65ac253e62878c7418ff8f11c02eff7" id="%E5%B8%B8%E7%94%A8%E6%8C%87%E4%BB%A4" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E5%B8%B8%E7%94%A8%E6%8C%87%E4%BB%A4" class="anchor"></a>常用指令</h2><p data-lines="2" data-type="p" data-sign="1633890ae717687be3f4da5ed7b09f8c">1： 梳理常用指令</p><blockquote data-lines="2" data-sign="f6b71eb4ae7b3e0a7aad4b891b1caea8_2"><a rel="nofollow" href="https://share.mubu.com/doc/180hhorFtWl">在线文档</a></blockquote><p data-lines="2" data-type="p" data-sign="222a9c6ca7825c4e4e38dd25b0e262ff" style=""><img alt="" src="./深入理解kubernetes - 游戏知识库 - KM平台_files/cos-file-url(5)" style="position: relative; z-index: 2;" class="amplify"></p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><h1 data-lines="1" data-sign="621d5fa9a6c1364207a56adc335e6651" id="%E7%8E%AF%E5%A2%83" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E7%8E%AF%E5%A2%83" class="anchor"></a>环境</h1><h2 data-lines="2" data-sign="990731cfda22856d648e5d939f5937ec" id="%E9%9B%86%E7%BE%A4%E5%AE%89%E8%A3%85" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E9%9B%86%E7%BE%A4%E5%AE%89%E8%A3%85" class="anchor"></a>集群安装</h2><p data-lines="2" data-type="p" data-sign="b796c487bac7e23c89615e725b2337f2">1： 单节点集群，minikube</p><p data-lines="2" data-type="p" data-sign="daca3f5a5b3902d79a119b3aed803575">2:  多节点集群，虚拟机 + kubeadm </p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><h1 data-lines="1" data-sign="88ab15073f451051349ec57cce03da27" id="k8s-%E4%BB%8B%E7%BB%8D" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#k8s-%E4%BB%8B%E7%BB%8D" class="anchor"></a>k8s 介绍</h1><h2 data-lines="2" data-sign="2ea98e36f00a4420fb11ffe69c002397" id="%E5%BE%AE%E6%9C%8D%E5%8A%A1" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E5%BE%AE%E6%9C%8D%E5%8A%A1" class="anchor"></a>微服务</h2><p data-lines="2" data-type="p" data-sign="f501a0ba6bb3666d01858325ffd3cf84">1：微服务：  大量的单体应用 被拆成独立的、小的 组件</p><p data-lines="2" data-type="p" data-sign="d33c9ec325c94d8de238be8d488bd700">2： 配置、管理 需要自动化； </p><p data-lines="2" data-type="p" data-sign="21d4603ede769cafaa11cab878c754d5">3： 监控应用，变成了监控 kubernets </p><blockquote data-lines="2" data-sign="62767aab53f3c00051ed276dcf2e7835_2">传统的应用 由 kubernets 自己去监控</blockquote><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="d442c540366bd9c275da5b42e1c076f0">4： 拆成微服务的好处：</p><ul class="cherry-list__default" data-lines="3" data-sign="c1d72694852a2d8d129e96e4298716a3list3"><li>1: 改动单个服务的API 成本更小； </li><li>2：服务之间可通过 HTTP（同步协议）、AMQP（异步协议）通信； </li><li>3： 新服务可用不同语言开发； </li></ul><p data-lines="5" data-type="br" data-sign="br5">&nbsp;</p><h2 data-lines="1" data-sign="e6d40eab27b57694958a7c0351f472af" id="%E8%99%9A%E6%8B%9F%E6%9C%BA%E5%92%8C%E5%AE%B9%E5%99%A8" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E8%99%9A%E6%8B%9F%E6%9C%BA%E5%92%8C%E5%AE%B9%E5%99%A8" class="anchor"></a>虚拟机和容器</h2><p data-lines="2" data-type="p" data-sign="f11fba9b0328871e63334392f672057c">1： 虚拟机多出来的三个部分：</p><ul class="cherry-list__default" data-lines="3" data-sign="54fb0f75d55c40014bf8367cad9e9529list3"><li>虚拟化CPU； </li><li>用户操作系统； </li><li>管理程序： <strong>透传</strong>虚拟机上应用的 操作指令 到 宿主机上的 物理CPU来执行； </li></ul><p data-lines="1" data-type="p" data-sign="a7e97737b0e0fa78a2e34ff7452414b8" style=""><img alt="" src="./深入理解kubernetes - 游戏知识库 - KM平台_files/cos-file-url(6)" style="position: relative; z-index: 2;" class="amplify"></p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="32a27a2201a2ab2a232f2a87ec223d60">2： 容器的隔离机制</p><ul class="cherry-list__default" data-lines="8" data-sign="ad79c83623443abd0e7cb02f5113cbc1list8"><li>Linux 命名空间， 每个进程只能看到自己的系统视图（文件、进程、网络接口、主机名等）<ul class="cherry-list__default"><li>Mount: 挂载卷，存储； </li><li>PID： proceess ID , 进程树；</li><li>Network： 网络接口；</li><li>Inter-process communication: IPC, 进程间通信；</li><li>UTS： 本地主机名；</li><li>User ID: 用户</li></ul></li><li>Linux控制组 (cgroups), 限制进程能使用的资源量（CPU、内存、网络带宽等）</li></ul><p data-lines="5" data-type="br" data-sign="br5">&nbsp;</p><p data-lines="1" data-type="p" data-sign="ba44adeddf0a85ed34e54ff3552697d5">3： 容器限制了 只能使用 母机的 Linux 内核； </p><ul class="cherry-list__default" data-lines="1" data-sign="2cf75ed03eca8225970bbf797416b00flist1"><li>X86 上编译的应用 容器化后，不能运行在 ARM 架构的母机上； </li></ul><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><h2 data-lines="1" data-sign="84048ee0909f0066eb94b4c57844e2a9" id="docker" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#docker" class="anchor"></a>Docker</h2><p data-lines="2" data-type="p" data-sign="f8b2ee3b9e7a203beef9a2bae689fe56">1： Docker： 打包、分发、运行应用程序的 ==平台==。 </p><blockquote data-lines="3" data-sign="231af20761f321602cecd0f97acbcb78_3">运行容器镜像的 软件，类似于 VMware<br><br>简化了 Linux 命名空间隔离 和 cgroups 之内的 系统管理； </blockquote><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><ul class="cherry-list__default" data-lines="3" data-sign="2caf0497fbf2b17c95a1c7b64087ec7elist3"><li>镜像： 经过Docker 打包的 环境（包含应用程序的依赖，配置文件，运行app）</li><li>镜像仓库： 云端存储； </li><li>容器： 基于 Docker 创建的运行时环境，是一个 运行在 Docker 主机上的进程， 和其他进程隔离且能使用的资源受限； </li></ul><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="2034e0e6b378bbfc46e7032a003bc50d">2： 类似的容器运行时，还有 rock-it; </p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><h2 data-lines="1" data-sign="7978d198f6bd04705946750b73717bba" id="k8s-%E7%BB%84%E6%88%90" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#k8s-%E7%BB%84%E6%88%90" class="anchor"></a>k8s 组成</h2><p data-lines="2" data-type="p" data-sign="19e6d940982ffd63520dda7f5180e47a">1： 一个 k8s 分成两类： </p><ul class="cherry-list__default" data-lines="2" data-sign="b7884de2bd593469b8ea43f41fa020b4list2"><li>master node (主节点)： 主节点上的组件可以组成一个集群，负责集群的控制和调度</li><li>work node （工作节点）： 工作节点一般是多个，实际部署应用的 节点</li></ul><p data-lines="1" data-type="p" data-sign="b0ad9576730b621d6a00bf7c6217799c">2： 组件</p><ul class="cherry-list__default" data-lines="7" data-sign="9ecd6b364630a7a2c0713ea2165bd3bdlist7"><li>1： 调度器： 选择资源足够的node 分配pod<br><br>节点不够，Cluster Autoscaller 横向扩容节点<br><br>控制 pod 选在哪个节点上【亲缘性 affinity】<br><br>pod 要和 哪个pod在一块</li></ul><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><ul class="cherry-list__default" data-lines="1" data-sign="c7b01036bbf14f980c5dc8f003d2c6b0list1"><li>2： 控制器： 跟踪节点状态，复制pod，持续跟踪pod， 处理节点失败， 大部分资源都会对应一个 控制器</li></ul><p data-lines="1" data-type="p" data-sign="8add6f7a4efd8edba95d7b2164e776aa">例如 Endpoint Controller 通知工作节点上的 kube-proxy 修改iptables </p><p data-lines="2" data-type="p" data-sign="da38ef62ef59981397ffbef9ea32f939">本质是一个 死循环，监听 API 服务器的状态；</p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><ul class="cherry-list__default" data-lines="7" data-sign="15da0a33bb71238d3a1300dcf6486f8blist7"><li>3： etcd 分布式数据存储，API 服务器将集群配置存入。比如每次提交一个 yaml 文件，校验通过后会存入； <br></li><li>4： kubelete: 接收 API 服务器通知<br>和 Docker交互，控制容器的启动<br>上报 node 的资源总量</li><li>5:  Docker 容器运行时， 拉取镜像、启动容器</li><li>6： pod: </li></ul><p data-lines="1" data-type="p" data-sign="1d5304dbbe96bb61bef25f62261f2df8">1： 独立的IP 和 端口空间 ； </p><p data-lines="3" data-type="p" data-sign="f2ac9337a48e8eab5edbc41b632dacd4">pod.hostNetwork: true, 使用宿主节点的网络接口和端口<br>containers.ports.hostPort: 仅把容器端口绑定在节点上</p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="25b516e0401cf27a2f6b1fce518d0e67">2：独立的进程树，自己的PID 命名空间</p><ul class="cherry-list__default" data-lines="2" data-sign="aa497696d0e2112a6a4ddeb9d7376188list2"><li>pod.hostPID: true, 使用宿主节点的 进程空间</li><li>pod.hostIPC: true, 使用宿主节点的 IPC 命名空间</li></ul><p data-lines="1" data-type="p" data-sign="590fe007c0d0aea2a6101552ef508f95">3： 自己的IPC命名空间，同pod 可以通过进程间通信IPC</p><p data-lines="2" data-type="p" data-sign="048237a435ac322903594a610e0f3d83">4:  同pod 两个容器，可以共享存储卷</p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="3f4f5b127206a65a59e4ead797629ba9" style=""><img alt="" src="./深入理解kubernetes - 游戏知识库 - KM平台_files/cos-file-url(7)" style="position: relative; z-index: 2;" class="amplify"></p><p data-lines="6" data-type="br" data-sign="br6">&nbsp;</p><p data-lines="1" data-type="p" data-sign="9a2cd539932fe2826828b97e63db26e6">3: k8s 功能</p><p data-lines="2" data-type="p" data-sign="b4102f2861e2c6fcfd3cf65e514d22d3">1： 自动处理失败 容器： 重启， 可自动选择 新的 工作节点。  【自修复】</p><p data-lines="2" data-type="p" data-sign="2c62c765f4f4315a3d9a82f3ca4199ad">2： 自动调整 副本数： 根据 CPU 负载、内存消耗、每秒查询 应用程序的其它指标 等； 【==自动扩缩容==】</p><p data-lines="2" data-type="p" data-sign="d96eea121fe5bff2b3191f57351aaf62">3： 容器 移除或移动， 对外暴露的 静态IP不变（环境变量 or client 通过DNS 查询IP） 【==可实现复杂的 集群 leader 选举==】</p><p data-lines="2" data-type="p" data-sign="688f81a19fe4e402321293247b211d94">4： 可以限制某些容器镜像 运行 在指定硬件的机器<strong>群</strong> 【在 HDDS 系列的机器上选择一个】上： </p><p data-lines="3" data-type="p" data-sign="499624f60ce020b6a75b09445c6b2d54">	- HDDS； <br>	- SSD； </p><p data-lines="9" data-type="br" data-sign="br9">&nbsp;</p><h1 data-lines="1" data-sign="89b37a585050a2e9582557d8a682de39" id="docker-%E5%92%8C-k8s" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#docker-%E5%92%8C-k8s" class="anchor"></a>Docker 和 k8s</h1><h2 data-lines="2" data-sign="53ff148d93405916e31fd26515be3652" id="%E4%BD%BF%E7%94%A8docker" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E4%BD%BF%E7%94%A8docker" class="anchor"></a>使用Docker</h2><h3 data-lines="2" data-sign="03c5cb077fc7af41f8b7fc0deb36f305" id="%E5%AE%89%E8%A3%85docker" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E5%AE%89%E8%A3%85docker" class="anchor"></a>安装Docker</h3><p data-lines="2" data-type="p" data-sign="06cd4662769ec2e34b679292753f4e83">1： 安装： 略</p><p data-lines="2" data-type="p" data-sign="1c6b2c9f983cf979399ced8f3f3ae7b0">2： <code>docker run &lt;image&gt;</code> ： 现在本地查找镜像， 若无， 前往 <a rel="nofollow" href="http://docker.io/">http://docker.io</a> 中 pull 镜像。 </p><blockquote data-lines="2" data-sign="ee4b87a35d41849f30f7b3334bdfe142_2">其它可用镜像： <a rel="nofollow" href="http://hub.docker.com/">http://hub.docker.com</a><br><div data-sign="ebce89ee73c13b3f526290c7827d91d0" data-type="codeBlock" data-lines="11"><pre class="prism language-shell" style="position: relative; z-index: 2;"><code class="language-shell"># 运行一个镜像，并传入参数
-docker run busybox echo <span class="token string">"Hello World"</span>
-Unable to find image <span class="token string">'busybox:latest'</span> locally
-latest<span class="token operator">:</span> Pulling <span class="token keyword">from</span> library<span class="token operator">/</span>busybox
-b71f96345d44<span class="token operator">:</span> Pull complete
-Digest<span class="token operator">:</span> sha256<span class="token operator">:</span><span class="token number">930490</span>f97e5b921535c153e0e7110d251134cc4b72bbb8133c6a5065cc68580d
-Status<span class="token operator">:</span> Downloaded newer image <span class="token keyword">for</span> busybox<span class="token operator">:</span>latest
+<h1 data-lines="1" data-sign="62c27ab3baaf6d48088fda6c1970462f" id="%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3kubernetes" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3kubernetes" class="anchor"></a>深入理解kubernetes</h1><p data-lines="1" data-type="p" data-sign="331ffb3029dd4f571a12543ed95823e8">标题不要有空格，?、:、| 等非法字符，可以有 ()</p><div data-sign="df7dcfd570e0a7f2008833669b96438d" data-type="codeBlock" data-lines="9"><pre><code># @Date    : 2021-06-13 18:12:07
+# @Author  : xixie (xixie@tencent.com)
+# @Link    : http://www.xiaoxiyouran.xyz
+# @Version : 1.0.0
+# @Description :
+# @Flag    : 真正聪明人都在下笨功夫。 -- 曾国藩
+</code></pre></div><dir data-lines="2" data-sign="bdb44091c5b3599c8f4d163c2f2aebec-2" class="toc"><p class="toc-title">目录</p><li class="toc-li"><a class="level-1" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3kubernetes">深入理解kubernetes</a></li><li class="toc-li"><a class="level-1" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E8%A6%81%E7%82%B9">要点</a></li><li class="toc-li"><a class="level-1" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E6%95%B4%E7%90%86">整理</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-2" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E5%AD%97%E6%AE%B5">字段</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-2" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E6%A0%87%E6%B3%A8%E5%92%8C%E5%BF%85%E7%9F%A5">标注和必知</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-2" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E5%91%BD%E5%90%8D%E7%A9%BA%E9%97%B4%E5%92%8C%E8%B5%84%E6%BA%90">命名空间和资源</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-2" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E5%B8%B8%E7%94%A8%E6%8C%87%E4%BB%A4">常用指令</a></li><li class="toc-li"><a class="level-1" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E7%8E%AF%E5%A2%83">环境</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-2" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E9%9B%86%E7%BE%A4%E5%AE%89%E8%A3%85">集群安装</a></li><li class="toc-li"><a class="level-1" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#k8s-%E4%BB%8B%E7%BB%8D">k8s 介绍</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-2" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E5%BE%AE%E6%9C%8D%E5%8A%A1">微服务</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-2" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E8%99%9A%E6%8B%9F%E6%9C%BA%E5%92%8C%E5%AE%B9%E5%99%A8">虚拟机和容器</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-2" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#docker">Docker</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-2" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#k8s-%E7%BB%84%E6%88%90">k8s 组成</a></li><li class="toc-li"><a class="level-1" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#docker-%E5%92%8C-k8s">Docker 和 k8s</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-2" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E4%BD%BF%E7%94%A8docker">使用Docker</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-3" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E5%AE%89%E8%A3%85docker">安装Docker</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-3" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E5%88%9B%E5%BB%BA%E5%BA%94%E7%94%A8">创建应用</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-3" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E6%9E%84%E5%BB%BA%E9%95%9C%E5%83%8F">构建镜像</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-3" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E9%95%9C%E5%83%8F%E5%88%86%E5%B1%82">镜像分层</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-3" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E8%BF%90%E8%A1%8C%E9%95%9C%E5%83%8F">运行镜像</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-3" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E6%9F%A5%E7%9C%8B%E5%AE%B9%E5%99%A8%E5%86%85%E9%83%A8">查看容器内部</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-3" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E5%81%9C%E6%AD%A2%E5%92%8C%E5%88%A0%E9%99%A4%E5%AE%B9%E5%99%A8">停止和删除容器</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-3" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E5%90%91%E4%BB%93%E5%BA%93%E6%8E%A8%E9%80%81%E9%95%9C%E5%83%8F">向仓库推送镜像</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-2" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E4%BD%BF%E7%94%A8-kubernetes-%E9%9B%86%E7%BE%A4">使用 kubernetes 集群</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-3" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E5%AE%89%E8%A3%85%E9%9B%86%E7%BE%A4%E7%9A%84%E6%96%B9%E5%BC%8F">安装集群的方式</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-3" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#minikue-%E5%90%AF%E5%8A%A8k8s-%E9%9B%86%E7%BE%A4">Minikue 启动k8s 集群</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-3" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#gke-%E5%88%9B%E5%BB%BA%E4%B8%89%E8%8A%82%E7%82%B9%E9%9B%86%E7%BE%A4">GKE 创建三节点集群</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-4" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E9%83%A8%E7%BD%B2-nodejs-%E5%BA%94%E7%94%A8">部署 Node.js 应用</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-5" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#pod">pod</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-5" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E5%88%9B%E5%BB%BA%E5%A4%96%E9%83%A8%E8%AE%BF%E9%97%AE%E7%9A%84%E6%9C%8D%E5%8A%A1">创建外部访问的服务</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-5" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E7%B3%BB%E7%BB%9F%E9%80%BB%E8%BE%91%E9%83%A8%E5%88%86">系统逻辑部分</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-4" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E6%B0%B4%E5%B9%B3%E4%BC%B8%E7%BC%A9-pod-%E8%8A%82%E7%82%B9">水平伸缩 pod 节点</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-3" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#pod-%E8%BF%90%E8%A1%8C%E5%9C%A8%E5%93%AA%E4%B8%AA%E8%8A%82%E7%82%B9%E4%B8%8A">pod 运行在哪个节点上</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-3" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#dashboard">Dashboard</a></li><li class="toc-li"><a class="level-1" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#pod-3">pod</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-2" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#pod-4">Pod</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-2" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E6%A0%87%E7%AD%BE">标签</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-3" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#pod-%E8%B0%83%E5%BA%A6%E5%88%B0%E7%89%B9%E5%AE%9A%E8%8A%82%E7%82%B9">pod 调度到特定节点</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-2" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E6%B3%A8%E8%A7%A3">注解</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-2" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E5%91%BD%E5%90%8D%E7%A9%BA%E9%97%B4">命名空间</a></li><li class="toc-li"><a class="level-1" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E6%89%98%E7%AE%A1%E9%9B%86%E7%BE%A4">托管集群</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-2" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E4%BF%9D%E6%8C%81%E8%BF%9B%E7%A8%8B%E5%81%A5%E5%BA%B7">保持进程健康</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-3" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E5%AD%98%E6%B4%BB%E6%8E%A2%E9%92%88">存活探针</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-2" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#replicationcontroller">ReplicationController</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-2" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E4%BD%BF%E7%94%A8replicaset-%E6%9B%BF%E6%8D%A2-replicationcontroller">使用ReplicaSet 替换 ReplicationController</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-2" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#daemonset-%E5%9C%A8%E6%AF%8F%E4%B8%AA%E8%8A%82%E7%82%B9%E4%B8%8A%E8%BF%90%E8%A1%8C%E4%B8%80%E4%B8%AApod">DaemonSet: 在每个节点上运行一个pod</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-2" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#job%EF%BC%9A%E8%BF%90%E8%A1%8C%E5%8D%95%E4%B8%AA%E4%BB%BB%E5%8A%A1%E7%9A%84-pod">Job：运行单个任务的 pod</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-2" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#cronjob-%E5%AE%9A%E6%9C%9F%E6%89%A7%E8%A1%8C">CronJob: 定期执行</a></li><li class="toc-li"><a class="level-1" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E6%9C%8D%E5%8A%A1">服务</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-2" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E8%BF%9E%E6%8E%A5%E9%9B%86%E7%BE%A4%E5%86%85%E9%83%A8%E7%9A%84-service">连接集群内部的 Service</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-2" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E8%BF%9E%E6%8E%A5%E9%9B%86%E7%BE%A4%E5%A4%96%E9%83%A8%E7%9A%84-service">连接集群外部的 Service</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-2" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E5%B0%86%E6%9C%8D%E5%8A%A1%E6%9A%B4%E9%9C%B2%E7%BB%99%E5%A4%96%E9%83%A8%E5%AE%A2%E6%88%B7%E7%AB%AF">将服务暴露给外部客户端</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-3" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#nodeport">NodePort</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-3" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#loadbalancer">LoadBalancer</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-3" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#ingress">Ingress</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-2" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E5%B0%B1%E7%BB%AA%E6%8E%A2%E9%92%88">就绪探针</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-2" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#headless%E6%9C%8D%E5%8A%A1">headless服务</a></li><li class="toc-li"><a class="level-1" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E5%8D%B7">卷</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-2" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#emptydir">emptyDir</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-2" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#gitrepo">gitRepo</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-2" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#hostpath">hostPath</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-2" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#nfs">nfs</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-2" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#pv-%E5%92%8C-pvc">PV 和 PVC</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-2" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#storageclass">StorageClass</a></li><li class="toc-li"><a class="level-1" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#configmap-%E5%92%8C-secret">ConfigMap 和 Secret</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-2" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#configmap">ConfigMap</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-2" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#secret">Secret</a></li><li class="toc-li"><a class="level-1" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E4%BB%8E%E5%BA%94%E7%94%A8%E8%AE%BF%E9%97%AE-pod-%E5%85%83%E6%95%B0%E6%8D%AE%E5%8F%8A%E5%85%B6%E5%AE%83%E8%B5%84%E6%BA%90">从应用访问 pod 元数据及其它资源</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-2" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#downward-api">Downward API</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-2" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E4%B8%8E-k8s-api-%E6%9C%8D%E5%8A%A1%E5%99%A8%E4%BA%A4%E4%BA%92">与 k8s API 服务器交互</a></li><li class="toc-li"><a class="level-1" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#deployment">Deployment</a></li><li class="toc-li"><a class="level-1" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E9%83%A8%E7%BD%B2%E6%9C%89%E7%8A%B6%E6%80%81%E5%A4%9A%E5%89%AF%E6%9C%AC">部署有状态多副本</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-2" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#statefulset">StatefulSet</a></li><li class="toc-li"><a class="level-1" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#kubernetes-%E6%9C%BA%E7%90%86">kubernetes 机理</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-2" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E6%9E%B6%E6%9E%84">架构</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-3" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E7%BD%91%E7%BB%9C%E9%80%9A%E4%BF%A1">网络通信</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-2" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E6%9C%8D%E5%8A%A1-3">服务</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-2" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E9%AB%98%E5%8F%AF%E7%94%A8%E9%9B%86%E7%BE%A4">高可用集群</a></li><li class="toc-li"><a class="level-1" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#kubernetes-api-%E6%9C%8D%E5%8A%A1%E5%99%A8%E7%9A%84%E5%AE%89%E5%85%A8%E9%98%B2%E6%8A%A4">kubernetes API 服务器的安全防护</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-2" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E8%AE%A4%E8%AF%81%E6%9C%BA%E5%88%B6">认证机制</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-3" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#serviceaccount">ServiceAccount</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-2" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#rbac">RBAC</a></li><li class="toc-li"><a class="level-1" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E8%8A%82%E7%82%B9%E5%92%8C%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8">节点和网络安全</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-2" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E4%BD%BF%E7%94%A8%E8%8A%82%E7%82%B9%E7%9A%84linux%E5%91%BD%E5%90%8D%E7%A9%BA%E9%97%B4">使用节点的Linux命名空间</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-3" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E4%BD%BF%E7%94%A8%E8%8A%82%E7%82%B9%E7%9A%84%E7%BD%91%E7%BB%9C%E5%91%BD%E5%90%8D%E7%A9%BA%E9%97%B4%E5%92%8C%E7%AB%AF%E5%8F%A3">使用节点的网络命名空间和端口</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-3" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E4%BB%85%E7%BB%91%E5%AE%9A%E8%8A%82%E7%82%B9%E7%9A%84%E7%AB%AF%E5%8F%A3">仅绑定节点的端口</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-2" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E9%85%8D%E7%BD%AE%E8%8A%82%E7%82%B9%E5%AE%89%E5%85%A8%E4%B8%8A%E4%B8%8B%E6%96%87">配置节点安全上下文</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-2" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#podsecuritypolicy">PodSecurityPolicy</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-2" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#networkpolicy">NetworkPolicy</a></li><li class="toc-li"><a class="level-1" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E8%B5%84%E6%BA%90%E7%AE%A1%E7%90%86">资源管理</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-2" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E5%AE%B9%E5%99%A8%E7%94%B3%E8%AF%B7%E8%B5%84%E6%BA%90">容器申请资源</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-2" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E9%99%90%E5%88%B6%E5%AE%B9%E5%99%A8%E8%B5%84%E6%BA%90">限制容器资源</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-2" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#pod-qos-%E7%AD%89%E7%BA%A7">pod QoS 等级</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-2" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#limitrange">LimitRange</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-2" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#resourcequota">ResourceQuota</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-2" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E7%9B%91%E6%8E%A7-pod-%E8%B5%84%E6%BA%90%E4%BD%BF%E7%94%A8%E9%87%8F">监控 pod 资源使用量</a></li><li class="toc-li"><a class="level-1" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E8%87%AA%E5%8A%A8%E6%A8%AA%E5%90%91%E4%BC%B8%E7%BC%A9">自动横向伸缩</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-2" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#pod-%E7%9A%84%E6%A8%AA%E5%90%91%E4%BC%B8%E7%BC%A9">pod 的横向伸缩</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-3" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E6%89%A9%E7%BC%A9%E5%AE%B9%E9%80%9F%E5%BA%A6">扩缩容速度</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-3" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#resource-%E5%BA%A6%E9%87%8F%E7%B1%BB%E5%9E%8B">Resource 度量类型</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-3" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E8%87%AA%E5%8A%A8%E9%85%8D%E7%BD%AE%E8%B5%84%E6%BA%90%E8%AF%B7%E6%B1%82">自动配置资源请求</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-2" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E9%9B%86%E7%BE%A4%E8%8A%82%E7%82%B9%E7%9A%84%E6%A8%AA%E5%90%91%E4%BC%B8%E7%BC%A9">集群节点的横向伸缩</a></li><li class="toc-li"><a class="level-1" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E9%AB%98%E7%BA%A7%E8%B0%83%E5%BA%A6">高级调度</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-2" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E6%B1%A1%E7%82%B9%E5%92%8C%E5%AE%B9%E5%BF%8D%E5%BA%A6">污点和容忍度</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-2" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E8%8A%82%E7%82%B9%E4%BA%B2%E7%BC%98%E6%80%A7">节点亲缘性</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-2" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#pod-%E9%97%B4%E4%BA%B2%E7%BC%98%E6%80%A7">pod 间亲缘性</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-2" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#pod-%E9%97%B4%E9%9D%9E%E4%BA%B2%E7%BC%98%E6%80%A7">pod 间非亲缘性</a></li><li class="toc-li"><a class="level-1" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E5%BC%80%E5%8F%91%E5%BA%94%E7%94%A8">开发应用</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-2" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#pod-%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F">pod 生命周期</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-2" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E5%A6%A5%E5%96%84%E5%A4%84%E7%90%86client-%E8%AF%B7%E6%B1%82">妥善处理client 请求</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-2" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E5%BA%94%E7%94%A8%E5%9C%A8k8s%E4%B8%AD%E5%90%88%E7%90%86%E7%AE%A1%E7%90%86">应用在k8s中合理管理</a></li><li class="toc-li"><a class="level-1" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#k8s%E5%BA%94%E7%94%A8%E6%89%A9%E5%B1%95">k8s应用扩展</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-2" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E8%87%AA%E5%AE%9A%E4%B9%89api%E5%AF%B9%E8%B1%A1">自定义API对象</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-2" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E8%87%AA%E5%AE%9A%E4%B9%89api%E6%9C%8D%E5%8A%A1%E5%99%A8">自定义API服务器</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-2" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E4%BD%BF%E7%94%A8k8s%E6%9C%8D%E5%8A%A1%E7%9B%AE%E5%BD%95%E6%89%A9%E5%B1%95">使用k8s服务目录扩展</a></li><li class="toc-li">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="level-2" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#paas">PaaS</a></li><li class="toc-li"><a class="level-1" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E8%87%B4%E8%B0%A2">致谢</a></li><li class="toc-li"><a class="level-1" href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E5%8F%82%E8%80%83%E5%8F%8A%E6%89%A9%E5%B1%95">参考及扩展</a></li></dir><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="357a51800ca9f053afa626cd11cd8786">kubernetes，简称K8s，是用8代替8个字符“ubernete”而成的缩写。是一个开源的，用于管理云平台中多个主机上的容器化的应用。 k8s 作为学习云原生的入门技术，熟练运用k8s 就相当于打开了 云原生的大门。 本文通过笔者阅读书籍整理完成，希望能帮助想学习云原生、以及正在学习云原生的童鞋快速掌握核心要点。 学习k8s和大家学习linux差不多，看似复杂，但掌握了日常熟悉的指令和运行机理就能愉快的使用了。 本文的重点和难点是服务、kubernetes 机理部分。 </p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><h1 data-lines="1" data-sign="34879a45a77899e84dcc7f6ebfad42e6" id="%E8%A6%81%E7%82%B9" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E8%A6%81%E7%82%B9" class="anchor"></a>要点</h1><p data-lines="2" data-type="p" data-sign="5901b002a0be088ee0be92f81daf4b28">Kubemetes采用的是指令式模型， 你不必判断出部署的资源的当前状态， 然后向它们发送命令来将资源状态切换到你期望的那样。 你需要做的就是<strong>告诉 Kuberetes你希望的状态</strong>， 然后Kubemetes 会采取相关的必要措施来将集群的状态 切换到你期望的样子。</p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="f434029bac5876152f3a9b2533a0a3ef">1： 资源：定义了一份资源，意味着将创建一个对象(Pod) 或  新加了某种规则(类似于打补丁，NetworkPolicy)</p><p data-lines="2" data-type="p" data-sign="c709980bff64201ef0d333649ca7ed55">2： 每个种类的 资源都对应一个 <strong>控制器</strong>，负责资源的管理。 </p><p data-lines="2" data-type="p" data-sign="f6f68ae57fa372d114c1a0bef7546973">3： pod 可以看成远行单个应用的 虚拟机，但可能被频繁地自动迁移而无需人工介入 </p><p data-lines="2" data-type="p" data-sign="e7c7d6ec2b1ecc5dd90b01055bf08b09">集群管理和部署的最小单位。 </p><ul class="cherry-list__default" data-lines="2" data-sign="79102e44d7594301e9e8c981a54d0f08list2"><li>无状态服务： 新的IP名和主机地址</li><li>有状态服务: StatefulSet, 一致的主机名 和 持久化状态</li></ul><p data-lines="1" data-type="p" data-sign="4c23bbf4c0ff6bc1e16a8abc161c9b84">pod 中应用写入磁盘的数据<strong>随时</strong> 会丢失 【包括运行时， 容器重启，会在新的写入层写入】</p><blockquote data-lines="2" data-sign="6e0bb45d799a2d3b6fa478353e3ae439_2">记住，pod 是随时可能会被重启</blockquote><p data-lines="2" data-type="p" data-sign="cb02ae29d07da40c4a51613ddaeb44f5">4： 容器重启原因：</p><ul class="cherry-list__default" data-lines="3" data-sign="7800e9648bb2e321940a030a210f1b5blist3"><li>进程崩溃了</li><li>存活探针返回失败</li><li>节点内存耗尽，进程被 OOM</li></ul><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><blockquote data-lines="2" data-sign="65977647e522c01ab85d03676bb9013e_2">需要 Pod 级别的存储卷， 和 Pod 同生命周期， 防止容器重启丢失数据， 例如挂载 emptyDir 卷，看容器启动日志<br><br>容器重启以指数时间避退，直到满5分钟。特别注意，容器重启并不影响 Pod 数量变化【理论上所有Pod 都是一样，即使换新的 Pod，容器还是会重启】</blockquote><p data-lines="5" data-type="br" data-sign="br5">&nbsp;</p><p data-lines="1" data-type="p" data-sign="b5eb9403914a0173179605224c3ff30f">5： 控制 Pod 的启动顺序</p><ul class="cherry-list__default" data-lines="4" data-sign="e4859b711de5ee3c4df3b5cbf59af212list4"><li>Init 容器： Pod 中可以有任意多个 initContainers，初始化容器用来控制 Pod 与 Pod 之间 启动 的先后顺序<br></li><li>就绪探针: 一个应用依赖于另一个应用，若依赖无法工作，则 阻止 当前应用成为服务 端点<ul class="cherry-list__default"><li>Deployment 滚动升级中会应用 就绪探针， 避免错误版本的出现</li></ul></li></ul><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="804d4af08f36fa3a947b3335907a606d">6： localhost 一般指节点，而非 pod</p><p data-lines="2" data-type="p" data-sign="f49216510d01791dd0ffc19cb27f6b41">7： 当Pod 关闭的时候，可能工作节点上 kube-proxy 还没来得及修改 Iptables，还是会将通信转移到 关闭的 Pod 上去。 </p><blockquote data-lines="2" data-sign="3d792fb50ac8e5699d7f8d34c8d5676c_2">推荐是 Pod 等一段时间再关闭【等多长时间是个问题， 和 TCP 断开连接等2MSL再关闭差不多】，直到 kube-proxy 已修改 路由表</blockquote><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="25061db9e2f2072f8663fe8e47465edd">8： 服务目录可以在kubernetes 中轻松配置和暴露服务</p><p data-lines="2" data-type="p" data-sign="d907cacf06f3ae5c64a39cee80f48413">9： Kubernetes 可以通过单个 JSON 或 YAML 清单部署 一 组资源  </p><p data-lines="2" data-type="p" data-sign="32791aba6e0db64aa34e0b2f47f48fc9">10：Endpoint， 有站点的意思（URL）， REST endpoint, 就是一个 http 请求而已。 </p><p data-lines="2" data-type="p" data-sign="01b71db478585eadec6d7dfaaad4b587">Endpoint 资源指 Service 下覆盖的 pod 的ip:端口 列表</p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><h1 data-lines="1" data-sign="36acdd4913aacfc1aef9a34dab850d99" id="%E6%95%B4%E7%90%86" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E6%95%B4%E7%90%86" class="anchor"></a>整理</h1><h2 data-lines="2" data-sign="cbd5eba77a3c5edcd69fec8c170e8d67" id="%E5%AD%97%E6%AE%B5" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E5%AD%97%E6%AE%B5" class="anchor"></a>字段</h2><p data-lines="2" data-type="p" data-sign="9e48127ca75c693844548e17a3c2bc3a">1： 在定义 manifest 时， 常用的一些字段罗列如下： </p><blockquote data-lines="3" data-sign="5e4ba2c23e0622f0dc360d654333d030_3">备注： 常用字段，非全部。 <br><br><a rel="nofollow" href="https://share.mubu.com/doc/2n0iYCbQNal">在线文档</a></blockquote><p data-lines="2" data-type="p" data-sign="08b5b4c48b6f6637998bb10e798404db" style=""></p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><h2 data-lines="1" data-sign="4f9380439c8542e1c003412c715ab388" id="%E6%A0%87%E6%B3%A8%E5%92%8C%E5%BF%85%E7%9F%A5" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E6%A0%87%E6%B3%A8%E5%92%8C%E5%BF%85%E7%9F%A5" class="anchor"></a>标注和必知</h2><p data-lines="2" data-type="p" data-sign="937de350318491e32ec223d09eb9fd05">1： 常见的注解整列</p><blockquote data-lines="2" data-sign="273cef4e2240d8261dd40b18ad8ef7ba_2"><a rel="nofollow" href="https://share.mubu.com/doc/w-VRMG2Eal">在线文档</a></blockquote><p data-lines="2" data-type="p" data-sign="3802b15f43fb4ecff036da90ea490240" style=""></p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><h2 data-lines="1" data-sign="dc19bb4a93b3c4485901b096cd005388" id="%E5%91%BD%E5%90%8D%E7%A9%BA%E9%97%B4%E5%92%8C%E8%B5%84%E6%BA%90" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E5%91%BD%E5%90%8D%E7%A9%BA%E9%97%B4%E5%92%8C%E8%B5%84%E6%BA%90" class="anchor"></a>命名空间和资源</h2><p data-lines="2" data-type="p" data-sign="31a5d490d1e2a74d50fb827c51449ace">1: k8s 中整理的命名空间和常用资源如下：</p><blockquote data-lines="2" data-sign="811166a55dda1a0c90716565fff13ee6_2"><a rel="nofollow" href="https://share.mubu.com/doc/b_CYIA-IGl">在线文档</a></blockquote><p data-lines="2" data-type="p" data-sign="0bca1588f17959a034ec3d09131ea454" style=""></p><p data-lines="2" data-type="br" data-sign="br2">&nbsp;</p><h2 data-lines="1" data-sign="e65ac253e62878c7418ff8f11c02eff7" id="%E5%B8%B8%E7%94%A8%E6%8C%87%E4%BB%A4" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E5%B8%B8%E7%94%A8%E6%8C%87%E4%BB%A4" class="anchor"></a>常用指令</h2><p data-lines="2" data-type="p" data-sign="1633890ae717687be3f4da5ed7b09f8c">1： 梳理常用指令</p><blockquote data-lines="2" data-sign="f6b71eb4ae7b3e0a7aad4b891b1caea8_2"><a rel="nofollow" href="https://share.mubu.com/doc/180hhorFtWl">在线文档</a></blockquote><p data-lines="2" data-type="p" data-sign="222a9c6ca7825c4e4e38dd25b0e262ff" style=""></p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><h1 data-lines="1" data-sign="621d5fa9a6c1364207a56adc335e6651" id="%E7%8E%AF%E5%A2%83" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E7%8E%AF%E5%A2%83" class="anchor"></a>环境</h1><h2 data-lines="2" data-sign="990731cfda22856d648e5d939f5937ec" id="%E9%9B%86%E7%BE%A4%E5%AE%89%E8%A3%85" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E9%9B%86%E7%BE%A4%E5%AE%89%E8%A3%85" class="anchor"></a>集群安装</h2><p data-lines="2" data-type="p" data-sign="b796c487bac7e23c89615e725b2337f2">1： 单节点集群，minikube</p><p data-lines="2" data-type="p" data-sign="daca3f5a5b3902d79a119b3aed803575">2:  多节点集群，虚拟机 + kubeadm </p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><h1 data-lines="1" data-sign="88ab15073f451051349ec57cce03da27" id="k8s-%E4%BB%8B%E7%BB%8D" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#k8s-%E4%BB%8B%E7%BB%8D" class="anchor"></a>k8s 介绍</h1><h2 data-lines="2" data-sign="2ea98e36f00a4420fb11ffe69c002397" id="%E5%BE%AE%E6%9C%8D%E5%8A%A1" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E5%BE%AE%E6%9C%8D%E5%8A%A1" class="anchor"></a>微服务</h2><p data-lines="2" data-type="p" data-sign="f501a0ba6bb3666d01858325ffd3cf84">1：微服务：  大量的单体应用 被拆成独立的、小的 组件</p><p data-lines="2" data-type="p" data-sign="d33c9ec325c94d8de238be8d488bd700">2： 配置、管理 需要自动化； </p><p data-lines="2" data-type="p" data-sign="21d4603ede769cafaa11cab878c754d5">3： 监控应用，变成了监控 kubernets </p><blockquote data-lines="2" data-sign="62767aab53f3c00051ed276dcf2e7835_2">传统的应用 由 kubernets 自己去监控</blockquote><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="d442c540366bd9c275da5b42e1c076f0">4： 拆成微服务的好处：</p><ul class="cherry-list__default" data-lines="3" data-sign="c1d72694852a2d8d129e96e4298716a3list3"><li>1: 改动单个服务的API 成本更小； </li><li>2：服务之间可通过 HTTP（同步协议）、AMQP（异步协议）通信； </li><li>3： 新服务可用不同语言开发； </li></ul><p data-lines="5" data-type="br" data-sign="br5">&nbsp;</p><h2 data-lines="1" data-sign="e6d40eab27b57694958a7c0351f472af" id="%E8%99%9A%E6%8B%9F%E6%9C%BA%E5%92%8C%E5%AE%B9%E5%99%A8" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E8%99%9A%E6%8B%9F%E6%9C%BA%E5%92%8C%E5%AE%B9%E5%99%A8" class="anchor"></a>虚拟机和容器</h2><p data-lines="2" data-type="p" data-sign="f11fba9b0328871e63334392f672057c">1： 虚拟机多出来的三个部分：</p><ul class="cherry-list__default" data-lines="3" data-sign="54fb0f75d55c40014bf8367cad9e9529list3"><li>虚拟化CPU； </li><li>用户操作系统； </li><li>管理程序： <strong>透传</strong>虚拟机上应用的 操作指令 到 宿主机上的 物理CPU来执行； </li></ul><p data-lines="1" data-type="p" data-sign="a7e97737b0e0fa78a2e34ff7452414b8" style=""></p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="32a27a2201a2ab2a232f2a87ec223d60">2： 容器的隔离机制</p><ul class="cherry-list__default" data-lines="8" data-sign="ad79c83623443abd0e7cb02f5113cbc1list8"><li>Linux 命名空间， 每个进程只能看到自己的系统视图（文件、进程、网络接口、主机名等）<ul class="cherry-list__default"><li>Mount: 挂载卷，存储； </li><li>PID： proceess ID , 进程树；</li><li>Network： 网络接口；</li><li>Inter-process communication: IPC, 进程间通信；</li><li>UTS： 本地主机名；</li><li>User ID: 用户</li></ul></li><li>Linux控制组 (cgroups), 限制进程能使用的资源量（CPU、内存、网络带宽等）</li></ul><p data-lines="5" data-type="br" data-sign="br5">&nbsp;</p><p data-lines="1" data-type="p" data-sign="ba44adeddf0a85ed34e54ff3552697d5">3： 容器限制了 只能使用 母机的 Linux 内核； </p><ul class="cherry-list__default" data-lines="1" data-sign="2cf75ed03eca8225970bbf797416b00flist1"><li>X86 上编译的应用 容器化后，不能运行在 ARM 架构的母机上； </li></ul><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><h2 data-lines="1" data-sign="84048ee0909f0066eb94b4c57844e2a9" id="docker" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#docker" class="anchor"></a>Docker</h2><p data-lines="2" data-type="p" data-sign="f8b2ee3b9e7a203beef9a2bae689fe56">1： Docker： 打包、分发、运行应用程序的 ==平台==。 </p><blockquote data-lines="3" data-sign="231af20761f321602cecd0f97acbcb78_3">运行容器镜像的 软件，类似于 VMware<br><br>简化了 Linux 命名空间隔离 和 cgroups 之内的 系统管理； </blockquote><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><ul class="cherry-list__default" data-lines="3" data-sign="2caf0497fbf2b17c95a1c7b64087ec7elist3"><li>镜像： 经过Docker 打包的 环境（包含应用程序的依赖，配置文件，运行app）</li><li>镜像仓库： 云端存储； </li><li>容器： 基于 Docker 创建的运行时环境，是一个 运行在 Docker 主机上的进程， 和其他进程隔离且能使用的资源受限； </li></ul><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="2034e0e6b378bbfc46e7032a003bc50d">2： 类似的容器运行时，还有 rock-it; </p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><h2 data-lines="1" data-sign="7978d198f6bd04705946750b73717bba" id="k8s-%E7%BB%84%E6%88%90" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#k8s-%E7%BB%84%E6%88%90" class="anchor"></a>k8s 组成</h2><p data-lines="2" data-type="p" data-sign="19e6d940982ffd63520dda7f5180e47a">1： 一个 k8s 分成两类： </p><ul class="cherry-list__default" data-lines="2" data-sign="b7884de2bd593469b8ea43f41fa020b4list2"><li>master node (主节点)： 主节点上的组件可以组成一个集群，负责集群的控制和调度</li><li>work node （工作节点）： 工作节点一般是多个，实际部署应用的 节点</li></ul><p data-lines="1" data-type="p" data-sign="b0ad9576730b621d6a00bf7c6217799c">2： 组件</p><ul class="cherry-list__default" data-lines="7" data-sign="9ecd6b364630a7a2c0713ea2165bd3bdlist7"><li>1： 调度器： 选择资源足够的node 分配pod<br><br>节点不够，Cluster Autoscaller 横向扩容节点<br><br>控制 pod 选在哪个节点上【亲缘性 affinity】<br><br>pod 要和 哪个pod在一块</li></ul><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><ul class="cherry-list__default" data-lines="1" data-sign="c7b01036bbf14f980c5dc8f003d2c6b0list1"><li>2： 控制器： 跟踪节点状态，复制pod，持续跟踪pod， 处理节点失败， 大部分资源都会对应一个 控制器</li></ul><p data-lines="1" data-type="p" data-sign="8add6f7a4efd8edba95d7b2164e776aa">例如 Endpoint Controller 通知工作节点上的 kube-proxy 修改iptables </p><p data-lines="2" data-type="p" data-sign="da38ef62ef59981397ffbef9ea32f939">本质是一个 死循环，监听 API 服务器的状态；</p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><ul class="cherry-list__default" data-lines="7" data-sign="15da0a33bb71238d3a1300dcf6486f8blist7"><li>3： etcd 分布式数据存储，API 服务器将集群配置存入。比如每次提交一个 yaml 文件，校验通过后会存入； <br></li><li>4： kubelete: 接收 API 服务器通知<br>和 Docker交互，控制容器的启动<br>上报 node 的资源总量</li><li>5:  Docker 容器运行时， 拉取镜像、启动容器</li><li>6： pod: </li></ul><p data-lines="1" data-type="p" data-sign="1d5304dbbe96bb61bef25f62261f2df8">1： 独立的IP 和 端口空间 ； </p><p data-lines="3" data-type="p" data-sign="f2ac9337a48e8eab5edbc41b632dacd4">pod.hostNetwork: true, 使用宿主节点的网络接口和端口<br>containers.ports.hostPort: 仅把容器端口绑定在节点上</p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="25b516e0401cf27a2f6b1fce518d0e67">2：独立的进程树，自己的PID 命名空间</p><ul class="cherry-list__default" data-lines="2" data-sign="aa497696d0e2112a6a4ddeb9d7376188list2"><li>pod.hostPID: true, 使用宿主节点的 进程空间</li><li>pod.hostIPC: true, 使用宿主节点的 IPC 命名空间</li></ul><p data-lines="1" data-type="p" data-sign="590fe007c0d0aea2a6101552ef508f95">3： 自己的IPC命名空间，同pod 可以通过进程间通信IPC</p><p data-lines="2" data-type="p" data-sign="048237a435ac322903594a610e0f3d83">4:  同pod 两个容器，可以共享存储卷</p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="3f4f5b127206a65a59e4ead797629ba9" style=""></p><p data-lines="6" data-type="br" data-sign="br6">&nbsp;</p><p data-lines="1" data-type="p" data-sign="9a2cd539932fe2826828b97e63db26e6">3: k8s 功能</p><p data-lines="2" data-type="p" data-sign="b4102f2861e2c6fcfd3cf65e514d22d3">1： 自动处理失败 容器： 重启， 可自动选择 新的 工作节点。  【自修复】</p><p data-lines="2" data-type="p" data-sign="2c62c765f4f4315a3d9a82f3ca4199ad">2： 自动调整 副本数： 根据 CPU 负载、内存消耗、每秒查询 应用程序的其它指标 等； 【==自动扩缩容==】</p><p data-lines="2" data-type="p" data-sign="d96eea121fe5bff2b3191f57351aaf62">3： 容器 移除或移动， 对外暴露的 静态IP不变（环境变量 or client 通过DNS 查询IP） 【==可实现复杂的 集群 leader 选举==】</p><p data-lines="2" data-type="p" data-sign="688f81a19fe4e402321293247b211d94">4： 可以限制某些容器镜像 运行 在指定硬件的机器<strong>群</strong> 【在 HDDS 系列的机器上选择一个】上： </p><p data-lines="3" data-type="p" data-sign="499624f60ce020b6a75b09445c6b2d54">	- HDDS； <br>	- SSD； </p><p data-lines="9" data-type="br" data-sign="br9">&nbsp;</p><h1 data-lines="1" data-sign="89b37a585050a2e9582557d8a682de39" id="docker-%E5%92%8C-k8s" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#docker-%E5%92%8C-k8s" class="anchor"></a>Docker 和 k8s</h1><h2 data-lines="2" data-sign="53ff148d93405916e31fd26515be3652" id="%E4%BD%BF%E7%94%A8docker" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E4%BD%BF%E7%94%A8docker" class="anchor"></a>使用Docker</h2><h3 data-lines="2" data-sign="03c5cb077fc7af41f8b7fc0deb36f305" id="%E5%AE%89%E8%A3%85docker" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E5%AE%89%E8%A3%85docker" class="anchor"></a>安装Docker</h3><p data-lines="2" data-type="p" data-sign="06cd4662769ec2e34b679292753f4e83">1： 安装： 略</p><p data-lines="2" data-type="p" data-sign="1c6b2c9f983cf979399ced8f3f3ae7b0">2： <code>docker run &lt;image&gt;</code> ： 现在本地查找镜像， 若无， 前往 <a rel="nofollow" href="http://docker.io/">http://docker.io</a> 中 pull 镜像。 </p><blockquote data-lines="2" data-sign="ee4b87a35d41849f30f7b3334bdfe142_2">其它可用镜像： <a rel="nofollow" href="http://hub.docker.com/">http://hub.docker.com</a><br><div data-sign="ebce89ee73c13b3f526290c7827d91d0" data-type="codeBlock" data-lines="11"><pre><code># 运行一个镜像，并传入参数
+docker run busybox echo "Hello World"
+Unable to find image 'busybox:latest' locally
+latest: Pulling from library/busybox
+b71f96345d44: Pull complete
+Digest: sha256:930490f97e5b921535c153e0e7110d251134cc4b72bbb8133c6a5065cc68580d
+Status: Downloaded newer image for busybox:latest
 Hello World
-</code></pre></div></blockquote><p data-lines="5" data-type="br" data-sign="br5">&nbsp;</p><p data-lines="2" data-type="p" data-sign="1ef3176c17dc8e9ac53e87186c1d11bf" style="">3： docker 查看镜像本地是否已存在 --下载镜像-- 创建容器 -- 运行 echo 命令--- 进程终止 --- 容器停止运行；<br><img alt="" src="./深入理解kubernetes - 游戏知识库 - KM平台_files/cos-file-url(8)" style="position: relative; z-index: 2;" class="amplify"></p><p data-lines="6" data-type="br" data-sign="br6">&nbsp;</p><h3 data-lines="1" data-sign="5987928c7cbe2e01825a67b2598595bc" id="%E5%88%9B%E5%BB%BA%E5%BA%94%E7%94%A8" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E5%88%9B%E5%BB%BA%E5%BA%94%E7%94%A8" class="anchor"></a>创建应用</h3><p data-lines="1" data-type="p" data-sign="ee6e904a6cf1aead78d0d62136d41050">1：创建一个简单的 <code>node.js</code> 应用，  输出主机名:</p><div data-sign="d51e7399459b732172590faecb1c83dc" data-type="codeBlock" data-lines="16"><pre class="prism language-js" style="position: relative; z-index: 2;"><code class="language-js"><span class="token keyword">const</span> http <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">'http'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-<span class="token keyword">const</span> os <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">'os'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre></div></blockquote><p data-lines="5" data-type="br" data-sign="br5">&nbsp;</p><p data-lines="2" data-type="p" data-sign="1ef3176c17dc8e9ac53e87186c1d11bf" style="">3： docker 查看镜像本地是否已存在 --下载镜像-- 创建容器 -- 运行 echo 命令--- 进程终止 --- 容器停止运行；<br></p><p data-lines="6" data-type="br" data-sign="br6">&nbsp;</p><h3 data-lines="1" data-sign="5987928c7cbe2e01825a67b2598595bc" id="%E5%88%9B%E5%BB%BA%E5%BA%94%E7%94%A8" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E5%88%9B%E5%BB%BA%E5%BA%94%E7%94%A8" class="anchor"></a>创建应用</h3><p data-lines="1" data-type="p" data-sign="ee6e904a6cf1aead78d0d62136d41050">1：创建一个简单的 <code>node.js</code> 应用，  输出主机名:</p><div data-sign="d51e7399459b732172590faecb1c83dc" data-type="codeBlock" data-lines="16"><pre><code>const http = require('http');
+const os = require('os');
 
-console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">"Kubia server starting..."</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+console.log("Kubia server starting...");
 
-<span class="token keyword">var</span> <span class="token function-variable function">handler</span> <span class="token operator">=</span> <span class="token keyword">function</span><span class="token punctuation">(</span><span class="token parameter">request<span class="token punctuation">,</span> response</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
-  console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">"Received request from "</span> <span class="token operator">+</span> request<span class="token punctuation">.</span>connection<span class="token punctuation">.</span>remoteAddress<span class="token punctuation">)</span><span class="token punctuation">;</span>
-  response<span class="token punctuation">.</span><span class="token function">writeHead</span><span class="token punctuation">(</span><span class="token number">200</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-  response<span class="token punctuation">.</span><span class="token function">end</span><span class="token punctuation">(</span><span class="token string">"You've hit "</span> <span class="token operator">+</span> os<span class="token punctuation">.</span><span class="token function">hostname</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">+</span> <span class="token string">"\n"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-<span class="token punctuation">}</span><span class="token punctuation">;</span>
+var handler = function(request, response) {
+  console.log("Received request from " + request.connection.remoteAddress);
+  response.writeHead(200);
+  response.end("You've hit " + os.hostname() + "\n");
+};
 
-<span class="token keyword">var</span> www <span class="token operator">=</span> http<span class="token punctuation">.</span><span class="token function">createServer</span><span class="token punctuation">(</span>handler<span class="token punctuation">)</span><span class="token punctuation">;</span>
-www<span class="token punctuation">.</span><span class="token function">listen</span><span class="token punctuation">(</span><span class="token number">8080</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+var www = http.createServer(handler);
+www.listen(8080);
 </code></pre>
 
-<p data-lines="5" data-type="br" data-sign="br5">&nbsp;</p><p data-lines="1" data-type="p" data-sign="1c30d266c0776a1194d2cb4175a46866">2： 构建镜像，需要一个 Dockerfile 文件</p><blockquote data-lines="2" data-sign="e323148cb8257d288020012e0130da31_2">和 app.js 同一目录<br><div data-sign="6be9d9ac2841903c7f6d688835c1050a" data-type="codeBlock" data-lines="9"><pre class="prism language-dockerfile" style="position: relative; z-index: 2;"><code class="language-dockerfile"><span class="token comment"># From 定义了基础镜像，可以是 Ubuntu 等系统，但应尽量遵从精简</span>
-<span class="token keyword">FROM</span> node<span class="token punctuation">:</span>7
-<span class="token comment"># 本地文件添加到 镜像的根目录</span>
-<span class="token keyword">ADD</span> app.js /app.js
-<span class="token comment"># 镜像被运行时 需要执行的命令 </span>
-<span class="token keyword">ENTRYPOINT</span> <span class="token punctuation">[</span><span class="token string">"node"</span><span class="token punctuation">,</span> <span class="token string">"app.js"</span><span class="token punctuation">]</span>
-</code></pre></div></blockquote><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><h3 data-lines="1" data-sign="0ef299b96a2be75cc85dbf383798283b" id="%E6%9E%84%E5%BB%BA%E9%95%9C%E5%83%8F" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E6%9E%84%E5%BB%BA%E9%95%9C%E5%83%8F" class="anchor"></a>构建镜像</h3><p data-lines="1" data-type="p" data-sign="c92cff672621aad31f4a19a13faff34b">1： Dockerfile + app.js 就能创建镜像包：</p><div data-sign="23755c6325b3356e590036cabf24c72d" data-type="codeBlock" data-lines="27"><pre class="prism language-shell" style="position: relative; z-index: 2;"><code class="language-shell"># 基于当前目录 创建 kubia 镜像
-$ docker build <span class="token operator">-</span>t kubia <span class="token punctuation">.</span>
-Sending build context to Docker daemon  <span class="token number">3.072</span>kB
-Step <span class="token number">1</span><span class="token operator">/</span><span class="token number">3</span> <span class="token operator">:</span> <span class="token constant">FROM</span> node<span class="token operator">:</span><span class="token number">7</span>
-<span class="token number">7</span><span class="token operator">:</span> Pulling <span class="token keyword">from</span> library<span class="token operator">/</span>node
-ad74af05f5a2<span class="token operator">:</span> Pull complete
-<span class="token number">2</span>b032b8bbe8b<span class="token operator">:</span> Pull complete
-a9a5b35f6ead<span class="token operator">:</span> Pull complete
-<span class="token number">3245</span>b5a1c52c<span class="token operator">:</span> Pull complete
-afa075743392<span class="token operator">:</span> Pull complete
-<span class="token number">9</span>fb9f21641cd<span class="token operator">:</span> Pull complete
-<span class="token number">3</span>f40ad2666bc<span class="token operator">:</span> Pull complete
-<span class="token number">49</span>c0ed396b49<span class="token operator">:</span> Pull complete
-Digest<span class="token operator">:</span> sha256<span class="token operator">:</span>af5c2c6ac8bc3fa372ac031ef60c45a285eeba7bce9ee9ed66dad3a01e29ab8d
-Status<span class="token operator">:</span> Downloaded newer image <span class="token keyword">for</span> node<span class="token operator">:</span><span class="token number">7</span>
- <span class="token operator">--</span><span class="token operator">-</span><span class="token operator">&gt;</span> d9aed20b68a4
-Step <span class="token number">2</span><span class="token operator">/</span><span class="token number">3</span> <span class="token operator">:</span> <span class="token constant">ADD</span> app<span class="token punctuation">.</span>js <span class="token operator">/</span>app<span class="token punctuation">.</span>js
- <span class="token operator">--</span><span class="token operator">-</span><span class="token operator">&gt;</span> <span class="token number">43461e2</span>e8cef
-Step <span class="token number">3</span><span class="token operator">/</span><span class="token number">3</span> <span class="token operator">:</span> <span class="token constant">ENTRYPOINT</span> <span class="token punctuation">[</span><span class="token string">"node"</span><span class="token punctuation">,</span> <span class="token string">"app.js"</span><span class="token punctuation">]</span>
- <span class="token operator">--</span><span class="token operator">-</span><span class="token operator">&gt;</span> Running <span class="token keyword">in</span> <span class="token number">56</span>bc0e5982ce
-Removing intermediate container <span class="token number">56</span>bc0e5982ce
- <span class="token operator">--</span><span class="token operator">-</span><span class="token operator">&gt;</span> <span class="token number">0</span>d2c12c8cc80
-Successfully built <span class="token number">0</span>d2c12c8cc80
-Successfully tagged kubia<span class="token operator">:</span>latest
+<p data-lines="5" data-type="br" data-sign="br5">&nbsp;</p><p data-lines="1" data-type="p" data-sign="1c30d266c0776a1194d2cb4175a46866">2： 构建镜像，需要一个 Dockerfile 文件</p><blockquote data-lines="2" data-sign="e323148cb8257d288020012e0130da31_2">和 app.js 同一目录<br><div data-sign="6be9d9ac2841903c7f6d688835c1050a" data-type="codeBlock" data-lines="9"><pre><code># From 定义了基础镜像，可以是 Ubuntu 等系统，但应尽量遵从精简
+FROM node:7
+# 本地文件添加到 镜像的根目录
+ADD app.js /app.js
+# 镜像被运行时 需要执行的命令
+ENTRYPOINT ["node", "app.js"]
+</code></pre></div></blockquote><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><h3 data-lines="1" data-sign="0ef299b96a2be75cc85dbf383798283b" id="%E6%9E%84%E5%BB%BA%E9%95%9C%E5%83%8F" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E6%9E%84%E5%BB%BA%E9%95%9C%E5%83%8F" class="anchor"></a>构建镜像</h3><p data-lines="1" data-type="p" data-sign="c92cff672621aad31f4a19a13faff34b">1： Dockerfile + app.js 就能创建镜像包：</p><div data-sign="23755c6325b3356e590036cabf24c72d" data-type="codeBlock" data-lines="27"><pre><code># 基于当前目录 创建 kubia 镜像
+$ docker build -t kubia .
+Sending build context to Docker daemon  3.072kB
+Step 1/3 : FROM node:7
+7: Pulling from library/node
+ad74af05f5a2: Pull complete
+2b032b8bbe8b: Pull complete
+a9a5b35f6ead: Pull complete
+3245b5a1c52c: Pull complete
+afa075743392: Pull complete
+9fb9f21641cd: Pull complete
+3f40ad2666bc: Pull complete
+49c0ed396b49: Pull complete
+Digest: sha256:af5c2c6ac8bc3fa372ac031ef60c45a285eeba7bce9ee9ed66dad3a01e29ab8d
+Status: Downloaded newer image for node:7
+ ---&gt; d9aed20b68a4
+Step 2/3 : ADD app.js /app.js
+ ---&gt; 43461e2e8cef
+Step 3/3 : ENTRYPOINT ["node", "app.js"]
+ ---&gt; Running in 56bc0e5982ce
+Removing intermediate container 56bc0e5982ce
+ ---&gt; 0d2c12c8cc80
+Successfully built 0d2c12c8cc80
+Successfully tagged kubia:latest
 </code></pre>
 
-<p data-lines="2" data-type="p" data-sign="623cded08b900ba52bff21152f6a7f0e">2: 镜像构建过程</p><ul class="cherry-list__default" data-lines="2" data-sign="2e2af0c9eac197b892605a43aec25161list2"><li>Docker 客户端： 在宿主机上的； </li><li>Docker 守护进程： 运行在一个虚拟机内； 【可以在远端机器】</li></ul><p data-lines="1" data-type="p" data-sign="616c121d76855ad0e9c44fb6380755c8" style=""><img alt="" src="./深入理解kubernetes - 游戏知识库 - KM平台_files/cos-file-url(9)" style="position: relative; z-index: 2;" class="amplify"></p><p data-lines="5" data-type="br" data-sign="br5">&nbsp;</p><h3 data-lines="1" data-sign="f0f65ecefc361c88ac38f6e0a351cbe0" id="%E9%95%9C%E5%83%8F%E5%88%86%E5%B1%82" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E9%95%9C%E5%83%8F%E5%88%86%E5%B1%82" class="anchor"></a>镜像分层</h3><p data-lines="2" data-type="p" data-sign="01c15a178b120ec9b6772ae1a8105803">1： Dockerfile 中的的<strong>每一行</strong> 都会 形成一个 镜像层</p><p data-lines="2" data-type="p" data-sign="e373025627b40ddd28418ac5e0f4ff30">最后一层 是 <code>kubia:latest</code> 镜像</p><p data-lines="2" data-type="p" data-sign="f605512524115c4c990105713b419bed" style=""><img alt="" src="./深入理解kubernetes - 游戏知识库 - KM平台_files/cos-file-url(10)" style="position: relative; z-index: 2;" class="amplify"></p><p data-lines="2" data-type="p" data-sign="b0a28f0abd93b4a0584dd7a5d35edbe6">2： 镜像分层的好处： 节省下载，</p><p data-lines="2" data-type="p" data-sign="80294886958f6e19161dcd33bf21dff3">3： 查看本地新镜像 <code>docker image</code></p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><h3 data-lines="1" data-sign="3f6fe171e613571dbb040fb7bec88705" id="%E8%BF%90%E8%A1%8C%E9%95%9C%E5%83%8F" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E8%BF%90%E8%A1%8C%E9%95%9C%E5%83%8F" class="anchor"></a>运行镜像</h3><p data-lines="1" data-type="p" data-sign="0927ad6e1ecb92ad920548fde0ddf05d">1： 端口映射后，可用 <a rel="nofollow" href="http://localhost:8080/">http://localhost:8080</a> 访问； </p><div data-sign="ad9260a8d1e95252152c372d40870638" data-type="codeBlock" data-lines="11"><pre class="prism language-shell" style="position: relative; z-index: 2;"><code class="language-shell">                 # 容器名称    # 本机<span class="token number">8080</span> 映射到容器的 <span class="token number">8080</span> 端口      # 镜像文件
-docker run <span class="token operator">--</span>name kubia<span class="token operator">-</span>container <span class="token operator">-</span>p <span class="token number">8080</span><span class="token operator">:</span><span class="token number">8080</span>                  <span class="token operator">-</span>d kubia
-<span class="token number">4099</span>df6236c5d4905a268b213ab986949f6522122454de41f56293ce3508e958 # 容器 <span class="token constant">ID</span>
+<p data-lines="2" data-type="p" data-sign="623cded08b900ba52bff21152f6a7f0e">2: 镜像构建过程</p><ul class="cherry-list__default" data-lines="2" data-sign="2e2af0c9eac197b892605a43aec25161list2"><li>Docker 客户端： 在宿主机上的； </li><li>Docker 守护进程： 运行在一个虚拟机内； 【可以在远端机器】</li></ul><p data-lines="1" data-type="p" data-sign="616c121d76855ad0e9c44fb6380755c8" style=""></p><p data-lines="5" data-type="br" data-sign="br5">&nbsp;</p><h3 data-lines="1" data-sign="f0f65ecefc361c88ac38f6e0a351cbe0" id="%E9%95%9C%E5%83%8F%E5%88%86%E5%B1%82" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E9%95%9C%E5%83%8F%E5%88%86%E5%B1%82" class="anchor"></a>镜像分层</h3><p data-lines="2" data-type="p" data-sign="01c15a178b120ec9b6772ae1a8105803">1： Dockerfile 中的的<strong>每一行</strong> 都会 形成一个 镜像层</p><p data-lines="2" data-type="p" data-sign="e373025627b40ddd28418ac5e0f4ff30">最后一层 是 <code>kubia:latest</code> 镜像</p><p data-lines="2" data-type="p" data-sign="f605512524115c4c990105713b419bed" style=""></p><p data-lines="2" data-type="p" data-sign="b0a28f0abd93b4a0584dd7a5d35edbe6">2： 镜像分层的好处： 节省下载，</p><p data-lines="2" data-type="p" data-sign="80294886958f6e19161dcd33bf21dff3">3： 查看本地新镜像 <code>docker image</code></p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><h3 data-lines="1" data-sign="3f6fe171e613571dbb040fb7bec88705" id="%E8%BF%90%E8%A1%8C%E9%95%9C%E5%83%8F" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E8%BF%90%E8%A1%8C%E9%95%9C%E5%83%8F" class="anchor"></a>运行镜像</h3><p data-lines="1" data-type="p" data-sign="0927ad6e1ecb92ad920548fde0ddf05d">1： 端口映射后，可用 <a rel="nofollow" href="http://localhost:8080/">http://localhost:8080</a> 访问； </p><div data-sign="ad9260a8d1e95252152c372d40870638" data-type="codeBlock" data-lines="11"><pre><code>                 # 容器名称    # 本机8080 映射到容器的 8080 端口      # 镜像文件
+docker run --name kubia-container -p 8080:8080                  -d kubia
+4099df6236c5d4905a268b213ab986949f6522122454de41f56293ce3508e958 # 容器 ID
 
-# test，主机名就是 分配的 容器 <span class="token constant">ID</span>
-$ curl localhost<span class="token operator">:</span><span class="token number">8080</span>
-You've hit <span class="token number">4099</span>df6236c5
+# test，主机名就是 分配的 容器 ID
+$ curl localhost:8080
+You've hit 4099df6236c5
 </code></pre>
 
-<p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="1cba5bebd8af52af5b59e80f2ec9ff25">2: 查看运行中的容器： </p><div data-sign="6ad48eaec492888f64f5468649641fa5" data-type="codeBlock" data-lines="10"><pre class="prism language-shell" style="position: relative; z-index: 2;"><code class="language-shell">$ docker ps
-<span class="token constant">CONTAINER</span> <span class="token constant">ID</span>   <span class="token constant">IMAGE</span>                                 <span class="token constant">COMMAND</span>                  <span class="token constant">CREATED</span>          <span class="token constant">STATUS</span>          <span class="token constant">PORTS</span>                                                                                                                                  <span class="token constant">NAMES</span>
-<span class="token number">4099</span>df6236c5   kubia                                 <span class="token string">"node app.js"</span>            <span class="token number">40</span> seconds ago   Up <span class="token number">38</span> seconds   <span class="token number">0.0</span><span class="token number">.0</span><span class="token number">.0</span><span class="token operator">:</span><span class="token number">8080</span><span class="token operator">-</span><span class="token operator">&gt;</span><span class="token number">8080</span><span class="token operator">/</span>tcp<span class="token punctuation">,</span> <span class="token operator">:</span><span class="token operator">:</span><span class="token operator">:</span><span class="token number">8080</span><span class="token operator">-</span><span class="token operator">&gt;</span><span class="token number">8080</span><span class="token operator">/</span>tcp                                                                                              kubia<span class="token operator">-</span>container
-<span class="token number">2744</span>c31527b9   gcr<span class="token punctuation">.</span>io<span class="token operator">/</span>k8s<span class="token operator">-</span>minikube<span class="token operator">/</span>kicbase<span class="token operator">:</span>v0<span class="token punctuation">.</span><span class="token number">0.22</span>   <span class="token string">"/usr/local/bin/entr…"</span>   <span class="token number">3</span> days ago       Up <span class="token number">3</span> days       <span class="token number">127.0</span><span class="token number">.0</span><span class="token number">.1</span><span class="token operator">:</span><span class="token number">49172</span><span class="token operator">-</span><span class="token operator">&gt;</span><span class="token number">22</span><span class="token operator">/</span>tcp<span class="token punctuation">,</span> <span class="token number">127.0</span><span class="token number">.0</span><span class="token number">.1</span><span class="token operator">:</span><span class="token number">49171</span><span class="token operator">-</span><span class="token operator">&gt;</span><span class="token number">2376</span><span class="token operator">/</span>tcp<span class="token punctuation">,</span> <span class="token number">127.0</span><span class="token number">.0</span><span class="token number">.1</span><span class="token operator">:</span><span class="token number">49170</span><span class="token operator">-</span><span class="token operator">&gt;</span><span class="token number">5000</span><span class="token operator">/</span>tcp<span class="token punctuation">,</span> <span class="token number">127.0</span><span class="token number">.0</span><span class="token number">.1</span><span class="token operator">:</span><span class="token number">49169</span><span class="token operator">-</span><span class="token operator">&gt;</span><span class="token number">8443</span><span class="token operator">/</span>tcp<span class="token punctuation">,</span> <span class="token number">127.0</span><span class="token number">.0</span><span class="token number">.1</span><span class="token operator">:</span><span class="token number">49168</span><span class="token operator">-</span><span class="token operator">&gt;</span><span class="token number">32443</span><span class="token operator">/</span>tcp   minikube
+<p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="1cba5bebd8af52af5b59e80f2ec9ff25">2: 查看运行中的容器： </p><div data-sign="6ad48eaec492888f64f5468649641fa5" data-type="codeBlock" data-lines="10"><pre><code>$ docker ps
+CONTAINER ID   IMAGE                                 COMMAND                  CREATED          STATUS          PORTS                                                                                                                                  NAMES
+4099df6236c5   kubia                                 "node app.js"            40 seconds ago   Up 38 seconds   0.0.0.0:8080-&gt;8080/tcp, :::8080-&gt;8080/tcp                                                                                              kubia-container
+2744c31527b9   gcr.io/k8s-minikube/kicbase:v0.0.22   "/usr/local/bin/entr…"   3 days ago       Up 3 days       127.0.0.1:49172-&gt;22/tcp, 127.0.0.1:49171-&gt;2376/tcp, 127.0.0.1:49170-&gt;5000/tcp, 127.0.0.1:49169-&gt;8443/tcp, 127.0.0.1:49168-&gt;32443/tcp   minikube
 
 # 查看容器 详细信息
-docker inspect kubia<span class="token operator">-</span>container
+docker inspect kubia-container
 </code></pre>
 
-<p data-lines="7" data-type="br" data-sign="br7">&nbsp;</p><h3 data-lines="1" data-sign="ba85bf9d701c0b2afb821a8be419670d" id="%E6%9F%A5%E7%9C%8B%E5%AE%B9%E5%99%A8%E5%86%85%E9%83%A8" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E6%9F%A5%E7%9C%8B%E5%AE%B9%E5%99%A8%E5%86%85%E9%83%A8" class="anchor"></a>查看容器内部</h3><p data-lines="2" data-type="p" data-sign="bd6eb1049333043eaf4ecd4da7b5fffe">1： 一个容器可以运行多个进程； </p><p data-lines="1" data-type="p" data-sign="8657501cccfb0936c453827e5c708313">2： Node.js 镜像中 包含了 bash shell , 可在容器 内运行 shell :</p><div data-sign="50673b26b2d8a4d158a12a657caa434b" data-type="codeBlock" data-lines="8"><pre class="prism language-shell" style="position: relative; z-index: 2;"><code class="language-shell"># kubia<span class="token operator">-</span>container 容器内 运行 bash 进程
-docker exec <span class="token operator">-</span>it kubia<span class="token operator">-</span>container bash
+<p data-lines="7" data-type="br" data-sign="br7">&nbsp;</p><h3 data-lines="1" data-sign="ba85bf9d701c0b2afb821a8be419670d" id="%E6%9F%A5%E7%9C%8B%E5%AE%B9%E5%99%A8%E5%86%85%E9%83%A8" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E6%9F%A5%E7%9C%8B%E5%AE%B9%E5%99%A8%E5%86%85%E9%83%A8" class="anchor"></a>查看容器内部</h3><p data-lines="2" data-type="p" data-sign="bd6eb1049333043eaf4ecd4da7b5fffe">1： 一个容器可以运行多个进程； </p><p data-lines="1" data-type="p" data-sign="8657501cccfb0936c453827e5c708313">2： Node.js 镜像中 包含了 bash shell , 可在容器 内运行 shell :</p><div data-sign="50673b26b2d8a4d158a12a657caa434b" data-type="codeBlock" data-lines="8"><pre><code># kubia-container 容器内 运行 bash 进程
+docker exec -it kubia-container bash
 
 # 退出
 exit
 </code></pre>
 
-<ul class="cherry-list__default" data-lines="2" data-sign="a304e23330d70c248380312240a38408list2"><li><code>-i</code>，确保标准输入流保待开放。需要在 shell 中输入命令。</li><li><code>-t</code>, 分配一个伪终端(TTY)。  </li></ul><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="1348e98a8daccb27e4f4c4691875dd16">3: 查看容器内的进程； </p><div data-sign="8ecd707993d7bbe30a1777be2106eb34" data-type="codeBlock" data-lines="9"><pre class="prism language-shell" style="position: relative; z-index: 2;"><code class="language-shell">$ docker exec <span class="token operator">-</span>it kubia<span class="token operator">-</span>container bash
-root@<span class="token number">4099</span>df6236c5<span class="token operator">:</span><span class="token operator">/</span># ps axuf
-<span class="token constant">USER</span>         <span class="token constant">PID</span> <span class="token operator">%</span><span class="token constant">CPU</span> <span class="token operator">%</span><span class="token constant">MEM</span>    <span class="token constant">VSZ</span>   <span class="token constant">RSS</span> <span class="token constant">TTY</span>      <span class="token constant">STAT</span> <span class="token constant">START</span>   <span class="token constant">TIME</span> <span class="token constant">COMMAND</span>
-root          <span class="token number">12</span>  <span class="token number">0.6</span>  <span class="token number">0.0</span>  <span class="token number">20244</span>  <span class="token number">2984</span> pts<span class="token operator">/</span><span class="token number">0</span>    Ss   <span class="token number">21</span><span class="token operator">:</span><span class="token number">44</span>   <span class="token number">0</span><span class="token operator">:</span><span class="token number">00</span> bash
-root          <span class="token number">18</span>  <span class="token number">0.0</span>  <span class="token number">0.0</span>  <span class="token number">17496</span>  <span class="token number">2020</span> pts<span class="token operator">/</span><span class="token number">0</span>    <span class="token constant">R</span><span class="token operator">+</span>   <span class="token number">21</span><span class="token operator">:</span><span class="token number">44</span>   <span class="token number">0</span><span class="token operator">:</span><span class="token number">00</span>  \_ ps axuf
-root           <span class="token number">1</span>  <span class="token number">0.0</span>  <span class="token number">0.6</span> <span class="token number">614432</span> <span class="token number">26320</span> <span class="token operator">?</span>        Ssl  <span class="token number">21</span><span class="token operator">:</span><span class="token number">41</span>   <span class="token number">0</span><span class="token operator">:</span><span class="token number">00</span> node app<span class="token punctuation">.</span>js
+<ul class="cherry-list__default" data-lines="2" data-sign="a304e23330d70c248380312240a38408list2"><li><code>-i</code>，确保标准输入流保待开放。需要在 shell 中输入命令。</li><li><code>-t</code>, 分配一个伪终端(TTY)。  </li></ul><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="1348e98a8daccb27e4f4c4691875dd16">3: 查看容器内的进程； </p><div data-sign="8ecd707993d7bbe30a1777be2106eb34" data-type="codeBlock" data-lines="9"><pre><code>$ docker exec -it kubia-container bash
+root@4099df6236c5:/# ps axuf
+USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root          12  0.6  0.0  20244  2984 pts/0    Ss   21:44   0:00 bash
+root          18  0.0  0.0  17496  2020 pts/0    R+   21:44   0:00  \_ ps axuf
+root           1  0.0  0.6 614432 26320 ?        Ssl  21:41   0:00 node app.js
 </code></pre>
 
-<blockquote data-lines="2" data-sign="dc2503872482ae55162d944151d396ca_2">只能在 docker 的守护进程内查看</blockquote><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="1d039eaf14b8d422bc5e2852c4db4cdf">4： 在母机上查看进程</p><div data-sign="7dcb9df2e5c6b6977b7871d83972a028" data-type="codeBlock" data-lines="6"><pre class="prism language-shell" style="position: relative; z-index: 2;"><code class="language-shell">user00@ubuntu<span class="token operator">:</span><span class="token operator">~</span>$ ps axuf <span class="token operator">|</span> grep  app<span class="token punctuation">.</span>js
-app<span class="token punctuation">.</span>js
-root     <span class="token number">3224898</span>  <span class="token number">0.0</span>  <span class="token number">0.6</span> <span class="token number">614432</span> <span class="token number">26320</span> <span class="token operator">?</span>        Ssl  <span class="token number">14</span><span class="token operator">:</span><span class="token number">41</span>   <span class="token number">0</span><span class="token operator">:</span><span class="token number">00</span>  \_ node app<span class="token punctuation">.</span>js
+<blockquote data-lines="2" data-sign="dc2503872482ae55162d944151d396ca_2">只能在 docker 的守护进程内查看</blockquote><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="1d039eaf14b8d422bc5e2852c4db4cdf">4： 在母机上查看进程</p><div data-sign="7dcb9df2e5c6b6977b7871d83972a028" data-type="codeBlock" data-lines="6"><pre><code>user00@ubuntu:~$ ps axuf | grep  app.js
+app.js
+root     3224898  0.0  0.6 614432 26320 ?        Ssl  14:41   0:00  \_ node app.js
 </code></pre>
 
-<blockquote data-lines="2" data-sign="58ce88c8e27078e7bd0888b2ca65b9c8_2">容器和主机上的进程ID是独立、不同的； </blockquote><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="117d9d57862b6ff158d93825a184dd53">5： 容器 是独立的：</p><ul class="cherry-list__default" data-lines="6" data-sign="9e5cf3153e9d5dd765482138c5aeeaeflist6"><li>PID Linux 命名空间 </li><li>文件系统 都是独立的</li><li>进程</li><li>用户</li><li>主机名</li><li>网络接口</li></ul><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><h3 data-lines="1" data-sign="6cdaa7d9d788586ee8a401719f6b6e4f" id="%E5%81%9C%E6%AD%A2%E5%92%8C%E5%88%A0%E9%99%A4%E5%AE%B9%E5%99%A8" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E5%81%9C%E6%AD%A2%E5%92%8C%E5%88%A0%E9%99%A4%E5%AE%B9%E5%99%A8" class="anchor"></a>停止和删除容器</h3><p data-lines="2" data-type="p" data-sign="bc79cc3bad68b90474b1647aa4ec794d">1： 停止容器，会停止容器内的主进程。 </p><p data-lines="1" data-type="p" data-sign="9cd51facf3be019f445cdbe8edd6d00f">容器本身依然存在，通过 <code>docker ps -a</code></p><div data-sign="629d64ffcd5c9bdd1e36321f0ae6a970" data-type="codeBlock" data-lines="12"><pre class="prism language-shell" style="position: relative; z-index: 2;"><code class="language-shell">docker stop kubia<span class="token operator">-</span>container
+<blockquote data-lines="2" data-sign="58ce88c8e27078e7bd0888b2ca65b9c8_2">容器和主机上的进程ID是独立、不同的； </blockquote><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="117d9d57862b6ff158d93825a184dd53">5： 容器 是独立的：</p><ul class="cherry-list__default" data-lines="6" data-sign="9e5cf3153e9d5dd765482138c5aeeaeflist6"><li>PID Linux 命名空间 </li><li>文件系统 都是独立的</li><li>进程</li><li>用户</li><li>主机名</li><li>网络接口</li></ul><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><h3 data-lines="1" data-sign="6cdaa7d9d788586ee8a401719f6b6e4f" id="%E5%81%9C%E6%AD%A2%E5%92%8C%E5%88%A0%E9%99%A4%E5%AE%B9%E5%99%A8" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E5%81%9C%E6%AD%A2%E5%92%8C%E5%88%A0%E9%99%A4%E5%AE%B9%E5%99%A8" class="anchor"></a>停止和删除容器</h3><p data-lines="2" data-type="p" data-sign="bc79cc3bad68b90474b1647aa4ec794d">1： 停止容器，会停止容器内的主进程。 </p><p data-lines="1" data-type="p" data-sign="9cd51facf3be019f445cdbe8edd6d00f">容器本身依然存在，通过 <code>docker ps -a</code></p><div data-sign="629d64ffcd5c9bdd1e36321f0ae6a970" data-type="codeBlock" data-lines="12"><pre><code>docker stop kubia-container
 
-# 打印所有容器<span class="token punctuation">,</span> 包括 运行中的和已停止的
-$ docker ps <span class="token operator">-</span>a
-<span class="token constant">CONTAINER</span> <span class="token constant">ID</span>  <span class="token constant">IMAGE</span>  <span class="token constant">COMMAND</span>         <span class="token constant">CREATED</span>                <span class="token constant">STATUS</span>    <span class="token constant">PORTS</span>      <span class="token constant">NAMES</span>
-<span class="token number">4099</span>df6236c5  kubia  <span class="token string">"node app.js"</span>   <span class="token number">6</span> minutes ago    <span class="token function">Exited</span> <span class="token punctuation">(</span><span class="token number">137</span><span class="token punctuation">)</span> <span class="token number">4</span> seconds ago
+# 打印所有容器, 包括 运行中的和已停止的
+$ docker ps -a
+CONTAINER ID  IMAGE  COMMAND         CREATED                STATUS    PORTS      NAMES
+4099df6236c5  kubia  "node app.js"   6 minutes ago    Exited (137) 4 seconds ago
 
 # 真正的 删除容器
-docker rm kubia<span class="token operator">-</span>container
+docker rm kubia-container
 </code></pre>
 
-<p data-lines="5" data-type="br" data-sign="br5">&nbsp;</p><h3 data-lines="1" data-sign="1c30e72236bef724322a9744ab6631df" id="%E5%90%91%E4%BB%93%E5%BA%93%E6%8E%A8%E9%80%81%E9%95%9C%E5%83%8F" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E5%90%91%E4%BB%93%E5%BA%93%E6%8E%A8%E9%80%81%E9%95%9C%E5%83%8F" class="anchor"></a>向仓库推送镜像</h3><p data-lines="2" data-type="p" data-sign="f9b3fbaf6e9f2957de6b91a56f4ff6b9">1： 仓库  <code>http://hub.docker.com</code> 镜像中心； </p><p data-lines="1" data-type="p" data-sign="a5d036c2ad294ee6818d6cfa35c087b8">2： 按照仓库要求，创建额外的 tag </p><div data-sign="0cc6580cb5cfc0aaeb68b520c1fea7f2" data-type="codeBlock" data-lines="14"><pre class="prism language-shell" style="position: relative; z-index: 2;"><code class="language-shell">				 # 个人 <span class="token constant">ID</span>
-docker tag kubia luksa<span class="token operator">/</span>kubia
+<p data-lines="5" data-type="br" data-sign="br5">&nbsp;</p><h3 data-lines="1" data-sign="1c30e72236bef724322a9744ab6631df" id="%E5%90%91%E4%BB%93%E5%BA%93%E6%8E%A8%E9%80%81%E9%95%9C%E5%83%8F" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E5%90%91%E4%BB%93%E5%BA%93%E6%8E%A8%E9%80%81%E9%95%9C%E5%83%8F" class="anchor"></a>向仓库推送镜像</h3><p data-lines="2" data-type="p" data-sign="f9b3fbaf6e9f2957de6b91a56f4ff6b9">1： 仓库  <code>http://hub.docker.com</code> 镜像中心； </p><p data-lines="1" data-type="p" data-sign="a5d036c2ad294ee6818d6cfa35c087b8">2： 按照仓库要求，创建额外的 tag </p><div data-sign="0cc6580cb5cfc0aaeb68b520c1fea7f2" data-type="codeBlock" data-lines="14"><pre><code>				 # 个人 ID
+docker tag kubia luksa/kubia
 
 # 查看镜像
-docker images <span class="token operator">|</span> head
+docker images | head
 
-# 自己的 <span class="token constant">ID</span> 登录
+# 自己的 ID 登录
 docker login
 
 # 推送镜像
-docker push luksa<span class="token operator">/</span>kubia
+docker push luksa/kubia
 </code></pre>
 
-<p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="0e42aa6b0b3a9487366ee92a5d15db43">3: 可在任意机器上运行 云端 docker 镜像： </p><div data-sign="3458321d7d397b9b7575bb87b9ff7c01" data-type="codeBlock" data-lines="4"><pre class="prism language-shell" style="position: relative; z-index: 2;"><code class="language-shell">docker run <span class="token operator">-</span>p <span class="token number">8080</span><span class="token operator">:</span><span class="token number">8080</span> <span class="token operator">-</span>d luksa<span class="token operator">/</span>kubia
+<p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="0e42aa6b0b3a9487366ee92a5d15db43">3: 可在任意机器上运行 云端 docker 镜像： </p><div data-sign="3458321d7d397b9b7575bb87b9ff7c01" data-type="codeBlock" data-lines="4"><pre><code>docker run -p 8080:8080 -d luksa/kubia
 </code></pre>
 
-<p data-lines="5" data-type="br" data-sign="br5">&nbsp;</p><h2 data-lines="1" data-sign="b974970955fd504fd65ab2af48d40a11" id="%E4%BD%BF%E7%94%A8-kubernetes-%E9%9B%86%E7%BE%A4" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E4%BD%BF%E7%94%A8-kubernetes-%E9%9B%86%E7%BE%A4" class="anchor"></a>使用 kubernetes 集群</h2><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><h3 data-lines="1" data-sign="4eabe956c2f7b582c1c55f4a2428ef2d" id="%E5%AE%89%E8%A3%85%E9%9B%86%E7%BE%A4%E7%9A%84%E6%96%B9%E5%BC%8F" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E5%AE%89%E8%A3%85%E9%9B%86%E7%BE%A4%E7%9A%84%E6%96%B9%E5%BC%8F" class="anchor"></a>安装集群的方式</h3><p data-lines="2" data-type="p" data-sign="408720ac7299c16b9bf7663589b48d94">1：安装集群通常有以下四种方式： </p><ul class="cherry-list__default" data-lines="4" data-sign="efd8847958cccc80476d855af532d93alist4"><li>本地 单点； </li><li>Google Kubernetes Engine(GKE) 上托管的集群； </li><li>kubeadm 工具安装； </li><li>亚马逊的 AWS  上安装 kubernetes</li></ul><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><h3 data-lines="1" data-sign="1804acca175edaeae13039c9818fdb16" id="minikue-%E5%90%AF%E5%8A%A8k8s-%E9%9B%86%E7%BE%A4" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#minikue-%E5%90%AF%E5%8A%A8k8s-%E9%9B%86%E7%BE%A4" class="anchor"></a>Minikue 启动k8s 集群</h3><p data-lines="2" data-type="p" data-sign="648eed34e92f8e8948966de389dac424">1： 安装略</p><p data-lines="1" data-type="p" data-sign="fb40b92814655348ff6f3409fc78c3fc">2： 启动 Minikube 虚拟机</p><div data-sign="5e595986fb55152a7c77547bf7d0cfdc" data-type="codeBlock" data-lines="4"><pre class="prism language-shell" style="position: relative; z-index: 2;"><code class="language-shell">minikube start
+<p data-lines="5" data-type="br" data-sign="br5">&nbsp;</p><h2 data-lines="1" data-sign="b974970955fd504fd65ab2af48d40a11" id="%E4%BD%BF%E7%94%A8-kubernetes-%E9%9B%86%E7%BE%A4" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E4%BD%BF%E7%94%A8-kubernetes-%E9%9B%86%E7%BE%A4" class="anchor"></a>使用 kubernetes 集群</h2><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><h3 data-lines="1" data-sign="4eabe956c2f7b582c1c55f4a2428ef2d" id="%E5%AE%89%E8%A3%85%E9%9B%86%E7%BE%A4%E7%9A%84%E6%96%B9%E5%BC%8F" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E5%AE%89%E8%A3%85%E9%9B%86%E7%BE%A4%E7%9A%84%E6%96%B9%E5%BC%8F" class="anchor"></a>安装集群的方式</h3><p data-lines="2" data-type="p" data-sign="408720ac7299c16b9bf7663589b48d94">1：安装集群通常有以下四种方式： </p><ul class="cherry-list__default" data-lines="4" data-sign="efd8847958cccc80476d855af532d93alist4"><li>本地 单点； </li><li>Google Kubernetes Engine(GKE) 上托管的集群； </li><li>kubeadm 工具安装； </li><li>亚马逊的 AWS  上安装 kubernetes</li></ul><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><h3 data-lines="1" data-sign="1804acca175edaeae13039c9818fdb16" id="minikue-%E5%90%AF%E5%8A%A8k8s-%E9%9B%86%E7%BE%A4" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#minikue-%E5%90%AF%E5%8A%A8k8s-%E9%9B%86%E7%BE%A4" class="anchor"></a>Minikue 启动k8s 集群</h3><p data-lines="2" data-type="p" data-sign="648eed34e92f8e8948966de389dac424">1： 安装略</p><p data-lines="1" data-type="p" data-sign="fb40b92814655348ff6f3409fc78c3fc">2： 启动 Minikube 虚拟机</p><div data-sign="5e595986fb55152a7c77547bf7d0cfdc" data-type="codeBlock" data-lines="4"><pre><code>minikube start
 </code></pre>
 
-<p data-lines="2" data-type="p" data-sign="40e362d468b8122045017d1e79d3e3dc">3: 安装 k8s 客户端(kubectl)</p><p data-lines="5" data-type="br" data-sign="br5">&nbsp;</p><h3 data-lines="1" data-sign="90dd2b21624fe4ef7049f3b7a5e795a4" id="gke-%E5%88%9B%E5%BB%BA%E4%B8%89%E8%8A%82%E7%82%B9%E9%9B%86%E7%BE%A4" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#gke-%E5%88%9B%E5%BB%BA%E4%B8%89%E8%8A%82%E7%82%B9%E9%9B%86%E7%BE%A4" class="anchor"></a>GKE 创建三节点集群</h3><p data-lines="1" data-type="p" data-sign="155a1ca770f1c0cbfc063b73d82f0f1f">1：创建3个工作节点的示例： </p><div data-sign="bb58c45cf1dd2fd7ad3e719f97413f8e" data-type="codeBlock" data-lines="4"><pre class="prism language-sh" style="position: relative; z-index: 2;"><code class="language-sh">gcloud container clusters create kubia <span class="token operator">--</span>num<span class="token operator">-</span>node <span class="token number">3</span> <span class="token operator">--</span>machine<span class="token operator">-</span>type f1<span class="token operator">-</span>micro
+<p data-lines="2" data-type="p" data-sign="40e362d468b8122045017d1e79d3e3dc">3: 安装 k8s 客户端(kubectl)</p><p data-lines="5" data-type="br" data-sign="br5">&nbsp;</p><h3 data-lines="1" data-sign="90dd2b21624fe4ef7049f3b7a5e795a4" id="gke-%E5%88%9B%E5%BB%BA%E4%B8%89%E8%8A%82%E7%82%B9%E9%9B%86%E7%BE%A4" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#gke-%E5%88%9B%E5%BB%BA%E4%B8%89%E8%8A%82%E7%82%B9%E9%9B%86%E7%BE%A4" class="anchor"></a>GKE 创建三节点集群</h3><p data-lines="1" data-type="p" data-sign="155a1ca770f1c0cbfc063b73d82f0f1f">1：创建3个工作节点的示例： </p><div data-sign="bb58c45cf1dd2fd7ad3e719f97413f8e" data-type="codeBlock" data-lines="4"><pre><code>gcloud container clusters create kubia --num-node 3 --machine-type f1-micro
 </code></pre>
 
-<p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="42fe1b29e8668fbac9fe0e4e60cbf716">2：本地发起请求 到  k8s 的master 节点； master 节点负责 调度 pod, 以下创建了 3 个工作节点； </p><p data-lines="2" data-type="p" data-sign="e0f553337f9ee2ca4b5dbf311d4ec79a" style=""><img alt="" src="./深入理解kubernetes - 游戏知识库 - KM平台_files/cos-file-url(11)" style="position: relative; z-index: 2;" class="amplify"></p><p data-lines="5" data-type="br" data-sign="br5">&nbsp;</p><h4 data-lines="1" data-sign="b3e417960707cc7a04bac21ec262d584" id="%E9%83%A8%E7%BD%B2-nodejs-%E5%BA%94%E7%94%A8" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E9%83%A8%E7%BD%B2-nodejs-%E5%BA%94%E7%94%A8" class="anchor"></a>部署 Node.js 应用</h4><div data-sign="fed9190677babf8dd87d6f52af41edcc" data-type="codeBlock" data-lines="4"><pre class="prism language-shell" style="position: relative; z-index: 2;"><code class="language-shell">kubectl run kubia <span class="token operator">--</span>image<span class="token operator">=</span>luksa<span class="token operator">/</span>kubia <span class="token operator">--</span>port<span class="token operator">=</span><span class="token number">8080</span> <span class="token operator">--</span>generator<span class="token operator">=</span>run<span class="token operator">/</span>v1
+<p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="42fe1b29e8668fbac9fe0e4e60cbf716">2：本地发起请求 到  k8s 的master 节点； master 节点负责 调度 pod, 以下创建了 3 个工作节点； </p><p data-lines="2" data-type="p" data-sign="e0f553337f9ee2ca4b5dbf311d4ec79a" style=""></p><p data-lines="5" data-type="br" data-sign="br5">&nbsp;</p><h4 data-lines="1" data-sign="b3e417960707cc7a04bac21ec262d584" id="%E9%83%A8%E7%BD%B2-nodejs-%E5%BA%94%E7%94%A8" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E9%83%A8%E7%BD%B2-nodejs-%E5%BA%94%E7%94%A8" class="anchor"></a>部署 Node.js 应用</h4><div data-sign="fed9190677babf8dd87d6f52af41edcc" data-type="codeBlock" data-lines="4"><pre><code>kubectl run kubia --image=luksa/kubia --port=8080 --generator=run/v1
 </code></pre>
 
-<p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><h5 data-lines="1" data-sign="8a49de3b1d3c5b3573e3c24c8951e269" id="pod" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#pod" class="anchor"></a>pod</h5><p data-lines="2" data-type="p" data-sign="3879ea5f5acfe23a85a6981f0e564230">1: 多个容器运行在一起：</p><p data-lines="2" data-type="p" data-sign="a5c03f9948942dcd86e4f705dcd961b1">一个 pod 可以包含任意数量的容器； </p><p data-lines="2" data-type="p" data-sign="e1217f8313266bb4a8007c668d0a6cef">2： pod 拥有单独的 <strong>私有</strong> IP、主机名、单独的 Linux 命名空间； </p><p data-lines="2" data-type="p" data-sign="dff1501fed9e6eba0ecfbb72ef16e3b5"><strong>Pod 是扩缩容的基本单位；</strong></p><p data-lines="2" data-type="p" data-sign="af5086936766be0037cae5fe7d12af1b" style=""><img alt="" src="./深入理解kubernetes - 游戏知识库 - KM平台_files/cos-file-url(12)" style="position: relative; z-index: 2;" class="amplify"></p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="e23ee7482ae9cf8c45b5fb19bf09f387">3： k8s 中 运行 容器镜像需要经历两个步骤： </p><ul class="cherry-list__default" data-lines="3" data-sign="5072797200d591078195ce147c5363eelist3"><li>1： 推送 docker 镜像 到云端 【不同工作节点上的 Docker 能访问到 该镜像】； </li><li>2：运行 kubectl ，==创建一个 ReplicationController 对象 【运行指定数量的 pod 副本】；== <ul class="cherry-list__default"><li>调度器 创建 pod，并 选择一个 工作节点，分配给pod; </li></ul></li></ul><p data-lines="1" data-type="p" data-sign="2baddb5dbf05ff8352c2e19c8bdb2bac" style=""><img alt="" src="./深入理解kubernetes - 游戏知识库 - KM平台_files/cos-file-url(13)" style="position: relative; z-index: 2;" class="amplify"></p><p data-lines="5" data-type="br" data-sign="br5">&nbsp;</p><h5 data-lines="1" data-sign="00a44b787819c6c9df720f0f1ba430b1" id="%E5%88%9B%E5%BB%BA%E5%A4%96%E9%83%A8%E8%AE%BF%E9%97%AE%E7%9A%84%E6%9C%8D%E5%8A%A1" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E5%88%9B%E5%BB%BA%E5%A4%96%E9%83%A8%E8%AE%BF%E9%97%AE%E7%9A%84%E6%9C%8D%E5%8A%A1" class="anchor"></a>创建外部访问的服务</h5><p data-lines="2" data-type="p" data-sign="29ebd0cf5fe649aea5d27ac74c36ce0a">1： 常规服务：ClusterIP 服务， 比如 pod， 只能从 集群内部访问； </p><p data-lines="2" data-type="p" data-sign="1841797473f41111d9c9de8e0bdc68d9">2： 创建 LoadBalancer 类型的服务，负载均衡，对外提供 公共IP 访问 pod; </p><blockquote data-lines="2" data-sign="09cf844f38a79d58cdb928220c955cf1_2">内部删减 pod， 移动pod，外部 IP不变， 一个外部 IP 可对应 多个 pod。 <br><div data-sign="be32c70bf605b2e6532fd50f911f6de2" data-type="codeBlock" data-lines="8"><pre class="prism language-shell" style="position: relative; z-index: 2;"><code class="language-shell">kubectl expose rc kubia <span class="token operator">--</span>type<span class="token operator">=</span>LoadBalancer <span class="token operator">--</span>name kubia<span class="token operator">-</span>http
+<p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><h5 data-lines="1" data-sign="8a49de3b1d3c5b3573e3c24c8951e269" id="pod" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#pod" class="anchor"></a>pod</h5><p data-lines="2" data-type="p" data-sign="3879ea5f5acfe23a85a6981f0e564230">1: 多个容器运行在一起：</p><p data-lines="2" data-type="p" data-sign="a5c03f9948942dcd86e4f705dcd961b1">一个 pod 可以包含任意数量的容器； </p><p data-lines="2" data-type="p" data-sign="e1217f8313266bb4a8007c668d0a6cef">2： pod 拥有单独的 <strong>私有</strong> IP、主机名、单独的 Linux 命名空间； </p><p data-lines="2" data-type="p" data-sign="dff1501fed9e6eba0ecfbb72ef16e3b5"><strong>Pod 是扩缩容的基本单位；</strong></p><p data-lines="2" data-type="p" data-sign="af5086936766be0037cae5fe7d12af1b" style=""></p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="e23ee7482ae9cf8c45b5fb19bf09f387">3： k8s 中 运行 容器镜像需要经历两个步骤： </p><ul class="cherry-list__default" data-lines="3" data-sign="5072797200d591078195ce147c5363eelist3"><li>1： 推送 docker 镜像 到云端 【不同工作节点上的 Docker 能访问到 该镜像】； </li><li>2：运行 kubectl ，==创建一个 ReplicationController 对象 【运行指定数量的 pod 副本】；== <ul class="cherry-list__default"><li>调度器 创建 pod，并 选择一个 工作节点，分配给pod; </li></ul></li></ul><p data-lines="1" data-type="p" data-sign="2baddb5dbf05ff8352c2e19c8bdb2bac" style=""></p><p data-lines="5" data-type="br" data-sign="br5">&nbsp;</p><h5 data-lines="1" data-sign="00a44b787819c6c9df720f0f1ba430b1" id="%E5%88%9B%E5%BB%BA%E5%A4%96%E9%83%A8%E8%AE%BF%E9%97%AE%E7%9A%84%E6%9C%8D%E5%8A%A1" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E5%88%9B%E5%BB%BA%E5%A4%96%E9%83%A8%E8%AE%BF%E9%97%AE%E7%9A%84%E6%9C%8D%E5%8A%A1" class="anchor"></a>创建外部访问的服务</h5><p data-lines="2" data-type="p" data-sign="29ebd0cf5fe649aea5d27ac74c36ce0a">1： 常规服务：ClusterIP 服务， 比如 pod， 只能从 集群内部访问； </p><p data-lines="2" data-type="p" data-sign="1841797473f41111d9c9de8e0bdc68d9">2： 创建 LoadBalancer 类型的服务，负载均衡，对外提供 公共IP 访问 pod; </p><blockquote data-lines="2" data-sign="09cf844f38a79d58cdb928220c955cf1_2">内部删减 pod， 移动pod，外部 IP不变， 一个外部 IP 可对应 多个 pod。 <br><div data-sign="be32c70bf605b2e6532fd50f911f6de2" data-type="codeBlock" data-lines="8"><pre><code>kubectl expose rc kubia --type=LoadBalancer --name kubia-http
 
-kubectl <span class="token keyword">get</span> svc # 查看服务是否分配 <span class="token constant">EXTERNAL</span><span class="token operator">-</span><span class="token constant">IP</span>（外部<span class="token constant">IP</span>）
-</code></pre></div></blockquote><blockquote data-lines="2" data-sign="9327f88435095caea95b0568e0957dbd_2"><code>minikube service kubia-http</code> 可查看IP：端口</blockquote><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><h5 data-lines="1" data-sign="759e7eb32ff2ff3be1c5f7adc9312f41" id="%E7%B3%BB%E7%BB%9F%E9%80%BB%E8%BE%91%E9%83%A8%E5%88%86" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E7%B3%BB%E7%BB%9F%E9%80%BB%E8%BE%91%E9%83%A8%E5%88%86" class="anchor"></a>系统逻辑部分</h5><p data-lines="2" data-type="p" data-sign="af51284c7fe07bd8ed849bed9839a8d2">1：服务、pod、对象： </p><p data-lines="2" data-type="p" data-sign="3797bc5a979139f077f738d35676fd2c" style=""><img alt="" src="./深入理解kubernetes - 游戏知识库 - KM平台_files/cos-file-url(14)" style="position: relative; z-index: 2;" class="amplify"></p><h4 data-lines="2" data-sign="5dee6ae89b3d7be68faa3d27d8481250" id="%E6%B0%B4%E5%B9%B3%E4%BC%B8%E7%BC%A9-pod-%E8%8A%82%E7%82%B9" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E6%B0%B4%E5%B9%B3%E4%BC%B8%E7%BC%A9-pod-%E8%8A%82%E7%82%B9" class="anchor"></a>水平伸缩 pod 节点</h4><div data-sign="e91e83b17be072210ab582b302be67fe" data-type="codeBlock" data-lines="4"><pre class="prism language-shell" style="position: relative; z-index: 2;"><code class="language-shell">kubectl <span class="token keyword">get</span> replicationcontrollers  # 获取 ReplicationControllers 状态
+kubectl get svc # 查看服务是否分配 EXTERNAL-IP（外部IP）
+</code></pre></div></blockquote><blockquote data-lines="2" data-sign="9327f88435095caea95b0568e0957dbd_2"><code>minikube service kubia-http</code> 可查看IP：端口</blockquote><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><h5 data-lines="1" data-sign="759e7eb32ff2ff3be1c5f7adc9312f41" id="%E7%B3%BB%E7%BB%9F%E9%80%BB%E8%BE%91%E9%83%A8%E5%88%86" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E7%B3%BB%E7%BB%9F%E9%80%BB%E8%BE%91%E9%83%A8%E5%88%86" class="anchor"></a>系统逻辑部分</h5><p data-lines="2" data-type="p" data-sign="af51284c7fe07bd8ed849bed9839a8d2">1：服务、pod、对象： </p><p data-lines="2" data-type="p" data-sign="3797bc5a979139f077f738d35676fd2c" style=""></p><h4 data-lines="2" data-sign="5dee6ae89b3d7be68faa3d27d8481250" id="%E6%B0%B4%E5%B9%B3%E4%BC%B8%E7%BC%A9-pod-%E8%8A%82%E7%82%B9" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E6%B0%B4%E5%B9%B3%E4%BC%B8%E7%BC%A9-pod-%E8%8A%82%E7%82%B9" class="anchor"></a>水平伸缩 pod 节点</h4><div data-sign="e91e83b17be072210ab582b302be67fe" data-type="codeBlock" data-lines="4"><pre><code>kubectl get replicationcontrollers  # 获取 ReplicationControllers 状态
 </code></pre>
 
-<p data-lines="1" data-type="p" data-sign="bdafa26c6dffb544d0d3ad690971ca73">告诉期望数量即可： </p><div data-sign="f8ff6fd4979285caa17ed8c920a844e0" data-type="codeBlock" data-lines="4"><pre class="prism language-shell" style="position: relative; z-index: 2;"><code class="language-shell">kubectl scale rc kubia <span class="token operator">--</span>replicas<span class="token operator">=</span><span class="token number">3</span>
+<p data-lines="1" data-type="p" data-sign="bdafa26c6dffb544d0d3ad690971ca73">告诉期望数量即可： </p><div data-sign="f8ff6fd4979285caa17ed8c920a844e0" data-type="codeBlock" data-lines="4"><pre><code>kubectl scale rc kubia --replicas=3
 </code></pre>
 
-<p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="1ee018191e23664f1995c4f9ed8a2ced">多次访问，服务作为负载均衡，会随机选择一个 pod：</p><blockquote data-lines="2" data-sign="2ca2947472b134b68dacada965ed4eaf_2">和上面对比，这里有三个 pod 实例。 </blockquote><p data-lines="2" data-type="p" data-sign="404bae82213d2f69bbd1ddd1bf2d9f90" style=""><img alt="" src="./深入理解kubernetes - 游戏知识库 - KM平台_files/cos-file-url(15)" style="position: relative; z-index: 2;" class="amplify"></p><p data-lines="7" data-type="br" data-sign="br7">&nbsp;</p><h3 data-lines="1" data-sign="3d3c6aa1c8aba823909adedb5bffb573" id="pod-%E8%BF%90%E8%A1%8C%E5%9C%A8%E5%93%AA%E4%B8%AA%E8%8A%82%E7%82%B9%E4%B8%8A" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#pod-%E8%BF%90%E8%A1%8C%E5%9C%A8%E5%93%AA%E4%B8%AA%E8%8A%82%E7%82%B9%E4%B8%8A" class="anchor"></a>pod 运行在哪个节点上</h3><p data-lines="2" data-type="p" data-sign="c01b25b0cbaf463e71859d0efcd6e743">1: pod 的 IP 和运行的工作节点</p><p data-lines="1" data-type="p" data-sign="2356868cc2ff0310240dea938934d1dd" style=""><img alt="" src="./深入理解kubernetes - 游戏知识库 - KM平台_files/cos-file-url(16)" style="position: relative; z-index: 2;" class="amplify"></p><div data-sign="cae16e47dc5f607622f7939de45be438" data-type="codeBlock" data-lines="12"><pre class="prism language-shell" style="position: relative; z-index: 2;"><code class="language-shell">$ kubectl  describe  pod kubia<span class="token operator">-</span>jppwd
-Name<span class="token operator">:</span>         kubia<span class="token operator">-</span>jppwd
-Namespace<span class="token operator">:</span>    <span class="token keyword">default</span>
-Priority<span class="token operator">:</span>     <span class="token number">0</span>
-Node<span class="token operator">:</span>         minikube<span class="token operator">/</span><span class="token number">192.168</span><span class="token number">.49</span><span class="token number">.2</span>   # 具体的节点
+<p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="1ee018191e23664f1995c4f9ed8a2ced">多次访问，服务作为负载均衡，会随机选择一个 pod：</p><blockquote data-lines="2" data-sign="2ca2947472b134b68dacada965ed4eaf_2">和上面对比，这里有三个 pod 实例。 </blockquote><p data-lines="2" data-type="p" data-sign="404bae82213d2f69bbd1ddd1bf2d9f90" style=""></p><p data-lines="7" data-type="br" data-sign="br7">&nbsp;</p><h3 data-lines="1" data-sign="3d3c6aa1c8aba823909adedb5bffb573" id="pod-%E8%BF%90%E8%A1%8C%E5%9C%A8%E5%93%AA%E4%B8%AA%E8%8A%82%E7%82%B9%E4%B8%8A" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#pod-%E8%BF%90%E8%A1%8C%E5%9C%A8%E5%93%AA%E4%B8%AA%E8%8A%82%E7%82%B9%E4%B8%8A" class="anchor"></a>pod 运行在哪个节点上</h3><p data-lines="2" data-type="p" data-sign="c01b25b0cbaf463e71859d0efcd6e743">1: pod 的 IP 和运行的工作节点</p><p data-lines="1" data-type="p" data-sign="2356868cc2ff0310240dea938934d1dd" style=""></p><div data-sign="cae16e47dc5f607622f7939de45be438" data-type="codeBlock" data-lines="12"><pre><code>$ kubectl  describe  pod kubia-jppwd
+Name:         kubia-jppwd
+Namespace:    default
+Priority:     0
+Node:         minikube/192.168.49.2   # 具体的节点
 </code></pre>
 
-<p data-lines="5" data-type="br" data-sign="br5">&nbsp;</p><h3 data-lines="1" data-sign="706677bab923ab57c831e5a600bcc8c5" id="dashboard" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#dashboard" class="anchor"></a>Dashboard</h3><p data-lines="2" data-type="p" data-sign="9418f9fb020816937ab93b9c2607cc14">1： 若是 GKE 集群， 可通过 <code>kubectl cluster-info | grep dashboard</code> 获取 dashboard 的URL。 </p><p data-lines="2" data-type="p" data-sign="fe4c5d0e1b5a8764d4d40c1d9b3ef3bf">2：终端输入 <code>minikube dashboard</code>  会自动打开浏览器： </p><p data-lines="2" data-type="p" data-sign="07a715ef01a7a07127c4e7cbc7c4027a" style=""><img alt="" src="./深入理解kubernetes - 游戏知识库 - KM平台_files/cos-file-url(17)" style="position: relative; z-index: 2;" class="amplify"></p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><h1 data-lines="1" data-sign="9677f4a677d57552eebd8482e84d1732" id="pod-3" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#pod-3" class="anchor"></a>pod</h1><h2 data-lines="2" data-sign="848015539dcd9e415ab8c8ef0d2abc5d" id="pod-4" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#pod-4" class="anchor"></a>Pod</h2><p data-lines="2" data-type="p" data-sign="79ced03b4f9c6e130670497e12ef2745">1: 容器被设计为每个容器只运行一个进程， 保证轻量和一定的隔离性； </p><p data-lines="2" data-type="p" data-sign="c8653cfc3054c943b9316861d78fc202">2：有些容器又有一些紧密的联系，例如常说的 side-car 容器，负责网络代理，日志采集的容器， 这些容器最好放一起。 这就出现了 上层的 pod 。 </p><blockquote data-lines="2" data-sign="eaccfd43851107c63bb941ecaa09ff97_2">pod 是 k8s 中引入的概念，docker 是可以直接运行容器的。 </blockquote><p data-lines="2" data-type="p" data-sign="7483bc4b093e0b6429a54812d5aecd62">3： k8s 通过配置 Docker让一个 pod 内的所有容器 共享 相同的 Linux 命名空间 【有些容器放到一个pod 的好处】： </p><ul class="cherry-list__default" data-lines="3" data-sign="0fe8aede26ea5d1b151c1e1bcad4c37dlist3"><li>相同的 network 和 UTS 命名空间； </li><li>共享相同的主机名和网络接口； pod 中的端口，不能绑定多次； <ul class="cherry-list__default"><li>两个pod之间可以实现 两个 IP 相互访问</li></ul></li></ul><blockquote data-lines="2" data-sign="56afb53a56606f0455189be0e33ff747_2">不管两个 pod 是否在同一节点， 可以想 无 NAT 的平坦网络之间通信（类似局域网 LAN）</blockquote><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><ul class="cherry-list__default" data-lines="2" data-sign="01abd01626eade9f62ec540f9cbd6266list2"><li>相同的 IPC 命名空间下运行； 能通过 IPC 进行通信； </li><li>共享相同的 PID 命名空间</li></ul><blockquote data-lines="2" data-sign="c10c4110cd336e0994d1184052833e01_2">注意： 文件系统来自容器镜像，默认容器的文件系统彼此隔离。 </blockquote><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="37e1f9336b908d66c2dfbe08d673477b">4： pod 是逻辑主机， 其行为与非容器世界中的物理主机或虚拟机非常相似。 此外， 运行在同一个 pod 中的进程与运行在同一物理机或虚拟机上的进程相似， 只是每个进程都封装在一个容器之中。  </p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="f2ab4d3190495632b78e09bc17922324">5: pod 可以当做独立的机器，非常轻量， 可同时有大量的pod； </p><p data-lines="2" data-type="p" data-sign="359a55ec90fe93ed4d2375715dd1ee14">6: pod 是扩缩容的基本单位； </p><p data-lines="2" data-type="p" data-sign="ade32809c5c796913ee9159e1890d323">7：pod 的定义包含三个部分：</p><ul class="cherry-list__default" data-lines="3" data-sign="2fbce41e3a6cf2b222a0e022ebfc553dlist3"><li>metadata 包括名称、命名空间、标签和关于该容器的其他信息 。</li><li>spec 包含 pod 内容的实际说明 ， 例如 pod 的容器、卷和其他数据 。</li><li>status 包含运行中的 pod 的当前信息，例如 pod 所处的条件 、 每个容器的描述和状态，以及内部 IP 和其他基本信息 。  </li></ul><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="7e787eac152e5fe3de88ef51c54ca99c">一个简单 pod 包含的三部分： </p><div data-sign="b08702c5478e57f35a32d24fd8c2d54f" data-type="codeBlock" data-lines="14"><pre class="prism language-yaml" style="position: relative; z-index: 2;"><code class="language-yaml"><span class="token key atrule">apiVersion</span><span class="token punctuation">:</span> v1  <span class="token comment"># 分组和版本</span>
-<span class="token key atrule">kind</span><span class="token punctuation">:</span> Pod       <span class="token comment"># 资源类型</span>
-<span class="token key atrule">metadata</span><span class="token punctuation">:</span>
-  <span class="token key atrule">name</span><span class="token punctuation">:</span> kubia<span class="token punctuation">-</span>manual  <span class="token comment"># Pod 名称</span>
-<span class="token key atrule">spec</span><span class="token punctuation">:</span>
-  <span class="token key atrule">containers</span><span class="token punctuation">:</span>
-  <span class="token punctuation">-</span> <span class="token key atrule">image</span><span class="token punctuation">:</span> luksa/kubia  <span class="token comment"># 容器使用的镜像</span>
-    <span class="token key atrule">name</span><span class="token punctuation">:</span> kubia
-    <span class="token key atrule">ports</span><span class="token punctuation">:</span>
-    <span class="token punctuation">-</span> <span class="token key atrule">containerPort</span><span class="token punctuation">:</span> <span class="token number">8080 </span><span class="token comment"># 应用监听的端口</span>
-      <span class="token key atrule">protocol</span><span class="token punctuation">:</span> TCP
+<p data-lines="5" data-type="br" data-sign="br5">&nbsp;</p><h3 data-lines="1" data-sign="706677bab923ab57c831e5a600bcc8c5" id="dashboard" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#dashboard" class="anchor"></a>Dashboard</h3><p data-lines="2" data-type="p" data-sign="9418f9fb020816937ab93b9c2607cc14">1： 若是 GKE 集群， 可通过 <code>kubectl cluster-info | grep dashboard</code> 获取 dashboard 的URL。 </p><p data-lines="2" data-type="p" data-sign="fe4c5d0e1b5a8764d4d40c1d9b3ef3bf">2：终端输入 <code>minikube dashboard</code>  会自动打开浏览器： </p><p data-lines="2" data-type="p" data-sign="07a715ef01a7a07127c4e7cbc7c4027a" style=""></p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><h1 data-lines="1" data-sign="9677f4a677d57552eebd8482e84d1732" id="pod-3" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#pod-3" class="anchor"></a>pod</h1><h2 data-lines="2" data-sign="848015539dcd9e415ab8c8ef0d2abc5d" id="pod-4" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#pod-4" class="anchor"></a>Pod</h2><p data-lines="2" data-type="p" data-sign="79ced03b4f9c6e130670497e12ef2745">1: 容器被设计为每个容器只运行一个进程， 保证轻量和一定的隔离性； </p><p data-lines="2" data-type="p" data-sign="c8653cfc3054c943b9316861d78fc202">2：有些容器又有一些紧密的联系，例如常说的 side-car 容器，负责网络代理，日志采集的容器， 这些容器最好放一起。 这就出现了 上层的 pod 。 </p><blockquote data-lines="2" data-sign="eaccfd43851107c63bb941ecaa09ff97_2">pod 是 k8s 中引入的概念，docker 是可以直接运行容器的。 </blockquote><p data-lines="2" data-type="p" data-sign="7483bc4b093e0b6429a54812d5aecd62">3： k8s 通过配置 Docker让一个 pod 内的所有容器 共享 相同的 Linux 命名空间 【有些容器放到一个pod 的好处】： </p><ul class="cherry-list__default" data-lines="3" data-sign="0fe8aede26ea5d1b151c1e1bcad4c37dlist3"><li>相同的 network 和 UTS 命名空间； </li><li>共享相同的主机名和网络接口； pod 中的端口，不能绑定多次； <ul class="cherry-list__default"><li>两个pod之间可以实现 两个 IP 相互访问</li></ul></li></ul><blockquote data-lines="2" data-sign="56afb53a56606f0455189be0e33ff747_2">不管两个 pod 是否在同一节点， 可以想 无 NAT 的平坦网络之间通信（类似局域网 LAN）</blockquote><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><ul class="cherry-list__default" data-lines="2" data-sign="01abd01626eade9f62ec540f9cbd6266list2"><li>相同的 IPC 命名空间下运行； 能通过 IPC 进行通信； </li><li>共享相同的 PID 命名空间</li></ul><blockquote data-lines="2" data-sign="c10c4110cd336e0994d1184052833e01_2">注意： 文件系统来自容器镜像，默认容器的文件系统彼此隔离。 </blockquote><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="37e1f9336b908d66c2dfbe08d673477b">4： pod 是逻辑主机， 其行为与非容器世界中的物理主机或虚拟机非常相似。 此外， 运行在同一个 pod 中的进程与运行在同一物理机或虚拟机上的进程相似， 只是每个进程都封装在一个容器之中。  </p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="f2ab4d3190495632b78e09bc17922324">5: pod 可以当做独立的机器，非常轻量， 可同时有大量的pod； </p><p data-lines="2" data-type="p" data-sign="359a55ec90fe93ed4d2375715dd1ee14">6: pod 是扩缩容的基本单位； </p><p data-lines="2" data-type="p" data-sign="ade32809c5c796913ee9159e1890d323">7：pod 的定义包含三个部分：</p><ul class="cherry-list__default" data-lines="3" data-sign="2fbce41e3a6cf2b222a0e022ebfc553dlist3"><li>metadata 包括名称、命名空间、标签和关于该容器的其他信息 。</li><li>spec 包含 pod 内容的实际说明 ， 例如 pod 的容器、卷和其他数据 。</li><li>status 包含运行中的 pod 的当前信息，例如 pod 所处的条件 、 每个容器的描述和状态，以及内部 IP 和其他基本信息 。  </li></ul><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="7e787eac152e5fe3de88ef51c54ca99c">一个简单 pod 包含的三部分： </p><div data-sign="b08702c5478e57f35a32d24fd8c2d54f" data-type="codeBlock" data-lines="14"><pre><code>apiVersion: v1  # 分组和版本
+kind: Pod       # 资源类型
+metadata:
+  name: kubia-manual  # Pod 名称
+spec:
+  containers:
+  - image: luksa/kubia  # 容器使用的镜像
+    name: kubia
+    ports:
+    - containerPort: 8080 # 应用监听的端口
+      protocol: TCP
 </code></pre>
 
-<p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="d5891bc9a9e80a05c52e09a1efd48f73">8： 可使用 <code>kubectl explain</code> 查看指定资源信息</p><div data-sign="017202385f22ba89a011053148821799" data-type="codeBlock" data-lines="4"><pre class="prism language-shell" style="position: relative; z-index: 2;"><code class="language-shell">kubectl explain pods
+<p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="d5891bc9a9e80a05c52e09a1efd48f73">8： 可使用 <code>kubectl explain</code> 查看指定资源信息</p><div data-sign="017202385f22ba89a011053148821799" data-type="codeBlock" data-lines="4"><pre><code>kubectl explain pods
 </code></pre>
 
-<p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="6a36ef043dc11bb5e3ec3530c7984693">9: 创建资源： </p><div data-sign="fe2595226e1abfe0275770cc82d84994" data-type="codeBlock" data-lines="5"><pre class="prism language-shell" style="position: relative; z-index: 2;"><code class="language-shell"># 所有定义的 资源 manifest 都通过该指令来创建，非常重要
-kubectl create <span class="token operator">-</span>f kubia<span class="token operator">-</span>manual<span class="token punctuation">.</span>yaml
+<p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="6a36ef043dc11bb5e3ec3530c7984693">9: 创建资源： </p><div data-sign="fe2595226e1abfe0275770cc82d84994" data-type="codeBlock" data-lines="5"><pre><code># 所有定义的 资源 manifest 都通过该指令来创建，非常重要
+kubectl create -f kubia-manual.yaml
 </code></pre>
 
-<p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="bcca5d70314237607f5de53044e03110">10： 查看日志： </p><div data-sign="3192cae2ceb33886ad8a054d6f537b1d" data-type="codeBlock" data-lines="4"><pre class="prism language-shell" style="position: relative; z-index: 2;"><code class="language-shell">kubectl logs <span class="token operator">&lt;</span>pod<span class="token operator">-</span>name<span class="token operator">&gt;</span>
+<p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="bcca5d70314237607f5de53044e03110">10： 查看日志： </p><div data-sign="3192cae2ceb33886ad8a054d6f537b1d" data-type="codeBlock" data-lines="4"><pre><code>kubectl logs &lt;pod-name&gt;
 </code></pre>
 
-<p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="f66973aa6dab81034fa6b88784c2ee32">11: 若不想通过 Service 与 pod 通信，可通过端口转发： </p><div data-sign="44321851c8c3e76f173b1d95545ea62d" data-type="codeBlock" data-lines="7"><pre class="prism language-shell" style="position: relative; z-index: 2;"><code class="language-shell"># 将 <span class="token number">8888</span> 端口 转发到 该 pod的 <span class="token number">8080</span> 端口
-kubectl port<span class="token operator">-</span>forward <span class="token operator">&lt;</span>pod<span class="token operator">-</span>name<span class="token operator">&gt;</span> <span class="token number">8888</span><span class="token operator">:</span><span class="token number">8080</span>
+<p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="f66973aa6dab81034fa6b88784c2ee32">11: 若不想通过 Service 与 pod 通信，可通过端口转发： </p><div data-sign="44321851c8c3e76f173b1d95545ea62d" data-type="codeBlock" data-lines="7"><pre><code># 将 8888 端口 转发到 该 pod的 8080 端口
+kubectl port-forward &lt;pod-name&gt; 8888:8080
 
-curl localhost<span class="token operator">:</span><span class="token number">8888</span>
+curl localhost:8888
 </code></pre>
 
-<p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><blockquote data-lines="1" data-sign="c5795156000f569ee50618dd0849e106_1">端口转发是 <code>kubectl</code> 内部实现的。 </blockquote><p data-lines="2" data-type="p" data-sign="b0e6a8f052d30294d6b6006d66d3e331" style=""><img alt="" src="./深入理解kubernetes - 游戏知识库 - KM平台_files/cos-file-url(18)" style="position: relative; z-index: 2;" class="amplify"></p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><h2 data-lines="1" data-sign="cb327d9a4d925ba0bd8bfb8832e0d3c9" id="%E6%A0%87%E7%AD%BE" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E6%A0%87%E7%AD%BE" class="anchor"></a>标签</h2><p data-lines="2" data-type="p" data-sign="fe8196fd4338cbc8020bb0b07dee6387">1： 可使用 标签组织管理 pod</p><blockquote data-lines="2" data-sign="a16bb5c2038b9e934c5a8b3cbc563fb1_2">标签也能组织其他 k8s 资源</blockquote><p data-lines="2" data-type="p" data-sign="22cde86f1ccdaeb50c1239b4a712c216">2： 例如定义两组标签，可不同维度管理 pod</p><ul class="cherry-list__default" data-lines="2" data-sign="e48ce5d8d2e597312f7acef0d7e17920list2"><li><code>label_key = app</code>: 按应用分类</li><li><code>label_key = rel</code>: 按版本分类</li></ul><p data-lines="1" data-type="p" data-sign="a34c3452ee228109694f930d796a63ff" style=""><img alt="" src="./深入理解kubernetes - 游戏知识库 - KM平台_files/cos-file-url(19)" style="position: relative; z-index: 2;" class="amplify"></p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="5296c8d59873dee3adc4b3444727df90">3： pod 中使用 labels 定义标签：</p><div data-sign="12b4bacccda6ce6536164dcaeff095e7" data-type="codeBlock" data-lines="10"><pre class="prism language-yaml" style="position: relative; z-index: 2;"><code class="language-yaml"><span class="token key atrule">kind</span><span class="token punctuation">:</span> Pod
-<span class="token key atrule">metadata</span><span class="token punctuation">:</span>
-  <span class="token key atrule">name</span><span class="token punctuation">:</span> kubia<span class="token punctuation">-</span>manual<span class="token punctuation">-</span>v2
-  <span class="token key atrule">labels</span><span class="token punctuation">:</span>
-    <span class="token comment"># 定义的两组标签</span>
-    <span class="token key atrule">creation_method</span><span class="token punctuation">:</span> manual
-    <span class="token key atrule">env</span><span class="token punctuation">:</span> prod
+<p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><blockquote data-lines="1" data-sign="c5795156000f569ee50618dd0849e106_1">端口转发是 <code>kubectl</code> 内部实现的。 </blockquote><p data-lines="2" data-type="p" data-sign="b0e6a8f052d30294d6b6006d66d3e331" style=""></p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><h2 data-lines="1" data-sign="cb327d9a4d925ba0bd8bfb8832e0d3c9" id="%E6%A0%87%E7%AD%BE" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E6%A0%87%E7%AD%BE" class="anchor"></a>标签</h2><p data-lines="2" data-type="p" data-sign="fe8196fd4338cbc8020bb0b07dee6387">1： 可使用 标签组织管理 pod</p><blockquote data-lines="2" data-sign="a16bb5c2038b9e934c5a8b3cbc563fb1_2">标签也能组织其他 k8s 资源</blockquote><p data-lines="2" data-type="p" data-sign="22cde86f1ccdaeb50c1239b4a712c216">2： 例如定义两组标签，可不同维度管理 pod</p><ul class="cherry-list__default" data-lines="2" data-sign="e48ce5d8d2e597312f7acef0d7e17920list2"><li><code>label_key = app</code>: 按应用分类</li><li><code>label_key = rel</code>: 按版本分类</li></ul><p data-lines="1" data-type="p" data-sign="a34c3452ee228109694f930d796a63ff" style=""></p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="5296c8d59873dee3adc4b3444727df90">3： pod 中使用 labels 定义标签：</p><div data-sign="12b4bacccda6ce6536164dcaeff095e7" data-type="codeBlock" data-lines="10"><pre><code>kind: Pod
+metadata:
+  name: kubia-manual-v2
+  labels:
+    # 定义的两组标签
+    creation_method: manual
+    env: prod
 </code></pre>
 
-<p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="5da5fef3cc1c96f95ac905381f082139">4: 可通过 <code>-l</code> 指定标签选择列出 pod 子集：</p><div data-sign="2a5d60b15c8e6fa565f45cbe62956082" data-type="codeBlock" data-lines="6"><pre class="prism language-shell" style="position: relative; z-index: 2;"><code class="language-shell">$  kubectl <span class="token keyword">get</span> po <span class="token operator">-</span>l  creation_method<span class="token operator">=</span>manual
-<span class="token constant">NAME</span>              <span class="token constant">READY</span>   <span class="token constant">STATUS</span>    <span class="token constant">RESTARTS</span>   <span class="token constant">AGE</span>
-kubia<span class="token operator">-</span>manual<span class="token operator">-</span>v2   <span class="token number">1</span><span class="token operator">/</span><span class="token number">1</span>     Running   <span class="token number">0</span>          <span class="token number">31</span>s
+<p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="5da5fef3cc1c96f95ac905381f082139">4: 可通过 <code>-l</code> 指定标签选择列出 pod 子集：</p><div data-sign="2a5d60b15c8e6fa565f45cbe62956082" data-type="codeBlock" data-lines="6"><pre><code>$  kubectl get po -l  creation_method=manual
+NAME              READY   STATUS    RESTARTS   AGE
+kubia-manual-v2   1/1     Running   0          31s
 </code></pre>
 
-<blockquote data-lines="2" data-sign="91e53624ad40654464735abb077ab64f_2">使用多个标签， 中间用 逗号分隔即可。 </blockquote><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><h3 data-lines="1" data-sign="36c2cf17d39356672f644f488fd8bc03" id="pod-%E8%B0%83%E5%BA%A6%E5%88%B0%E7%89%B9%E5%AE%9A%E8%8A%82%E7%82%B9" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#pod-%E8%B0%83%E5%BA%A6%E5%88%B0%E7%89%B9%E5%AE%9A%E8%8A%82%E7%82%B9" class="anchor"></a>pod 调度到特定节点</h3><p data-lines="2" data-type="p" data-sign="1a553b4a9b4e570597ca9b5f97e8c4cb">1： 默认下，pod 调度到哪个 节点是不确定的，这由调度器决定。 </p><p data-lines="2" data-type="p" data-sign="d328686ae3928a324ac1591d91293116">2： 有些情况，需要将pod 调度到特定的节点上（比如偏计算的 pod 需要调度到 gpu 集群上）</p><p data-lines="1" data-type="p" data-sign="ee133ad56ce4bc7bb681e06eee05deb6">3： 给节点打标签</p><div data-sign="5985facb6787faafc8097d909d1bf310" data-type="codeBlock" data-lines="4"><pre class="prism language-shell" style="position: relative; z-index: 2;"><code class="language-shell">kubectl label node <span class="token operator">&lt;</span>node<span class="token operator">-</span>name<span class="token operator">&gt;</span> <span class="token operator">&lt;</span>label<span class="token operator">-</span>key<span class="token operator">&gt;=</span><span class="token operator">&lt;</span>label_value<span class="token operator">&gt;</span>
+<blockquote data-lines="2" data-sign="91e53624ad40654464735abb077ab64f_2">使用多个标签， 中间用 逗号分隔即可。 </blockquote><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><h3 data-lines="1" data-sign="36c2cf17d39356672f644f488fd8bc03" id="pod-%E8%B0%83%E5%BA%A6%E5%88%B0%E7%89%B9%E5%AE%9A%E8%8A%82%E7%82%B9" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#pod-%E8%B0%83%E5%BA%A6%E5%88%B0%E7%89%B9%E5%AE%9A%E8%8A%82%E7%82%B9" class="anchor"></a>pod 调度到特定节点</h3><p data-lines="2" data-type="p" data-sign="1a553b4a9b4e570597ca9b5f97e8c4cb">1： 默认下，pod 调度到哪个 节点是不确定的，这由调度器决定。 </p><p data-lines="2" data-type="p" data-sign="d328686ae3928a324ac1591d91293116">2： 有些情况，需要将pod 调度到特定的节点上（比如偏计算的 pod 需要调度到 gpu 集群上）</p><p data-lines="1" data-type="p" data-sign="ee133ad56ce4bc7bb681e06eee05deb6">3： 给节点打标签</p><div data-sign="5985facb6787faafc8097d909d1bf310" data-type="codeBlock" data-lines="4"><pre><code>kubectl label node &lt;node-name&gt; &lt;label-key&gt;=&lt;label_value&gt;
 </code></pre>
 
-<p data-lines="1" data-type="p" data-sign="58cd530664018f52c129920d513c25a5">4: 通过 <code>nodeSelector</code> 调度到含有 <code>gpu=true</code> 标签的节点上。 </p><div data-sign="e399486051c0a8ab052874debaab7c23" data-type="codeBlock" data-lines="14"><pre class="prism language-yaml" style="position: relative; z-index: 2;"><code class="language-yaml"><span class="token key atrule">apiVersion</span><span class="token punctuation">:</span> v1
-<span class="token key atrule">kind</span><span class="token punctuation">:</span> Pod
-<span class="token key atrule">metadata</span><span class="token punctuation">:</span>
-  <span class="token key atrule">name</span><span class="token punctuation">:</span> kubia<span class="token punctuation">-</span>gpu
-<span class="token key atrule">spec</span><span class="token punctuation">:</span>
-  <span class="token comment"># 调度到含有 gpu=true 的节点上</span>
-  <span class="token key atrule">nodeSelector</span><span class="token punctuation">:</span>
-    <span class="token key atrule">gpu</span><span class="token punctuation">:</span> <span class="token string">"true"</span>
-  <span class="token key atrule">containers</span><span class="token punctuation">:</span>
-  <span class="token punctuation">-</span> <span class="token key atrule">image</span><span class="token punctuation">:</span> luksa/kubia
-    <span class="token key atrule">name</span><span class="token punctuation">:</span> kubia
+<p data-lines="1" data-type="p" data-sign="58cd530664018f52c129920d513c25a5">4: 通过 <code>nodeSelector</code> 调度到含有 <code>gpu=true</code> 标签的节点上。 </p><div data-sign="e399486051c0a8ab052874debaab7c23" data-type="codeBlock" data-lines="14"><pre><code>apiVersion: v1
+kind: Pod
+metadata:
+  name: kubia-gpu
+spec:
+  # 调度到含有 gpu=true 的节点上
+  nodeSelector:
+    gpu: "true"
+  containers:
+  - image: luksa/kubia
+    name: kubia
 </code></pre>
 
-<blockquote data-lines="3" data-sign="7c5b7c864817ce5f2bee0252678aa2b0_3">注意： 含有该标签的节点可能有多个，届时将选择其中一个。 <br><br>候选节点最好是一个集合，避免单个节点故障会造成服务不可用。 </blockquote><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><h2 data-lines="1" data-sign="59b06b77548da4ca77a74fa30fd412ae" id="%E6%B3%A8%E8%A7%A3" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E6%B3%A8%E8%A7%A3" class="anchor"></a>注解</h2><p data-lines="2" data-type="p" data-sign="c3be6c8859b88fa1091a27c3fac1aa6e">1： 注解（Annotation）和 标签类似，也是键值对。 </p><blockquote data-lines="3" data-sign="1bdb5697915b428d3fabc8099b8fb43b_3">有些注解是 k8s 自动添加的。 <br><br>注解不能超过 256K</blockquote><p data-lines="5" data-type="br" data-sign="br5">&nbsp;</p><h2 data-lines="1" data-sign="a2d8a473748120e809eeefbb097102d3" id="%E5%91%BD%E5%90%8D%E7%A9%BA%E9%97%B4" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E5%91%BD%E5%90%8D%E7%A9%BA%E9%97%B4" class="anchor"></a>命名空间</h2><p data-lines="2" data-type="p" data-sign="57167b86e8759ba47c545bd75059e721">1： 命名空间（namespace, 简称 ns）可对对象分组。 </p><blockquote data-lines="2" data-sign="18522118ecf96c330c3b1c9e100b6d8c_2">资源名称只需要在命名空间内保证唯一即可， 跨命名空间可以重。 </blockquote><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="5265d7d2a9bd3a851991624b27e9b286">2: 列出某个命名空间下的 pod</p><div data-sign="2f348bcf07e8ed7dcf3ea88312232457" data-type="codeBlock" data-lines="4"><pre class="prism language-shell" style="position: relative; z-index: 2;"><code class="language-shell">kubectl <span class="token keyword">get</span> po <span class="token operator">--</span>namespace kube<span class="token operator">-</span>system
+<blockquote data-lines="3" data-sign="7c5b7c864817ce5f2bee0252678aa2b0_3">注意： 含有该标签的节点可能有多个，届时将选择其中一个。 <br><br>候选节点最好是一个集合，避免单个节点故障会造成服务不可用。 </blockquote><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><h2 data-lines="1" data-sign="59b06b77548da4ca77a74fa30fd412ae" id="%E6%B3%A8%E8%A7%A3" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E6%B3%A8%E8%A7%A3" class="anchor"></a>注解</h2><p data-lines="2" data-type="p" data-sign="c3be6c8859b88fa1091a27c3fac1aa6e">1： 注解（Annotation）和 标签类似，也是键值对。 </p><blockquote data-lines="3" data-sign="1bdb5697915b428d3fabc8099b8fb43b_3">有些注解是 k8s 自动添加的。 <br><br>注解不能超过 256K</blockquote><p data-lines="5" data-type="br" data-sign="br5">&nbsp;</p><h2 data-lines="1" data-sign="a2d8a473748120e809eeefbb097102d3" id="%E5%91%BD%E5%90%8D%E7%A9%BA%E9%97%B4" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E5%91%BD%E5%90%8D%E7%A9%BA%E9%97%B4" class="anchor"></a>命名空间</h2><p data-lines="2" data-type="p" data-sign="57167b86e8759ba47c545bd75059e721">1： 命名空间（namespace, 简称 ns）可对对象分组。 </p><blockquote data-lines="2" data-sign="18522118ecf96c330c3b1c9e100b6d8c_2">资源名称只需要在命名空间内保证唯一即可， 跨命名空间可以重。 </blockquote><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="5265d7d2a9bd3a851991624b27e9b286">2: 列出某个命名空间下的 pod</p><div data-sign="2f348bcf07e8ed7dcf3ea88312232457" data-type="codeBlock" data-lines="4"><pre><code>kubectl get po --namespace kube-system
 </code></pre>
 
-<p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="62d0a162660f818a4a9ccd347597a2f1">3: 命名空间，可控制用户在该命名空间的访问权限， 限制单个用户可用的 资源数量； </p><p data-lines="1" data-type="p" data-sign="0182162ff9d6c42345755f7dca2b29df">4： 创建命名空间：</p><div data-sign="98b442473af9da70e06093e4d55659c4" data-type="codeBlock" data-lines="7"><pre class="prism language-yaml" style="position: relative; z-index: 2;"><code class="language-yaml"><span class="token key atrule">apiVersion</span><span class="token punctuation">:</span> v1
-<span class="token key atrule">kind</span><span class="token punctuation">:</span> Namespace
-<span class="token key atrule">metadata</span><span class="token punctuation">:</span>
-  <span class="token key atrule">name</span><span class="token punctuation">:</span> custom<span class="token punctuation">-</span>namespace
+<p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="62d0a162660f818a4a9ccd347597a2f1">3: 命名空间，可控制用户在该命名空间的访问权限， 限制单个用户可用的 资源数量； </p><p data-lines="1" data-type="p" data-sign="0182162ff9d6c42345755f7dca2b29df">4： 创建命名空间：</p><div data-sign="98b442473af9da70e06093e4d55659c4" data-type="codeBlock" data-lines="7"><pre><code>apiVersion: v1
+kind: Namespace
+metadata:
+  name: custom-namespace
 </code></pre>
 
-<p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="c0906f539571e70722a2f6a3b673ac55">5: 尽管命名空间对  对象进行了分组， 但<strong>==并不提供实质上的隔离==</strong>，例如不同命名空间的 pod 能否通信取决于网络策略。 </p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="7141ea50f17f2282bfaa55acfbffc74e">6： 删除pod 有多种方式：</p><div data-sign="a31cc19b7c7677f84e96dd80ac4ec109" data-type="codeBlock" data-lines="10"><pre class="prism language-shell" style="position: relative; z-index: 2;"><code class="language-shell">kubectl <span class="token keyword">delete</span> po <span class="token operator">&lt;</span>pod<span class="token operator">-</span>name<span class="token operator">&gt;</span>  # 按名称删除
-kubectl <span class="token keyword">delete</span> po <span class="token operator">--</span>all  # 删除当前命名空间的所有 pod<span class="token punctuation">,</span> 若 ReplicationController 未删除，将重新创建 pods
-kubectl <span class="token keyword">delete</span> po <span class="token operator">-</span>l <span class="token operator">&lt;</span>label<span class="token operator">-</span>key<span class="token operator">&gt;=</span><span class="token operator">&lt;</span>label<span class="token operator">-</span>val<span class="token operator">&gt;</span>  # 按标签删除
-
-kubectl <span class="token keyword">delete</span> ns <span class="token operator">&lt;</span>ns<span class="token operator">-</span>anme<span class="token operator">&gt;</span>  # 删除整个命名空间
-
-kubectl <span class="token keyword">delete</span> all <span class="token operator">--</span>all     # 删除当前命名空间内的所有资源，包括托管的 ReplicationController， Service，  但 Secret 会保留
-</code></pre>
-
-<p data-lines="5" data-type="br" data-sign="br5">&nbsp;</p><h1 data-lines="1" data-sign="b6b8b559869ad8e11947a208b99b7804" id="%E6%89%98%E7%AE%A1%E9%9B%86%E7%BE%A4" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E6%89%98%E7%AE%A1%E9%9B%86%E7%BE%A4" class="anchor"></a>托管集群</h1><h2 data-lines="2" data-sign="73df7bc8526ac9d6393472aa3b27a7b4" id="%E4%BF%9D%E6%8C%81%E8%BF%9B%E7%A8%8B%E5%81%A5%E5%BA%B7" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E4%BF%9D%E6%8C%81%E8%BF%9B%E7%A8%8B%E5%81%A5%E5%BA%B7" class="anchor"></a>保持进程健康</h2><p data-lines="2" data-type="p" data-sign="3bbc32bb7720d785920c8704c09dbea1">1： 进程异常的几种情形： </p><ul class="cherry-list__default" data-lines="3" data-sign="e83c6e3a064e361fe2c29a00373b4864list3"><li>主进程 崩溃-&gt;kubelet 将 重启 容器； </li><li>内存泄漏， JVM 会一直运行，但会抛出 OutofMemoryErrors, 让程序 向 k8s 发出信号 触发 重启； </li><li>外部检查： 应用死循环 or 死锁</li></ul><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><h3 data-lines="1" data-sign="a06a399598ea20566b8aa11161046c6d" id="%E5%AD%98%E6%B4%BB%E6%8E%A2%E9%92%88" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E5%AD%98%E6%B4%BB%E6%8E%A2%E9%92%88" class="anchor"></a>存活探针</h3><p data-lines="2" data-type="p" data-sign="77f42e4163d3e27512601c713e7fccb1">1： 定期检查<strong>容器</strong></p><p data-lines="2" data-type="p" data-sign="9a1e0071ce7a76b99c1adc7a1c479235">2： 三种探测机制：</p><ul class="cherry-list__default" data-lines="3" data-sign="a4f0ab91f3016893a12308d6a128df8dlist3"><li>HTTP Get 向容器发送请求； </li><li>TCP 套接字，与容器建立 TCP连接； </li><li>Exec 探针，在容器内执行任意指令，查看退出状态码； </li></ul><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="d9607ce2c7a165ba67285c37d12ad872">3： HTTP 探针，定期发送 http Get 请求；</p><blockquote data-lines="2" data-sign="7dbd740fb555a033859bbe3030aac99a_2">/heath HTTP 站点不需要认证，否则会一直认为失败，容器 无限重启； <br><div data-sign="2ec58a614394a59a44c3599fee28f662" data-type="codeBlock" data-lines="17"><pre class="prism language-yaml" style="position: relative; z-index: 2;"><code class="language-yaml"><span class="token key atrule">apiVersion</span><span class="token punctuation">:</span> v1
-<span class="token key atrule">kind</span><span class="token punctuation">:</span> Pod
-<span class="token key atrule">metadata</span><span class="token punctuation">:</span>
-  <span class="token key atrule">name</span><span class="token punctuation">:</span> kubia<span class="token punctuation">-</span>liveness
-<span class="token key atrule">spec</span><span class="token punctuation">:</span>
-  <span class="token key atrule">containers</span><span class="token punctuation">:</span>
-  <span class="token comment"># 镜像内有坏掉的应用</span>
-  <span class="token punctuation">-</span> <span class="token key atrule">image</span><span class="token punctuation">:</span> luksa/kubia<span class="token punctuation">-</span>unhealthy
-    <span class="token key atrule">name</span><span class="token punctuation">:</span> kubia
-    <span class="token comment"># 存活探针</span>
-    <span class="token key atrule">livenessProbe</span><span class="token punctuation">:</span>
-      <span class="token key atrule">httpGet</span><span class="token punctuation">:</span>
-        <span class="token key atrule">path</span><span class="token punctuation">:</span> /
-        <span class="token key atrule">port</span><span class="token punctuation">:</span> <span class="token number">8080</span>
-</code></pre></div></blockquote><p data-lines="5" data-type="br" data-sign="br5">&nbsp;</p><p data-lines="1" data-type="p" data-sign="4a29c2e2a705199ae8bfe850b6ca93e7">4： 返回的状态码 137 和 143： </p><div data-sign="99096550141b765f2c6a585583bbf983" data-type="codeBlock" data-lines="11"><pre class="prism language-shell" style="position: relative; z-index: 2;"><code class="language-shell">$ kubectl describe  pod kubia<span class="token operator">-</span>liveness
- State<span class="token operator">:</span>          Running
-      Started<span class="token operator">:</span>      Thu<span class="token punctuation">,</span> <span class="token number">17</span> Jun <span class="token number">2021</span> <span class="token number">11</span><span class="token operator">:</span><span class="token number">04</span><span class="token operator">:</span><span class="token number">53</span> <span class="token operator">-</span><span class="token number">0700</span>
-    Last State<span class="token operator">:</span>     Terminated
-      Reason<span class="token operator">:</span>       Error
-      Exit Code<span class="token operator">:</span>    <span class="token number">137</span>   # 有错误码返回
-
- Warning  Unhealthy  <span class="token number">10</span>s    kubelet            Liveness probe failed<span class="token operator">:</span> <span class="token constant">HTTP</span> probe failed <span class="token keyword">with</span> statuscode<span class="token operator">:</span> <span class="token number">500</span>
-</code></pre>
-
-<p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="a01cc0f969d7e7bc0ac76308ac729a48">5： 探针的附加信息： </p><p data-lines="1" data-type="p" data-sign="f75ee889b16829bbe56f4a6bb291e576">查看状态时，可看到 存活探针信息：</p><div data-sign="4f4a8d8ea7c61ff388f8e1a376c0d48d" data-type="codeBlock" data-lines="4"><pre class="prism language-shell" style="position: relative; z-index: 2;"><code class="language-shell"> Liveness<span class="token operator">:</span>       http<span class="token operator">-</span><span class="token keyword">get</span> http<span class="token operator">:</span><span class="token operator">/</span><span class="token operator">/</span><span class="token operator">:</span><span class="token number">8080</span><span class="token operator">/</span> delay<span class="token operator">=</span><span class="token number">0</span>s timeout<span class="token operator">=</span><span class="token number">1</span>s period<span class="token operator">=</span><span class="token number">10</span>s #success<span class="token operator">=</span><span class="token number">1</span> #failure<span class="token operator">=</span><span class="token number">3</span>
-</code></pre>
-
-<p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><ul class="cherry-list__default" data-lines="4" data-sign="c7e349faa281953c3bcefa212c02256clist4"><li><code>delay=0s</code>: 容器启动后立即检测； </li><li><code>timeout=1s</code>： 限制容器在 1s 内响应，否则失败； </li><li><code>period=10s</code>： 每隔10s 探测一次； </li><li><code>failure=3</code>： 连续三次失败后，重启容器； </li></ul><p data-lines="5" data-type="br" data-sign="br5">&nbsp;</p><p data-lines="1" data-type="p" data-sign="30ddc10330308f76fef688945cd06e89">6: 具有初始延迟的 存活探针： 【程序还未 启动稳定】</p><div data-sign="6cdf9afcab2e7974ad2cdd14dba18829" data-type="codeBlock" data-lines="5"><pre class="prism language-yaml" style="position: relative; z-index: 2;"><code class="language-yaml"><span class="token comment"># 第一次探针前，等15s，防止容器没准备好</span>
-      <span class="token key atrule">initialDelaySeconds</span><span class="token punctuation">:</span> <span class="token number">15</span>
-</code></pre>
-
-<p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="29afeec8cf92891ab05cd261f7b5f0a1">7： 若无探针， k8s 认为进程还在运行，容器就是健康的。 </p><p data-lines="2" data-type="p" data-sign="f714b10ac89e8f545919aa98a9669d16">8：探针的注意事项： </p><ul class="cherry-list__default" data-lines="3" data-sign="8874747b2028c391d252ef5a43d07d41list3"><li>1： 探针应该轻量，不能占用太多cpu 【应 计入 容器的 CPU 配额】， 一般 1s 内执行完； </li><li>2： java 程序应该用 http get 探针，而非启动全新JVM 获取存活信息的 Exec 探针（太耗时）</li><li>3： 无需设置 探针的失败重试次数， k8s 为了确认一次探测的失败，==默认就会尝试若干次==； </li></ul><p data-lines="1" data-type="p" data-sign="2f14e2c5c58fa7cb94ca7b0f8dbff860">9： 重启容器由  kubelet 执行； 主服务器上的 k8s Control Plane 组件不会参与； </p><ul class="cherry-list__default" data-lines="2" data-sign="0d401ff044beacfaac892ad816dd26b8list2"><li>==若整个节点崩溃， 则无法重启== 【kubelet 依赖于节点】； </li><li>若要保证节点挂了，pod 能重启，应该使用 RC或 RS； </li></ul><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><h2 data-lines="1" data-sign="989ec3fcce2888b05ed090bd639f856b" id="replicationcontroller" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#replicationcontroller" class="anchor"></a>ReplicationController</h2><p data-lines="2" data-type="p" data-sign="dda89eba8d25179bdf522348982059e4">1: 用于管理 pod 的多个副本； </p><p data-lines="2" data-type="p" data-sign="797733df60df02ae7eb0de9d3c11155b">2：会自动调整 pod 数量为 指定数量： </p><p data-lines="2" data-type="p" data-sign="0489655f59c5adb6f0fa4081c7e5f769">多余副本在以下几种情况下会出现： </p><ul class="cherry-list__default" data-lines="3" data-sign="492b39be1d572713bf794befcc3e01e1list3"><li>有人会手动创建相同类型的pod。</li><li>有人更改现有的pod的 ” 类型” 。</li><li>有人减少了所需的pod的数量， 等等。   </li></ul><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="0cd58b3376c043a16a586a182ed12bbb">3： ReplicationController  的功能： </p><ul class="cherry-list__default" data-lines="3" data-sign="4423c84c3df957e8d6192d89ec0c948alist3"><li>确保一 个 pod (或多个 pod副本）持续运行， 方法是在现有 pod 丢失时启动一 个新 pod。</li><li>集群节点发生故障时， 它将为故障节 点 上运 行的所有 pod (即受 ReplicationController 控制的节点上的那些 pod) 创建替代副本。   </li><li>它能轻松实现 pod的水平伸缩： 手动和自动都可以</li></ul><p data-lines="5" data-type="br" data-sign="br5">&nbsp;</p><p data-lines="2" data-type="p" data-sign="11ae72b70efe7fa2cf15826503777d7d" style="">3: 根据 pod  是否匹配 标签选择器 来调整： <br><img alt="" src="./深入理解kubernetes - 游戏知识库 - KM平台_files/cos-file-url(20)" style="position: relative; z-index: 2;" class="amplify"></p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="e2c7d3a7d89a9de0924b960209d66b1c">4: 更改标签选择器 和 pod 模板，对当前的 pod 没有影响； </p><ul class="cherry-list__default" data-lines="2" data-sign="e9589b10702a67e06e238583903a1414list2"><li>也不关心 容器镜像、 环境变量和 其它； </li><li>只影响 创建新的pod （新的 曲奇 切模 cookie cutter ）</li></ul><p data-lines="1" data-type="p" data-sign="6c98a17bbc8e761b30dc8e836fba1a47">修改pod 模板： </p><p data-lines="2" data-type="p" data-sign="cf8564e1b55778d44f21beaa63d104b5" style=""><img alt="" src="./深入理解kubernetes - 游戏知识库 - KM平台_files/cos-file-url(21)" style="position: relative; z-index: 2;" class="amplify"></p><p data-lines="1" data-type="p" data-sign="471059d0288d9ce71eb1f986e9787946">更改副本个数，就能实现动态扩缩容： </p><div data-sign="d3d739b7cf30bd8f0d39164b732b372f" data-type="codeBlock" data-lines="4"><pre class="prism language-shell" style="position: relative; z-index: 2;"><code class="language-shell">kubectl scale rc kubia  <span class="token operator">--</span>replicas<span class="token operator">=</span><span class="token number">3</span> # 调整副本数为<span class="token number">3</span>
-</code></pre>
-
-<p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="ba432b510be3ec019ac7348e8fc12cfd">5: 创建对象： </p><p data-lines="2" data-type="p" data-sign="cc5507ccaa0aa2480666a5d272d7bda3">上传到 API 服务器， 会创建 kubia 的 ReplicationController 【简称RC】。</p><ul class="cherry-list__default" data-lines="4" data-sign="1165890cd4d637783960a3f46784eb8flist4"><li>模板中的pod 标签 必须 与RC一致，否则会无休止创建容器（达不到期望数量的 pod）</li><li>API 服务会校验 RC 的定义，不会接受错误配置； </li><li>可以不指定 RC的选择器，会自动根据 pod 模板中的标签自动设置； <br><div data-sign="a4acf988b7100b541dc5ca7070f146f5" data-type="codeBlock" data-lines="25"><pre class="prism language-yaml" style="position: relative; z-index: 2;"><code class="language-yaml"><span class="token key atrule">apiVersion</span><span class="token punctuation">:</span> v1
-<span class="token key atrule">kind</span><span class="token punctuation">:</span> ReplicationController
-<span class="token key atrule">metadata</span><span class="token punctuation">:</span>
-  <span class="token key atrule">name</span><span class="token punctuation">:</span> kubia
-<span class="token key atrule">spec</span><span class="token punctuation">:</span>
-  <span class="token key atrule">replicas</span><span class="token punctuation">:</span> <span class="token number">3  </span><span class="token comment"># pod 副本数量</span>
-
-  <span class="token comment"># 标签选择器，选择 标签 app = kubia的pod进行管理</span>
-  <span class="token key atrule">selector</span><span class="token punctuation">:</span>
-    <span class="token key atrule">app</span><span class="token punctuation">:</span> kubia
-
-  <span class="token comment"># pod 模板</span>
-  <span class="token key atrule">template</span><span class="token punctuation">:</span>
-    <span class="token key atrule">metadata</span><span class="token punctuation">:</span>
-      <span class="token key atrule">labels</span><span class="token punctuation">:</span>
-        <span class="token key atrule">app</span><span class="token punctuation">:</span> kubia
-    <span class="token key atrule">spec</span><span class="token punctuation">:</span>
-      <span class="token key atrule">containers</span><span class="token punctuation">:</span>
-      <span class="token punctuation">-</span> <span class="token key atrule">name</span><span class="token punctuation">:</span> kubia
-        <span class="token key atrule">image</span><span class="token punctuation">:</span> luksa/kubia
-        <span class="token key atrule">ports</span><span class="token punctuation">:</span>
-        <span class="token punctuation">-</span> <span class="token key atrule">containerPort</span><span class="token punctuation">:</span> <span class="token number">8080</span>
-</code></pre></div></li></ul><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="e528e70e7d099adb769d6d7bcf3efc54">6： 删除pod 标签（或者 移入另一个 RC的掌控）， 脱离RC 掌控，RC 会自动起一个 新的 pod; </p><ul class="cherry-list__default" data-lines="4" data-sign="ca9e2a2ed8083fa20a18aa1275dafab7list4"><li>原pod 可用于调试，完成后，手动删除 该pod 即可； </li><li>实际pod 数量， RC 通过就绪探针； </li><li>删除pod， 允许 客户端监听到 API 服务器的通知，通过检查实际的 pod 数量 采取适当的措施； <br><div data-sign="dbab5ec11dfd661840ef8c0f8eec84aa" data-type="codeBlock" data-lines="4"><pre class="prism language-shell" style="position: relative; z-index: 2;"><code class="language-shell">kubectl <span class="token keyword">delete</span> pod <span class="token operator">&lt;</span>pod<span class="token operator">-</span>name<span class="token operator">&gt;</span>
-</code></pre></div></li></ul><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="11758aa45a664356c1fb6a68707daed1">添加 pod 另外的标签， RC 并不care； </p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="07c06b1166db2227026f306942fc3fd2">7： 通过 pod 的 <code>metadata.ownerReferences</code> 可以知道 该pod 属于哪个 RC； </p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="1224f28a2c8b470ac466276f250d08e7">8： 节点故障： 例如网络断开； </p><ul class="cherry-list__default" data-lines="2" data-sign="62dc17aca81065f76c91db6abe2b4386list2"><li>RC 一段时间后检测到 pod 关闭（旧节点变为 <code>unknown</code>）， 会启动新的 pod 代替原来的 pod； </li><li>当旧节点恢复时， 节点状态变为 <code>ready</code>,  <code>unknown</code> pod 会被删除； </li></ul><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="bed13a4a5265503b6de68dfb99542e1a">9： 更改 RC的 标签选择器： </p><ul class="cherry-list__default" data-lines="2" data-sign="8a853ebca38710ecd5a752b137038e5flist2"><li>原有  pod 都会脱离管控； </li><li>RC 会创建（若无）新的指定数量、指定标签 的pod</li></ul><blockquote data-lines="2" data-sign="bae324ff79de3f79ea333ddb728fdda4_2"><strong>==RC 的标签选择器可以修改，但其他的 控制器对象 不能。==</strong> </blockquote><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="57fda4d8834814ee9f671f55ea0ffa5d">10： 删除RC，默认会删除RC 管理的pod</p><blockquote data-lines="2" data-sign="ff2f9e653b85c048c879e6183fa009e8_2">可以使用 选项 <code>--cascade=false</code> 保留pod.<br><div data-sign="b51b39c9883d01d425c0f80863c67c83" data-type="codeBlock" data-lines="4"><pre class="prism language-shell" style="position: relative; z-index: 2;"><code class="language-shell">kubectl <span class="token keyword">delete</span> rc <span class="token operator">&lt;</span>rc<span class="token operator">-</span>name<span class="token operator">&gt;</span> <span class="token operator">--</span>cascade<span class="token operator">=</span><span class="token boolean">false</span>
-</code></pre></div></blockquote><p data-lines="5" data-type="br" data-sign="br5">&nbsp;</p><h2 data-lines="1" data-sign="18bf051d1fd50188ffc437778c6a9bd5" id="%E4%BD%BF%E7%94%A8replicaset-%E6%9B%BF%E6%8D%A2-replicationcontroller" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E4%BD%BF%E7%94%A8replicaset-%E6%9B%BF%E6%8D%A2-replicationcontroller" class="anchor"></a>使用ReplicaSet 替换 ReplicationController</h2><p data-lines="2" data-type="p" data-sign="3837aab1342cf8fae0bd1d7e8c4393aa">1: ReplicationController  最初是 用于赋值和异常时重新调度节点 的<strong>唯一</strong> 组件。 </p><p data-lines="2" data-type="p" data-sign="dab496c30e8a9641b245547f6e3340e8">2： 一般不会直接创建 ReplicaSet ， 而是 创建 更高层级的 Deployment 资源时（第9章） 自动创建他们。  </p><p data-lines="2" data-type="p" data-sign="d063a9397f4177d9191b3f698a4243ed">3： ReplicaSet  功能和 ReplicationController 一样， pod 选择器的 表达能力更强： </p><ul class="cherry-list__default" data-lines="3" data-sign="97fbb43986d31d3b26e0b5eea112e6cdlist3"><li>ReplicationController 只允许 <code>k和v</code>  <strong>同时</strong> 匹配的标签；</li><li>ReplicationController  只能匹配单个 kv; </li><li>ReplicaSet   基于 标签名 k 匹配； </li></ul><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="f17e34b80dcee2cbc094faf4d786dcdb">4： 若已经有了 3 个pod，不会创建任何新的 pod，会将 旧 pod 纳入自己的管辖范围； </p><blockquote data-lines="2" data-sign="68df516a598d0fdb509b8e300e0baced_2">基础使用 和 RC一样简单。 <br><div data-sign="1846f06e4f836239156a97df89109c35" data-type="codeBlock" data-lines="21"><pre class="prism language-yaml" style="position: relative; z-index: 2;"><code class="language-yaml"><span class="token key atrule">apiVersion</span><span class="token punctuation">:</span> apps/v1
-<span class="token key atrule">kind</span><span class="token punctuation">:</span> ReplicaSet
-<span class="token key atrule">metadata</span><span class="token punctuation">:</span>
-  <span class="token key atrule">name</span><span class="token punctuation">:</span> kubia
-<span class="token key atrule">spec</span><span class="token punctuation">:</span>
-  <span class="token key atrule">replicas</span><span class="token punctuation">:</span> <span class="token number">3</span>
-  <span class="token key atrule">selector</span><span class="token punctuation">:</span>
-    <span class="token key atrule">matchLabels</span><span class="token punctuation">:</span>
-      <span class="token key atrule">app</span><span class="token punctuation">:</span> kubia
-  <span class="token key atrule">template</span><span class="token punctuation">:</span>
-    <span class="token key atrule">metadata</span><span class="token punctuation">:</span>
-      <span class="token key atrule">labels</span><span class="token punctuation">:</span>
-        <span class="token key atrule">app</span><span class="token punctuation">:</span> kubia
-    <span class="token key atrule">spec</span><span class="token punctuation">:</span>
-      <span class="token key atrule">containers</span><span class="token punctuation">:</span>
-      <span class="token punctuation">-</span> <span class="token key atrule">name</span><span class="token punctuation">:</span> kubia
-        <span class="token key atrule">image</span><span class="token punctuation">:</span> luksa/kubia
-
-</code></pre></div></blockquote><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="f103bca078958b57d1e1458c4d20f232">5： <code>matchExpressions</code> 更强大的选择器； </p><div data-sign="b71a33086581eac3740d212650bdd97c" data-type="codeBlock" data-lines="10"><pre class="prism language-yaml" style="position: relative; z-index: 2;"><code class="language-yaml"><span class="token key atrule">selector</span><span class="token punctuation">:</span>
-    <span class="token comment"># 标签 需要包含的 key 和 val </span>
-    <span class="token key atrule">matchExpressions</span><span class="token punctuation">:</span>
-      <span class="token punctuation">-</span> <span class="token key atrule">key</span><span class="token punctuation">:</span> app
-        <span class="token key atrule">operator</span><span class="token punctuation">:</span> In
-        <span class="token key atrule">values</span><span class="token punctuation">:</span>
-         <span class="token punctuation">-</span> kubia
-</code></pre>
-
-<p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="fb5a0ee0614fd320875f4a7ce6508e7a">6： 四个有效的运算符 <code>operator</code>： </p><ul class="cherry-list__default" data-lines="4" data-sign="ba21ae5cd74ff3b7105092697ecf131dlist4"><li><code>In</code> : Label的值 必须与其中 一个指定的values 匹配。</li><li><code>Notln</code> : Label的值与任何指定的values 不匹配。</li><li><code>Exists</code> : pod 必须包含一个指定名称的标签（值不重要）。使用此运算符时，不应指定 values字段。</li><li><code>DoesNotExist</code> : pod不得包含有指定名称的标签。values属性不得指定 。  </li></ul><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="42cd986649998d7bc8417bcff8044652">7: <code>matchLabels</code> 和 <code>matchExpressions</code>  可以同时指定，条件是<strong>与</strong>的关系。 </p><p data-lines="1" data-type="p" data-sign="643a9921320638b9cb1d18255bf35e5d">8： 删除 ReplicaSet 也会删除pod:</p><div data-sign="5dc49cffd960cda313117bee592160dd" data-type="codeBlock" data-lines="4"><pre class="prism language-shell" style="position: relative; z-index: 2;"><code class="language-shell">kubectl <span class="token keyword">delete</span> rs <span class="token operator">&lt;</span>rs<span class="token operator">-</span>name<span class="token operator">&gt;</span>
-</code></pre>
-
-<p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><h2 data-lines="1" data-sign="7208a8b28d3cad1535828106c0edbb3c" id="daemonset-%E5%9C%A8%E6%AF%8F%E4%B8%AA%E8%8A%82%E7%82%B9%E4%B8%8A%E8%BF%90%E8%A1%8C%E4%B8%80%E4%B8%AApod" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#daemonset-%E5%9C%A8%E6%AF%8F%E4%B8%AA%E8%8A%82%E7%82%B9%E4%B8%8A%E8%BF%90%E8%A1%8C%E4%B8%80%E4%B8%AApod" class="anchor"></a>DaemonSet: 在每个节点上运行一个pod</h2><p data-lines="2" data-type="p" data-sign="e2f8229c7638e68a1c56183d7c4663e7">1: 需在每个节点上运行日志收集 or 监控： 如 k8s 的<code>kube-proxy</code> 进程</p><p data-lines="2" data-type="p" data-sign="447b0db2a55b6e5584194c5b6c38f2f5">2： 通过  系统初始化脚本 or systemd 守护进程启动； </p><p data-lines="2" data-type="p" data-sign="6f621be92fd8decd86c52103e5ba3579">3： 无期望副本数概念，在 节点选择器下， 运行一个 pod； </p><ul class="cherry-list__default" data-lines="3" data-sign="9efdb76c170490fab98830e97dff1298list3"><li>和节点绑定在一起： 节点下线，并不会再创建 新 pod； </li><li>==新节点加入 【添加 节点 label 后】， 匹配节点选择器， 自动创建一个 新的 pod ；== </li><li>无意中删除了 该 pod， 会自动创建一个pod；</li></ul><p data-lines="1" data-type="p" data-sign="75b8f86b4db605bdf0611f55d84efb81">4： 从 DaemonSet 的 pod 模板 创建 pod</p><p data-lines="1" data-type="p" data-sign="6391af674d249d33621dc4e547f35785">5:   通过 节点选择器 <code>nodeSelector</code> 选中 部分节点创建 pod; </p><div data-sign="5a2f24359b31a9c398cd8398c0d4374e" data-type="codeBlock" data-lines="22"><pre class="prism language-yaml" style="position: relative; z-index: 2;"><code class="language-yaml"><span class="token key atrule">apiVersion</span><span class="token punctuation">:</span> apps/v1beta2
-<span class="token key atrule">kind</span><span class="token punctuation">:</span> DaemonSet
-<span class="token key atrule">metadata</span><span class="token punctuation">:</span>
-  <span class="token key atrule">name</span><span class="token punctuation">:</span> ssd<span class="token punctuation">-</span>monitor
-<span class="token key atrule">spec</span><span class="token punctuation">:</span>
-  <span class="token key atrule">selector</span><span class="token punctuation">:</span>
-    <span class="token key atrule">matchLabels</span><span class="token punctuation">:</span>
-      <span class="token key atrule">app</span><span class="token punctuation">:</span> ssd<span class="token punctuation">-</span>monitor
-  <span class="token key atrule">template</span><span class="token punctuation">:</span>
-    <span class="token key atrule">metadata</span><span class="token punctuation">:</span>
-      <span class="token key atrule">labels</span><span class="token punctuation">:</span>
-        <span class="token key atrule">app</span><span class="token punctuation">:</span> ssd<span class="token punctuation">-</span>monitor
-    <span class="token key atrule">spec</span><span class="token punctuation">:</span>
-      <span class="token comment"># 节点选择器，选择 标签为 disk=ssd 的节点</span>
-      <span class="token key atrule">nodeSelector</span><span class="token punctuation">:</span>
-        <span class="token key atrule">disk</span><span class="token punctuation">:</span> ssd
-      <span class="token key atrule">containers</span><span class="token punctuation">:</span>
-      <span class="token punctuation">-</span> <span class="token key atrule">name</span><span class="token punctuation">:</span> main
-        <span class="token key atrule">image</span><span class="token punctuation">:</span> luksa/ssd<span class="token punctuation">-</span>monitor
-</code></pre>
-
-<p data-lines="2" data-type="p" data-sign="3fce51e3d12b3b8a6bfabedc5bd863a4">6: 节点可以设置为 不可调度 【通过调度器控制】， 防止 pod 部署到 该节点；</p><p data-lines="2" data-type="p" data-sign="f29a63a7da58089953abf4d743e75632">但 DaemonSet 管理的 pod 作为==系统服务，完全绕过调度器，== 即使 节点是 不可调度的，仍然可以运行系统服务；  </p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="740217a98fc1741759106589dd9aeb61">7： 从节点删除 节点标签， DaemonSet 管理的 Pod 也会被删除： </p><div data-sign="e1fc7d9aeb2295f2ba8f4938e08a153e" data-type="codeBlock" data-lines="4"><pre class="prism language-shell" style="position: relative; z-index: 2;"><code class="language-shell">kubectl label node <span class="token operator">&lt;</span>node<span class="token operator">-</span>name<span class="token operator">&gt;</span> disk<span class="token operator">=</span>hdd <span class="token operator">--</span>overwrite
-</code></pre>
-
-<p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><h2 data-lines="1" data-sign="d83a358a39497e4d1874274bf6fe6387" id="job%EF%BC%9A%E8%BF%90%E8%A1%8C%E5%8D%95%E4%B8%AA%E4%BB%BB%E5%8A%A1%E7%9A%84-pod" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#job%EF%BC%9A%E8%BF%90%E8%A1%8C%E5%8D%95%E4%B8%AA%E4%BB%BB%E5%8A%A1%E7%9A%84-pod" class="anchor"></a>Job：运行单个任务的 pod</h2><p data-lines="2" data-type="p" data-sign="424d78e902b0bef706ea9130d8dbe35d">1: Job: 一旦任务完成，不重启 容器； </p><p data-lines="2" data-type="p" data-sign="fe09215c6ce34a6658882e43d0723bcb">两个地方会重启： </p><ul class="cherry-list__default" data-lines="2" data-sign="9b0744234b542f7f33398c20a5e7ed26list2"><li>1： job 异常； </li><li>2： pod  在执行任务时，被从节点逐出； </li></ul><p data-lines="1" data-type="p" data-sign="59b46cc135fdb3267d5fd34e309332d3">2： 会重启的资源</p><blockquote data-lines="2" data-sign="585de4629a35e338ec07e4d26cde7d4d_2">job 只有在执行失败的时候才会被重启； </blockquote><p data-lines="2" data-type="p" data-sign="f9829d4884ee3e2377d9d43d9a9737e0">被托管的ReplicaSet 会重启， Job若未完成，也会重启。 </p><p data-lines="2" data-type="p" data-sign="a94b87050e060a57b08d7e17a25be144" style=""><img alt="" src="./深入理解kubernetes - 游戏知识库 - KM平台_files/cos-file-url(22)" style="position: relative; z-index: 2;" class="amplify"></p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="fab9d89ca98c0a23ae0d64f583fd66db">3: job 资源： </p><p data-lines="1" data-type="p" data-sign="65b05b8f45ff56e1430b9867fb4bcc5e"><code>restartPolicy</code> 配置为 <code>Onfailure</code> or <code>Never</code>： 完成后 不需要 一直重启</p><div data-sign="8e9d5e9588ab91e6baa1c9c1f0a719ca" data-type="codeBlock" data-lines="19"><pre class="prism language-yaml" style="position: relative; z-index: 2;"><code class="language-yaml"><span class="token key atrule">apiVersion</span><span class="token punctuation">:</span> batch/v1
-<span class="token key atrule">kind</span><span class="token punctuation">:</span> Job
-<span class="token key atrule">metadata</span><span class="token punctuation">:</span>
-  <span class="token key atrule">name</span><span class="token punctuation">:</span> batch<span class="token punctuation">-</span>job
-<span class="token key atrule">spec</span><span class="token punctuation">:</span>
-  <span class="token key atrule">template</span><span class="token punctuation">:</span>
-    <span class="token key atrule">metadata</span><span class="token punctuation">:</span>
-      <span class="token key atrule">labels</span><span class="token punctuation">:</span>
-        <span class="token comment"># Job 未指定 pod 选择器，默认根据 pod 模板中的标签创建</span>
-        <span class="token key atrule">app</span><span class="token punctuation">:</span> batch<span class="token punctuation">-</span>job
-    <span class="token key atrule">spec</span><span class="token punctuation">:</span>
-      <span class="token comment"># job 不能使用默认的 Always 作为重启策略</span>
-      <span class="token key atrule">restartPolicy</span><span class="token punctuation">:</span> OnFailure
-      <span class="token key atrule">containers</span><span class="token punctuation">:</span>
-      <span class="token punctuation">-</span> <span class="token key atrule">name</span><span class="token punctuation">:</span> main
-        <span class="token key atrule">image</span><span class="token punctuation">:</span> luksa/batch<span class="token punctuation">-</span>job
-</code></pre>
-
-<p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="e4ae968592ba15d0581e7b07782008b0">4： job 中串行运行多个 pod: </p><div data-sign="5a26a114dc0439386f7b85cd7b0e965b" data-type="codeBlock" data-lines="8"><pre class="prism language-yaml" style="position: relative; z-index: 2;"><code class="language-yaml"><span class="token key atrule">kind</span><span class="token punctuation">:</span> Job
-<span class="token key atrule">metadata</span><span class="token punctuation">:</span>
-  <span class="token key atrule">name</span><span class="token punctuation">:</span> multi<span class="token punctuation">-</span>completion<span class="token punctuation">-</span>batch<span class="token punctuation">-</span>job
-<span class="token key atrule">spec</span><span class="token punctuation">:</span>
-  <span class="token key atrule">completions</span><span class="token punctuation">:</span> <span class="token number">5 </span><span class="token comment"># 顺序执行 5 次</span>
-</code></pre>
-
-<p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="4c542614a54dcce01d04430574b1f766">5： job 中并行运行多个 pod： </p><div data-sign="5411029501d1661c786f8c4f5fe04d26" data-type="codeBlock" data-lines="6"><pre class="prism language-yaml" style="position: relative; z-index: 2;"><code class="language-yaml"><span class="token key atrule">spec</span><span class="token punctuation">:</span>
-  <span class="token key atrule">completions</span><span class="token punctuation">:</span> <span class="token number">5  </span><span class="token comment"># 需要完成 5 次</span>
-  <span class="token key atrule">parallelism</span><span class="token punctuation">:</span> <span class="token number">2  </span><span class="token comment"># 最多同时 2 个并行</span>
-</code></pre>
-
-<p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="6a329eb65326b67d09d4f02751b54ed9">6: Job 在运行时，可调整 Job 数量： </p><div data-sign="fa28a370720a4de9c4c19fd949471e26" data-type="codeBlock" data-lines="4"><pre class="prism language-shell" style="position: relative; z-index: 2;"><code class="language-shell">kubectl scale job <span class="token operator">&lt;</span>job<span class="token operator">-</span>name<span class="token operator">&gt;</span> <span class="token operator">--</span>replicas <span class="token number">3</span>
-</code></pre>
-
-<p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="78c352b0126c4088fd4c1d70c557b19c">7: 限制 Job 完成时间和失败重试次数： </p><ul class="cherry-list__default" data-lines="2" data-sign="84008df888a70bb5509e21935f709102list2"><li>activeDeadlineSeconds: 限制 Job 运行的时间</li><li>spec.backoffLimit: 默认6，Job 失败前 可重试的次数</li></ul><p data-lines="9" data-type="br" data-sign="br9">&nbsp;</p><h2 data-lines="1" data-sign="a64eaeeba16ffcf0de7b0bf024effdb1" id="cronjob-%E5%AE%9A%E6%9C%9F%E6%89%A7%E8%A1%8C" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#cronjob-%E5%AE%9A%E6%9C%9F%E6%89%A7%E8%A1%8C" class="anchor"></a>CronJob: 定期执行</h2><p data-lines="2" data-type="p" data-sign="581bc770c2e1f229043664d9748b169d">1： 时间格式： cron </p><p data-lines="1" data-type="p" data-sign="72d9d87d26658133107c53cc901e4c39">2: 每隔 15 分钟运行一次： </p><div data-sign="6a4516c543ad65c79ae4c6a684580799" data-type="codeBlock" data-lines="22"><pre class="prism language-yaml" style="position: relative; z-index: 2;"><code class="language-yaml"><span class="token key atrule">apiVersion</span><span class="token punctuation">:</span> batch/v1beta1
-<span class="token key atrule">kind</span><span class="token punctuation">:</span> CronJob
-<span class="token key atrule">metadata</span><span class="token punctuation">:</span>
-  <span class="token key atrule">name</span><span class="token punctuation">:</span> batch<span class="token punctuation">-</span>job<span class="token punctuation">-</span>every<span class="token punctuation">-</span>fifteen<span class="token punctuation">-</span>minutes
-<span class="token key atrule">spec</span><span class="token punctuation">:</span>
-  <span class="token comment"># 每15分钟运行一次  </span>
-  <span class="token key atrule">schedule</span><span class="token punctuation">:</span> <span class="token string">"0,15,30,45 * * * *"</span>
-  <span class="token key atrule">jobTemplate</span><span class="token punctuation">:</span>
-    <span class="token key atrule">spec</span><span class="token punctuation">:</span>
-      <span class="token key atrule">template</span><span class="token punctuation">:</span>
-        <span class="token key atrule">metadata</span><span class="token punctuation">:</span>
-          <span class="token key atrule">labels</span><span class="token punctuation">:</span>
-            <span class="token key atrule">app</span><span class="token punctuation">:</span> periodic<span class="token punctuation">-</span>batch<span class="token punctuation">-</span>job
-        <span class="token key atrule">spec</span><span class="token punctuation">:</span>
-          <span class="token key atrule">restartPolicy</span><span class="token punctuation">:</span> OnFailure
-          <span class="token key atrule">containers</span><span class="token punctuation">:</span>
-          <span class="token punctuation">-</span> <span class="token key atrule">name</span><span class="token punctuation">:</span> main
-            <span class="token key atrule">image</span><span class="token punctuation">:</span> luksa/batch<span class="token punctuation">-</span>job
-
-</code></pre>
-
-<p data-lines="2" data-type="p" data-sign="e8d8976fc1b578d9d025e79b3497f37e">3： 时间格式： </p><ul class="cherry-list__default" data-lines="5" data-sign="df2adaf47174f8374cf67a25a6af2e6blist5"><li>分钟</li><li>小时</li><li>每月中的第几天</li><li>月</li><li>星期几</li></ul><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="6538ec13310f6062662ff187d2c5ffd7">4： 注意事项</p><ul class="cherry-list__default" data-lines="4" data-sign="f4a2b779c4f7ad5eaa4ef7acece04b19list4"><li>CronJob 根据 <code>jobTemplate</code> 创建 job 对象;</li><li><code>startingDeadlineSeconds</code> 超时未执行 视为 Failed; </li><li>Job 能被重复执行，可能会被创建多个； </li><li>Job 应该是串行的， 中间不能有 遗漏的任务； </li></ul><p data-lines="5" data-type="br" data-sign="br5">&nbsp;</p><h1 data-lines="1" data-sign="22f99958984f6c99ff2b8ba847fec972" id="%E6%9C%8D%E5%8A%A1" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E6%9C%8D%E5%8A%A1" class="anchor"></a>服务</h1><p data-lines="2" data-type="p" data-sign="10fceccd0599157dfc7ab3b5d63d3a7d">1： 服务可以说是 k8s 中最复杂的一环。 </p><p data-lines="2" data-type="p" data-sign="c8153c8459d99ecc63cb00ba38922eda">k8s 集群和普通集群不同的是，</p><ul class="cherry-list__default" data-lines="2" data-sign="5c525639c2f895279a9f4a7d5533c8c3list2"><li>pod 是临时的，随时会被创建和关闭（动态扩缩容）</li><li>pod 重启，，会分配新的IP地址； </li></ul><p data-lines="1" data-type="p" data-sign="e714afa0a7f8e518d3a9462bc313871d">2： Service资源： 外部访问后端pod， 可提供一个统一可供外部访问的IP地址和端口</p><blockquote data-lines="2" data-sign="aba400256def5bf40255058262291ff0_2">这里更多的是针对无状态服务，所有pod 都是对等的， API 服务器只需 随机分配一个 pod </blockquote><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="08e20b47696f07bba3c7a65da676ec36">3： 应用服务的两种情形： </p><ul class="cherry-list__default" data-lines="2" data-sign="3b834c12ef45c24eec1945d080f7c766list2"><li>外部集群 可通过  服务 连接 pod </li><li>内部 pod 之间也可通过服务连接 </li></ul><p data-lines="1" data-type="p" data-sign="bea3217229dfd29bb8a6b3c4b54a2acc" style=""><img alt="" src="./深入理解kubernetes - 游戏知识库 - KM平台_files/cos-file-url(23)" style="position: relative; z-index: 2;" class="amplify"></p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><h2 data-lines="1" data-sign="3896b203501722767ef715b4412d202b" id="%E8%BF%9E%E6%8E%A5%E9%9B%86%E7%BE%A4%E5%86%85%E9%83%A8%E7%9A%84-service" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E8%BF%9E%E6%8E%A5%E9%9B%86%E7%BE%A4%E5%86%85%E9%83%A8%E7%9A%84-service" class="anchor"></a>连接集群内部的 Service</h2><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="ffce725c47efb4060e8552f9daa278c8">4: 服可通过标签选择器，选择 需要 连接的 pod</p><blockquote data-lines="2" data-sign="44ad63de9fb025371bc4c23ded3c9dca_2">控制 Service 服务的范围。 </blockquote><p data-lines="2" data-type="p" data-sign="2cdd85fbc82d2597e95684feb95dfbf8" style=""><img alt="" src="./深入理解kubernetes - 游戏知识库 - KM平台_files/cos-file-url(24)" style="position: relative; z-index: 2;" class="amplify"></p><p data-lines="1" data-type="p" data-sign="c2c9f9c2fc5846217a6f14f858e57c46">5： 服务可通过 <code>kubectl expose</code> 创建，也可通过 yaml 创建。 </p><div data-sign="70b8fe38cb370fc40dd46623175bd405" data-type="codeBlock" data-lines="17"><pre class="prism language-yaml" style="position: relative; z-index: 2;"><code class="language-yaml"><span class="token key atrule">apiVersion</span><span class="token punctuation">:</span> v1
-<span class="token key atrule">kind</span><span class="token punctuation">:</span> Service
-<span class="token key atrule">metadata</span><span class="token punctuation">:</span>
-  <span class="token key atrule">name</span><span class="token punctuation">:</span> kubia
-<span class="token key atrule">spec</span><span class="token punctuation">:</span>
-  <span class="token key atrule">ports</span><span class="token punctuation">:</span>
-  <span class="token comment"># 服务对外的端口</span>
-  <span class="token punctuation">-</span> <span class="token key atrule">port</span><span class="token punctuation">:</span> <span class="token number">80</span>
-    <span class="token comment"># 服务转发到容器的端口</span>
-    <span class="token key atrule">targetPort</span><span class="token punctuation">:</span> <span class="token number">8080</span>
-
-  <span class="token comment"># 连接pod 集合是带有 app: kubia 标签的 pods</span>
-  <span class="token key atrule">selector</span><span class="token punctuation">:</span>
-    <span class="token key atrule">app</span><span class="token punctuation">:</span> kubia
-</code></pre>
-
-<p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="d8bcbabe1d235cd960b6d1a02a71145c">创建 svc 后，会分配一个 <strong>集群IP</strong>，==该IP 对外不可用==，仅限于 集群内的 pod 访问 【pod 和 pod 之间也可通过 服务连接】。 </p><p data-lines="2" data-type="p" data-sign="155cb679537df0c0fe01581037702df9" style=""><img alt="" src="./深入理解kubernetes - 游戏知识库 - KM平台_files/cos-file-url(25)" style="position: relative; z-index: 2;" class="amplify"></p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="184fc89eea317fc496f0cd38487e95e5">集群内部测试服务，有三种方法向 Service 发送请求： </p><ul class="cherry-list__default" data-lines="3" data-sign="a40b359c168b7941bea93b601c5e0bbalist3"><li>创建一个 pod 应用，并向 集群IP 发送requests； </li><li>ssh 登录到节点上，使用 curl</li><li>登录到其中的一个 pod 运行curl指令</li></ul><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="c140a87d5bddce72c09cdf84b8ec69fd">6： 可用 <code>kubectl exec</code> 在远程容器里执行： </p><div data-sign="f735330b7763c7065b0a41a5956969e3" data-type="codeBlock" data-lines="12"><pre class="prism language-shell" style="position: relative; z-index: 2;"><code class="language-shell">user00@ubuntu<span class="token operator">:</span><span class="token operator">~</span>$ kubectl <span class="token keyword">get</span> po
-<span class="token constant">NAME</span>          <span class="token constant">READY</span>   <span class="token constant">STATUS</span>    <span class="token constant">RESTARTS</span>   <span class="token constant">AGE</span>
-kubia<span class="token operator">-</span>jppwd   <span class="token number">1</span><span class="token operator">/</span><span class="token number">1</span>     Running   <span class="token number">0</span>          <span class="token number">5</span>m13s
-kubia<span class="token operator">-</span>sxkrr   <span class="token number">1</span><span class="token operator">/</span><span class="token number">1</span>     Running   <span class="token number">0</span>          <span class="token number">5</span>m13s
-kubia<span class="token operator">-</span>xvkpg   <span class="token number">1</span><span class="token operator">/</span><span class="token number">1</span>     Running   <span class="token number">0</span>          <span class="token number">5</span>m13s
-
-#  <span class="token operator">--</span>  表示 Kubectl 执行命令的结束
-# <span class="token operator">-</span>s 告诉 kubectl 需要连接不同的 <span class="token constant">API</span>服务器，而非默认的
-user00@ubuntu<span class="token operator">:</span><span class="token operator">~</span>$ kubectl exec kubia<span class="token operator">-</span>jppwd <span class="token operator">--</span> curl <span class="token operator">-</span>s  http<span class="token operator">:</span><span class="token operator">/</span><span class="token operator">/</span><span class="token number">10.105</span><span class="token number">.237</span><span class="token number">.81</span>
-</code></pre>
-
-<p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="2" data-type="p" data-sign="d2db97aa045d31dd87ed2a8a7924f3e1" style="">curl 的过程如下， Service 选择 pod 是随机选择一个。 <br><img alt="" src="./深入理解kubernetes - 游戏知识库 - KM平台_files/cos-file-url(26)" style="position: relative; z-index: 2;" class="amplify"></p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="6ba2a1b1acdb7de1236009b4c6e70b04">7: Service 可以通过设置 <code>sessionAffinity: ClientIP</code> 来让同一个客户端的请求每次指向同一个 pod. </p><blockquote data-lines="2" data-sign="9a1736ef9b2a2d13c4604d23ca516f14_2">默认值是 None  </blockquote><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="8e5da8a0f2638a91b44be60f7d5f126d">8: Service 可同时暴露多个端口， 例如 http请求时， 80 端口映射到8080， https 请求时， 443 端口映射到 8443 </p><p data-lines="2" data-type="p" data-sign="3018c0f19bdc83ceb42900dc4a215a66">9： 在 Service的生命周期内， 服务ip不变。 </p><ul class="cherry-list__default" data-lines="2" data-sign="def4ca552b5b6a10fd419a8478c90dcalist2"><li>当pod 创建时，k8s 会初始环境变量指向现在的 集群IP<br><div data-sign="15c2e64577fca9356f96bd53599884de" data-type="codeBlock" data-lines="14"><pre class="prism language-shell" style="position: relative; z-index: 2;"><code class="language-shell">user00@ubuntu<span class="token operator">:</span><span class="token operator">~</span>$ kubectl exec kubia<span class="token operator">-</span>jppwd  env <span class="token operator">|</span> grep <span class="token operator">-</span><span class="token keyword">in</span>  service
-kubectl exec <span class="token punctuation">[</span><span class="token constant">POD</span><span class="token punctuation">]</span> <span class="token punctuation">[</span><span class="token constant">COMMAND</span><span class="token punctuation">]</span> is <span class="token constant">DEPRECATED</span> and will be removed <span class="token keyword">in</span> a future version<span class="token punctuation">.</span> Use kubectl exec <span class="token punctuation">[</span><span class="token constant">POD</span><span class="token punctuation">]</span> <span class="token operator">--</span> <span class="token punctuation">[</span><span class="token constant">COMMAND</span><span class="token punctuation">]</span> instead<span class="token punctuation">.</span>
-<span class="token number">3</span><span class="token operator">:</span><span class="token constant">KUBERNETES_SERVICE_HOST</span><span class="token operator">=</span><span class="token number">10.96</span><span class="token number">.0</span><span class="token number">.1</span>
-<span class="token number">4</span><span class="token operator">:</span><span class="token constant">KUBERNETES_SERVICE_PORT_HTTPS</span><span class="token operator">=</span><span class="token number">443</span>
-
-# 集群<span class="token constant">IP</span> 和 端口
-<span class="token number">7</span><span class="token operator">:</span><span class="token constant">KUBIA_SERVICE_HOST</span><span class="token operator">=</span><span class="token number">10.105</span><span class="token number">.237</span><span class="token number">.81</span>
-<span class="token number">8</span><span class="token operator">:</span><span class="token constant">KUBIA_SERVICE_PORT</span><span class="token operator">=</span><span class="token number">80</span>
-<span class="token number">12</span><span class="token operator">:</span><span class="token constant">KUBERNETES_SERVICE_PORT</span><span class="token operator">=</span><span class="token number">443</span>
-</code></pre></div></li></ul><p data-lines="1" data-type="p" data-sign="3f8a3c44f5e6a8389fc431b83dcb8e41">对应了两个服务： </p><div data-sign="ab70c91f6e9dba0360829a94d1308a53" data-type="codeBlock" data-lines="7"><pre class="prism language-shell" style="position: relative; z-index: 2;"><code class="language-shell">$ kubectl <span class="token keyword">get</span> svc
-<span class="token constant">NAME</span>         <span class="token constant">TYPE</span>        <span class="token constant">CLUSTER</span><span class="token operator">-</span><span class="token constant">IP</span>      <span class="token constant">EXTERNAL</span><span class="token operator">-</span><span class="token constant">IP</span>   <span class="token constant">PORT</span><span class="token punctuation">(</span><span class="token constant">S</span><span class="token punctuation">)</span>   <span class="token constant">AGE</span>
-kubernetes   ClusterIP   <span class="token number">10.96</span><span class="token number">.0</span><span class="token number">.1</span>       <span class="token operator">&lt;</span>none<span class="token operator">&gt;</span>        <span class="token number">443</span><span class="token operator">/</span><span class="token constant">TCP</span>   <span class="token number">2</span>d21h
-kubia        ClusterIP   <span class="token number">10.105</span><span class="token number">.237</span><span class="token number">.81</span>   <span class="token operator">&lt;</span>none<span class="token operator">&gt;</span>        <span class="token number">80</span><span class="token operator">/</span><span class="token constant">TCP</span>    <span class="token number">50</span>m
-</code></pre>
-
-<p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="ffa715ce9ea6961fe086feb49ed0bb43">10: 每个 pod 默认使用的 dns: </p><div data-sign="50211088b7a0e30f7e9afb9a2e9b6372" data-type="codeBlock" data-lines="7"><pre class="prism language-shell" style="position: relative; z-index: 2;"><code class="language-shell">$kubectl exec kubia<span class="token operator">-</span>jppwd  <span class="token operator">--</span> cat <span class="token operator">/</span>etc<span class="token operator">/</span>resolv<span class="token punctuation">.</span>conf
-nameserver <span class="token number">10.96</span><span class="token number">.0</span><span class="token number">.10</span>
-search <span class="token keyword">default</span><span class="token punctuation">.</span>svc<span class="token punctuation">.</span>cluster<span class="token punctuation">.</span>local svc<span class="token punctuation">.</span>cluster<span class="token punctuation">.</span>local cluster<span class="token punctuation">.</span>local localdomain
-options ndots<span class="token operator">:</span><span class="token number">5</span>
-</code></pre>
-
-<p data-lines="2" data-type="p" data-sign="18b26779ac6857a211b1cbc99d598485">pod 是否适用 dns， 由 <code>dnsPolicy</code> 属性决定。 </p><p data-lines="1" data-type="p" data-sign="ade48c921f0e2b18e5f9a261a1153dbd">系统命名空间，通常有个 pod 运行 DNS 服务； </p><div data-sign="0a9836f4fae386674a661de523ef8c01" data-type="codeBlock" data-lines="6"><pre class="prism language-shell" style="position: relative; z-index: 2;"><code class="language-shell">$ kubectl <span class="token keyword">get</span> po <span class="token operator">-</span>n kube<span class="token operator">-</span>system
-<span class="token constant">NAME</span>                               <span class="token constant">READY</span>   <span class="token constant">STATUS</span>    <span class="token constant">RESTARTS</span>   <span class="token constant">AGE</span>
-coredns<span class="token operator">-</span><span class="token number">74</span>ff55c5b<span class="token operator">-</span>pvqxv            <span class="token number">1</span><span class="token operator">/</span><span class="token number">1</span>     Running   <span class="token number">0</span>          <span class="token number">2</span>d21h
-</code></pre>
-
-<p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="cf1f5bcd71e73994a207252555ddc523">11： 在pod 中，可使用全限定域名（FQDN） 来访问 Service。 </p><p data-lines="1" data-type="p" data-sign="b2c105f6ae7a4435f894fc5e3cc580ac">格式如下： </p><div data-sign="daaacc72cc877f0b0109a23bab6e1f89" data-type="codeBlock" data-lines="8"><pre class="prism language-shell" style="position: relative; z-index: 2;"><code class="language-shell">kubia<span class="token punctuation">.</span>default<span class="token punctuation">.</span>svc<span class="token punctuation">.</span>cluster<span class="token punctuation">.</span>local
-
-# kubia<span class="token operator">:</span> Service 名称
-# <span class="token keyword">default</span><span class="token operator">:</span> namespace
-# svc<span class="token punctuation">.</span>cluster<span class="token punctuation">.</span>local： 所有集群本地服务中使用的可配置集群域后缀
-</code></pre>
-
-<p data-lines="1" data-type="p" data-sign="a7628de13cd13d8e294148d6d0395f7a">若在同命名空间下， <code>svc.cluster.local</code> 和 <code>default</code> 可省略。 </p><div data-sign="fe93ff9239b4c5d97b9bf2fe831dd826" data-type="codeBlock" data-lines="11"><pre class="prism language-shell" style="position: relative; z-index: 2;"><code class="language-shell">user00@ubuntu<span class="token operator">:</span><span class="token operator">~</span>$  kubectl exec <span class="token operator">-</span>it  kubia<span class="token operator">-</span>jppwd  bash
-kubectl exec <span class="token punctuation">[</span><span class="token constant">POD</span><span class="token punctuation">]</span> <span class="token punctuation">[</span><span class="token constant">COMMAND</span><span class="token punctuation">]</span> is <span class="token constant">DEPRECATED</span> and will be removed <span class="token keyword">in</span> a future version<span class="token punctuation">.</span> Use kubectl exec <span class="token punctuation">[</span><span class="token constant">POD</span><span class="token punctuation">]</span> <span class="token operator">--</span> <span class="token punctuation">[</span><span class="token constant">COMMAND</span><span class="token punctuation">]</span> instead<span class="token punctuation">.</span>
-root@kubia<span class="token operator">-</span>jppwd<span class="token operator">:</span><span class="token operator">/</span># curl http<span class="token operator">:</span><span class="token operator">/</span><span class="token operator">/</span>kubia<span class="token punctuation">.</span>default<span class="token punctuation">.</span>svc<span class="token punctuation">.</span>cluster<span class="token punctuation">.</span>local
-You've hit kubia<span class="token operator">-</span>sxkrr
-root@kubia<span class="token operator">-</span>jppwd<span class="token operator">:</span><span class="token operator">/</span># curl http<span class="token operator">:</span><span class="token operator">/</span><span class="token operator">/</span>kubia<span class="token punctuation">.</span>default
-You've hit kubia<span class="token operator">-</span>xvkpg
-root@kubia<span class="token operator">-</span>jppwd<span class="token operator">:</span><span class="token operator">/</span># curl http<span class="token operator">:</span><span class="token operator">/</span><span class="token operator">/</span>kubia
-You've hit kubia<span class="token operator">-</span>xvkpg
-</code></pre>
-
-<p data-lines="5" data-type="br" data-sign="br5">&nbsp;</p><p data-lines="1" data-type="p" data-sign="c952d56acb15c44bcfeb6bbb3b9054cc">12: 集群IP是一个 虚拟的IP， 只有配合服务端口才有意义。</p><div data-sign="95868ce72c488512e49f77b7b7fe920a" data-type="codeBlock" data-lines="7"><pre class="prism language-shell" style="position: relative; z-index: 2;"><code class="language-shell">root@kubia<span class="token operator">-</span>jppwd<span class="token operator">:</span><span class="token operator">/</span># ping kubia
-<span class="token constant">PING</span> kubia<span class="token punctuation">.</span>default<span class="token punctuation">.</span>svc<span class="token punctuation">.</span>cluster<span class="token punctuation">.</span><span class="token function">local</span> <span class="token punctuation">(</span><span class="token number">10.105</span><span class="token number">.237</span><span class="token number">.81</span><span class="token punctuation">)</span><span class="token operator">:</span> <span class="token number">56</span> data bytes
-<span class="token operator">^</span><span class="token constant">C</span><span class="token operator">--</span><span class="token operator">-</span> kubia<span class="token punctuation">.</span>default<span class="token punctuation">.</span>svc<span class="token punctuation">.</span>cluster<span class="token punctuation">.</span>local ping statistics <span class="token operator">--</span><span class="token operator">-</span>
-<span class="token number">51</span> packets transmitted<span class="token punctuation">,</span> <span class="token number">0</span> packets received<span class="token punctuation">,</span> <span class="token number">100</span><span class="token operator">%</span> packet loss
-</code></pre>
-
-<p data-lines="5" data-type="br" data-sign="br5">&nbsp;</p><h2 data-lines="1" data-sign="b8c699f9ce30a25f6840034888919c98" id="%E8%BF%9E%E6%8E%A5%E9%9B%86%E7%BE%A4%E5%A4%96%E9%83%A8%E7%9A%84-service" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E8%BF%9E%E6%8E%A5%E9%9B%86%E7%BE%A4%E5%A4%96%E9%83%A8%E7%9A%84-service" class="anchor"></a>连接集群外部的 Service</h2><p data-lines="2" data-type="p" data-sign="62c2b7efbc425da74fa1514aa6095be2">1： 让 pod 连接到集群外部。 </p><p data-lines="1" data-type="p" data-sign="d54a00af7ab46d83b5f9b508f4c61444">2： 服务并不是和 pod 直接相连，中间有 Endpoint 资源</p><div data-sign="612b705b705973e9cdf7e9606abf9301" data-type="codeBlock" data-lines="8"><pre class="prism language-shell" style="position: relative; z-index: 2;"><code class="language-shell">user00@ubuntu<span class="token operator">:</span><span class="token operator">~</span>$ kubectl <span class="token keyword">get</span> svc kubia
-Selector<span class="token operator">:</span>          app<span class="token operator">=</span>kubia # 创建 endpoint 资源，选择的 pod 标签
-
-TargetPort<span class="token operator">:</span>        <span class="token number">8080</span><span class="token operator">/</span><span class="token constant">TCP</span>
-Endpoints<span class="token operator">:</span>         <span class="token number">172.17</span><span class="token number">.0</span><span class="token number">.3</span><span class="token operator">:</span><span class="token number">8080</span><span class="token punctuation">,</span><span class="token number">172.17</span><span class="token number">.0</span><span class="token number">.4</span><span class="token operator">:</span><span class="token number">8080</span><span class="token punctuation">,</span><span class="token number">172.17</span><span class="token number">.0</span><span class="token number">.5</span><span class="token operator">:</span><span class="token number">8080</span>
-</code></pre>
-
-<p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><blockquote data-lines="2" data-sign="c31ba61b7fd087c5d161d7c04a187561_2">Service 通过选择器构建 IP 和 端口 列表，然后存储在 endpoint 资源中<br><br>连接时，随机选择其中一个</blockquote><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="1b438787b07c187b6624e0f1fc5c6db3">3： 当 Service 无节点选择器时，不会自动创建 Endpoint 资源。 </p><div data-sign="9ab0507a467e54aa400a72c05bdb713a" data-type="codeBlock" data-lines="13"><pre class="prism language-yaml" style="position: relative; z-index: 2;"><code class="language-yaml"><span class="token key atrule">apiVersion</span><span class="token punctuation">:</span> v1
-<span class="token key atrule">kind</span><span class="token punctuation">:</span> Service
-<span class="token key atrule">metadata</span><span class="token punctuation">:</span>
-  <span class="token comment"># Service 名称，后面会用</span>
-  <span class="token key atrule">name</span><span class="token punctuation">:</span> external<span class="token punctuation">-</span>service
-<span class="token key atrule">spec</span><span class="token punctuation">:</span>
-  <span class="token key atrule">ports</span><span class="token punctuation">:</span>
-  <span class="token punctuation">-</span> <span class="token key atrule">port</span><span class="token punctuation">:</span> <span class="token number">80</span>
-
-  <span class="token comment"># 无 选择器</span>
-</code></pre>
-
-<p data-lines="1" data-type="p" data-sign="1bf5b2edd1e4e75cb226d1e541531ab9">手动指定 Endpoint 注意需要<strong>==和 Service 同名称==</strong>。 </p><div data-sign="4341c43f452b5d6a09c931298575a39a" data-type="codeBlock" data-lines="15"><pre class="prism language-yaml" style="position: relative; z-index: 2;"><code class="language-yaml"><span class="token key atrule">apiVersion</span><span class="token punctuation">:</span> v1
-<span class="token key atrule">kind</span><span class="token punctuation">:</span> Endpoints
-<span class="token key atrule">metadata</span><span class="token punctuation">:</span>
-  <span class="token comment"># 和 Service 同名称</span>
-  <span class="token key atrule">name</span><span class="token punctuation">:</span> external<span class="token punctuation">-</span>service
-<span class="token key atrule">subsets</span><span class="token punctuation">:</span>
-  <span class="token comment"># Service 重定向的 IP 地址</span>
-  <span class="token punctuation">-</span> <span class="token key atrule">addresses</span><span class="token punctuation">:</span>
-    <span class="token punctuation">-</span> <span class="token key atrule">ip</span><span class="token punctuation">:</span> 11.11.11.11
-    <span class="token punctuation">-</span> <span class="token key atrule">ip</span><span class="token punctuation">:</span> 22.22.22.22
-    <span class="token key atrule">ports</span><span class="token punctuation">:</span>
-    <span class="token punctuation">-</span> <span class="token key atrule">port</span><span class="token punctuation">:</span> <span class="token number">80 </span>
-</code></pre>
-
-<p data-lines="2" data-type="p" data-sign="1932144841eb3af77390e98feb6a7619">通过endpoint 列表， 可连向其它地址。</p><p data-lines="2" data-type="p" data-sign="44ec53cfda9dd9f0fa14594306f32345" style=""><img alt="" src="./深入理解kubernetes - 游戏知识库 - KM平台_files/cos-file-url(27)" style="position: relative; z-index: 2;" class="amplify"></p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="92cbe9520ad3a528b1f8aabcfe67c244">4： 也可创建具有别名的外部服务： </p><div data-sign="b8997da3219bccd6bdb36e3388d95ff6" data-type="codeBlock" data-lines="13"><pre class="prism language-yaml" style="position: relative; z-index: 2;"><code class="language-yaml"><span class="token key atrule">apiVersion</span><span class="token punctuation">:</span> v1
-<span class="token key atrule">kind</span><span class="token punctuation">:</span> Service
-<span class="token key atrule">metadata</span><span class="token punctuation">:</span>
-  <span class="token key atrule">name</span><span class="token punctuation">:</span> external<span class="token punctuation">-</span>service
-<span class="token key atrule">spec</span><span class="token punctuation">:</span>
-  <span class="token comment"># 别名</span>
-  <span class="token key atrule">type</span><span class="token punctuation">:</span> ExternalName
-  <span class="token key atrule">externalName</span><span class="token punctuation">:</span> api.somecompany.com
-  <span class="token key atrule">ports</span><span class="token punctuation">:</span>
-  <span class="token punctuation">-</span> <span class="token key atrule">port</span><span class="token punctuation">:</span> <span class="token number">80</span>
-</code></pre>
-
-<p data-lines="2" data-type="p" data-sign="8c0dfe4c9f6ae8299ae3790a968d53e2">创建该服务后，内部pod 可通过 <code>external-service.default.svc.cluster.local</code> 访问外部域名</p><p data-lines="5" data-type="br" data-sign="br5">&nbsp;</p><h2 data-lines="1" data-sign="82d681bc0f2223c9f252da38675d9da2" id="%E5%B0%86%E6%9C%8D%E5%8A%A1%E6%9A%B4%E9%9C%B2%E7%BB%99%E5%A4%96%E9%83%A8%E5%AE%A2%E6%88%B7%E7%AB%AF" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E5%B0%86%E6%9C%8D%E5%8A%A1%E6%9A%B4%E9%9C%B2%E7%BB%99%E5%A4%96%E9%83%A8%E5%AE%A2%E6%88%B7%E7%AB%AF" class="anchor"></a>将服务暴露给外部客户端</h2><p data-lines="2" data-type="p" data-sign="20bc4e0b222d96810e10a00116125a6c">1: pod 向外部公开的服务，如 web 服务。 </p><p data-lines="2" data-type="p" data-sign="aba0d98ef4b9628ac89376d0b65918d2">2： 有以下几种方式，使外部可访问服务：</p><ul class="cherry-list__default" data-lines="3" data-sign="02233e4aeff4beaa538700eeaa88bcc3list3"><li>服务类型为 NodePort: 每个节点上开放一个端口，访问内部服务 (可被 Service 访问)。</li><li>服务类型 为 LoadBalance： NodePort 的一种扩展， 通过负载均衡器访问， 将流量重定向到所有节点的 NodePort; </li><li>创建 Ingress 资源： 通过一个 IP 地址公开多个 服务 （运行在 HTTP 层） </li></ul><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><h3 data-lines="1" data-sign="f8bb423b6c2991e7ad4c26f624539316" id="nodeport" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#nodeport" class="anchor"></a>NodePort</h3><p data-lines="1" data-type="p" data-sign="60d7128a99e882be7322229db43fde6e">1: 创建一个 NodePort 类型的 Service。 </p><div data-sign="c00ab467e187f4698d60353a049a7195" data-type="codeBlock" data-lines="20"><pre class="prism language-yaml" style="position: relative; z-index: 2;"><code class="language-yaml"><span class="token key atrule">apiVersion</span><span class="token punctuation">:</span> v1
-<span class="token key atrule">kind</span><span class="token punctuation">:</span> Service
-<span class="token key atrule">metadata</span><span class="token punctuation">:</span>
-  <span class="token key atrule">name</span><span class="token punctuation">:</span> kubia<span class="token punctuation">-</span>nodeport
-<span class="token key atrule">spec</span><span class="token punctuation">:</span>
-  <span class="token comment"># 服务类型为 NodePort </span>
-  <span class="token key atrule">type</span><span class="token punctuation">:</span> NodePort
-  <span class="token key atrule">ports</span><span class="token punctuation">:</span>
-   <span class="token comment"># 集群IP的端口</span>
-  <span class="token punctuation">-</span> <span class="token key atrule">port</span><span class="token punctuation">:</span> <span class="token number">80</span>
-    <span class="token comment"># pod 开放的端口</span>
-    <span class="token key atrule">targetPort</span><span class="token punctuation">:</span> <span class="token number">8080</span>
-
-    <span class="token comment"># 不指定端口，将随机选择一个端口</span>
-    <span class="token key atrule">nodePort</span><span class="token punctuation">:</span> <span class="token number">30123</span>
-  <span class="token key atrule">selector</span><span class="token punctuation">:</span>
-    <span class="token key atrule">app</span><span class="token punctuation">:</span> kubia
-</code></pre>
-
-<p data-lines="1" data-type="p" data-sign="059a52f637d3fb92cd5e6becf5c83178">2： 现在可通过以下几种方式访问服务： </p><div data-sign="722f95e8a1fc78404e4d2b510b7f5d84" data-type="codeBlock" data-lines="6"><pre class="prism language-shell" style="position: relative; z-index: 2;"><code class="language-shell">user00@ubuntu<span class="token operator">:</span><span class="token operator">~</span>$ kubectl <span class="token keyword">get</span> svc
-<span class="token constant">NAME</span>               <span class="token constant">TYPE</span>           <span class="token constant">CLUSTER</span><span class="token operator">-</span><span class="token constant">IP</span>
-kubia<span class="token operator">-</span>nodeport     NodePort       <span class="token number">10.104</span><span class="token number">.119</span><span class="token number">.122</span>   <span class="token operator">&lt;</span>none<span class="token operator">&gt;</span>          <span class="token number">80</span><span class="token operator">:</span><span class="token number">30123</span><span class="token operator">/</span><span class="token constant">TCP</span>   <span class="token number">5</span>m21s
-</code></pre>
-
-<ul class="cherry-list__default" data-lines="4" data-sign="b0676c49fccdaab74546c0cbfee78aa2list4"><li>1: &lt;集群IP&gt;:80</li><li>2: 多节点集群<ul class="cherry-list__default"><li>节点1IP:30123</li><li>节点2IP:30123</li></ul></li></ul><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><blockquote data-lines="2" data-sign="b64f47f870b0bb46b2ee285376a104b7_2">注意： 即使连到节点1 的端口， 也可能分配到 节点2上执行。 <br><br>设置 <code>externalTrafficPolicy:local</code> 属性，可将 流量路由到当前节点所在的 pod . 若当前节点pod 不存在，连接挂起。 </blockquote><p data-lines="2" data-type="p" data-sign="b3eef0d97a93c780cbf108b03e223295"><code>externalTrafficPolicy:local</code> 不利于负载均衡， 当节点上的 pod 分散不均时。 </p><blockquote data-lines="2" data-sign="a2370a485d9cc36553387b23007a5c94_2">有个好处是，转发到本地pod，不用进行 SNAT（源网路地址转换），这会将 改变 源IP记录。 </blockquote><p data-lines="2" data-type="p" data-sign="f45a1f29eaa6ec96ecce5a7e64697039" style=""><img alt="" src="./深入理解kubernetes - 游戏知识库 - KM平台_files/cos-file-url(28)" style="position: relative; z-index: 2;" class="amplify"></p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="638c63dd67d56e168ebd23190439d1b2">开放  NodePort 端口。 </p><p data-lines="2" data-type="p" data-sign="c060731e6281ea3676e30f407d43226d" style=""><img alt="" src="./深入理解kubernetes - 游戏知识库 - KM平台_files/cos-file-url(29)" style="position: relative; z-index: 2;" class="amplify"></p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="e6d2792e4a4400a31c3f2858943a30de">3： 获取 节点IP 【特意观察了下，节点IP 和 机器IP不是一个，但在同一网关下】</p><div data-sign="e6042bde34f6268efc03ba7a89fd06b8" data-type="codeBlock" data-lines="6"><pre class="prism language-shell" style="position: relative; z-index: 2;"><code class="language-shell">user00@ubuntu<span class="token operator">:</span><span class="token operator">~</span>$ kubectl <span class="token keyword">get</span> nodes <span class="token operator">-</span>o json <span class="token operator">|</span> grep address
-                <span class="token string">"addresses"</span><span class="token operator">:</span> <span class="token punctuation">[</span>
-                        <span class="token string">"address"</span><span class="token operator">:</span> <span class="token string">"192.168.49.2"</span><span class="token punctuation">,</span>
-</code></pre>
-
-<p data-lines="1" data-type="p" data-sign="3414f5e8fa3f0f60176c923b096cdfd0">可在本地机器上，向 <code>节点IP:nodePort</code> 发送请求：</p><div data-sign="ffcb402f20e1953abf7e77d880630c61" data-type="codeBlock" data-lines="5"><pre class="prism language-shell" style="position: relative; z-index: 2;"><code class="language-shell">$ curl http<span class="token operator">:</span><span class="token operator">/</span><span class="token operator">/</span><span class="token number">192.168</span><span class="token number">.49</span><span class="token number">.2</span><span class="token operator">:</span><span class="token number">30123</span>
-You've hit kubia<span class="token operator">-</span>jppwd
-</code></pre>
-
-<p data-lines="3" data-type="p" data-sign="901eef56f2df6a53c2f87fd5d9b265af" style="">minikue 可通过网页访问 <code>minikube service &lt;service-name&gt;</code>： <br><img alt="" src="./深入理解kubernetes - 游戏知识库 - KM平台_files/cos-file-url(30)" style="position: relative; z-index: 2;" class="amplify"></p><p data-lines="5" data-type="br" data-sign="br5">&nbsp;</p><h3 data-lines="1" data-sign="395ced088af3af9d08f76c6bec57d3be" id="loadbalancer" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#loadbalancer" class="anchor"></a>LoadBalancer</h3><p data-lines="2" data-type="p" data-sign="2c1d8c0e1973e5de6a0ac801f8749554">负载均衡器在 NodePort 外面包了一层。 </p><p data-lines="2" data-type="p" data-sign="bd25e34b629fd85e7e6f7f59515a4191">1:负载均衡器<strong>放在节点前面</strong>，将请求传播到 健康的节点。 </p><p data-lines="1" data-type="p" data-sign="47fb257a9448e665004adb3c5dd5ba65">负载均衡器拥有 自己独一无二的 可公开访问的<strong>IP 地址</strong>， 并将连接重定向到服务。</p><div data-sign="981aa3788ce71c1d10235df40c46d3b1" data-type="codeBlock" data-lines="15"><pre class="prism language-yaml" style="position: relative; z-index: 2;"><code class="language-yaml"><span class="token key atrule">apiVersion</span><span class="token punctuation">:</span> v1
-<span class="token key atrule">kind</span><span class="token punctuation">:</span> Service
-<span class="token key atrule">metadata</span><span class="token punctuation">:</span>
-  <span class="token key atrule">name</span><span class="token punctuation">:</span> kubia<span class="token punctuation">-</span>loadbalancer
-<span class="token key atrule">spec</span><span class="token punctuation">:</span>
-  <span class="token comment"># 负载均衡器类型</span>
-  <span class="token key atrule">type</span><span class="token punctuation">:</span> LoadBalancer
-  <span class="token key atrule">ports</span><span class="token punctuation">:</span>
-  <span class="token punctuation">-</span> <span class="token key atrule">port</span><span class="token punctuation">:</span> <span class="token number">80</span>
-    <span class="token key atrule">targetPort</span><span class="token punctuation">:</span> <span class="token number">8080</span>
-  <span class="token key atrule">selector</span><span class="token punctuation">:</span>
-    <span class="token key atrule">app</span><span class="token punctuation">:</span> kubia
-</code></pre>
-
-<blockquote data-lines="2" data-sign="c30cc15d0fc64016dabb73261b9291b8_2">若没有指定特定端口，负载均衡器会随机选择一个端口。 <br><div data-sign="9b051776014ce8cfe9330196da40b38c" data-type="codeBlock" data-lines="8"><pre class="prism language-shell" style="position: relative; z-index: 2;"><code class="language-shell">$ kubectl <span class="token keyword">get</span> svc <span class="token operator">|</span> grep load
-												  # <span class="token operator">&lt;</span><span class="token constant">EXTERNAL</span> <span class="token constant">IP</span><span class="token operator">&gt;</span>
-kubia<span class="token operator">-</span>loadbalancer   LoadBalancer   <span class="token number">10.96</span><span class="token number">.24</span><span class="token number">.178</span>     <span class="token operator">&lt;</span>pending<span class="token operator">&gt;</span>       <span class="token number">80</span><span class="token operator">:</span><span class="token number">30600</span><span class="token operator">/</span><span class="token constant">TCP</span>   <span class="token number">11</span>m
-</code></pre></div></blockquote><p data-lines="2" data-type="p" data-sign="653482e9479c25774f80036ec6f13e86">2： 创建服务后，要等待很长时间， 才能将 外部IP地址写入对象。 </p><p data-lines="1" data-type="p" data-sign="cda94e6942dd3e60405cd7e703110ae0">可通过外部ip直接访问： </p><div data-sign="e444b9ff6dccbd1cdad5f72c48a3d4db" data-type="codeBlock" data-lines="4"><pre class="prism language-shell" style="position: relative; z-index: 2;"><code class="language-shell">curl http<span class="token operator">:</span><span class="token operator">/</span><span class="token operator">/</span><span class="token operator">&lt;</span><span class="token constant">EXTERNAL</span> <span class="token constant">IP</span><span class="token operator">&gt;</span>
-</code></pre>
-
-<p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="5fa8a375a60bdddf105bef7ac97d01e0">3: 可以通过 浏览器访问，但每次访问都是一个pod， 即使 <code>Session Affinity</code> 设为None</p><p data-lines="2" data-type="p" data-sign="d0a7d1e3409dd41d8808a9c8fdb43477">因为浏览器采用 keep-alive 连接，而curl每次开新连接。 </p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="6fe373ec465a7777f0cfaf4fe1987f4d">4： 请求连的时候， 会连接到负载均衡器的 80端口， 并路由到某个节点上分配的 NodePort 上，随后转发到 一个 pod 实例上。 </p><p data-lines="1" data-type="p" data-sign="00613cbae0fa1e249f8f16e648a10291">本质还是打开了 NodePort，仍能继续使用 <code>节点IP:隐式 NodePort</code> 端口访问： </p><div data-sign="fb057ff009adaa923bfbfa2cdc3ccc04" data-type="codeBlock" data-lines="5"><pre class="prism language-sh" style="position: relative; z-index: 2;"><code class="language-sh">$ curl http<span class="token operator">:</span><span class="token operator">/</span><span class="token operator">/</span><span class="token number">192.168</span><span class="token number">.49</span><span class="token number">.2</span><span class="token operator">:</span><span class="token number">30600</span>
-You've hit kubia<span class="token operator">-</span>sxkrr
-</code></pre>
-
-<p data-lines="2" data-type="p" data-sign="b3b65ccaa87b69d84e64d4dfa44de888" style=""><img alt="" src="./深入理解kubernetes - 游戏知识库 - KM平台_files/cos-file-url(31)" style="position: relative; z-index: 2;" class="amplify"></p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><h3 data-lines="1" data-sign="0a5cf086aeba483ea76c0ca0420d82fe" id="ingress" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#ingress" class="anchor"></a>Ingress</h3><p data-lines="2" data-type="p" data-sign="cea15f39c9a9127fcad32035770c8595">1： Ingress 也可对外暴露服务，准入流量控制。 </p><p data-lines="2" data-type="p" data-sign="8d8eced5f569f02a0e09887a77134ba6">2： Ingress工作在HTTP层，通过一个 主机名 + 路径 就能转到不同的服务</p><p data-lines="2" data-type="p" data-sign="8e2dc5095d66b408f3ece7b80ce7219a">而 每个 LoadBalancer 服务需要自己的负载均衡器和独有的 公有IP地址。 </p><blockquote data-lines="2" data-sign="9f898ac8a258bb921feb80c050640e96_2">工作在更高层次的协议层，可以提供更丰富的服务。 </blockquote><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="2" data-type="p" data-sign="040119b391bdc5438403548130fddc2e" style="">ingress 可以绑定 <strong>==多主机、同主机多路径。==</strong> <br><img alt="" src="./深入理解kubernetes - 游戏知识库 - KM平台_files/cos-file-url(32)" style="position: relative; z-index: 2;" class="amplify"></p><p data-lines="2" data-type="p" data-sign="4dd50a6b45c27360df938a6ac10bf621">3： 启用 Ingress 资源需要 Ingress 控制器。 </p><blockquote data-lines="2" data-sign="ffae1c2e1b2bdcabbcde642fad1c74f6_2">通过 <code> minikube addons list</code> 确认。<br><div data-sign="67d596ce7a6de1097a96bb7d52849d62" data-type="codeBlock" data-lines="17"><pre class="prism language-yaml" style="position: relative; z-index: 2;"><code class="language-yaml"><span class="token key atrule">apiVersion</span><span class="token punctuation">:</span> extensions/v1beta1
-<span class="token key atrule">kind</span><span class="token punctuation">:</span> Ingress
-<span class="token key atrule">metadata</span><span class="token punctuation">:</span>
-  <span class="token key atrule">name</span><span class="token punctuation">:</span> kubia
-<span class="token key atrule">spec</span><span class="token punctuation">:</span>
-  <span class="token key atrule">rules</span><span class="token punctuation">:</span>
-  <span class="token punctuation">-</span> <span class="token key atrule">host</span><span class="token punctuation">:</span> kubia.example.com
-    <span class="token key atrule">http</span><span class="token punctuation">:</span>
-      <span class="token key atrule">paths</span><span class="token punctuation">:</span>
-      <span class="token punctuation">-</span> <span class="token key atrule">path</span><span class="token punctuation">:</span> /
-        <span class="token key atrule">backend</span><span class="token punctuation">:</span>
-          <span class="token comment"># 将 kubia.example.com/ 请求转发到 nodeport 服务</span>
-          <span class="token key atrule">serviceName</span><span class="token punctuation">:</span> kubia<span class="token punctuation">-</span>nodeport
-          <span class="token key atrule">servicePort</span><span class="token punctuation">:</span> <span class="token number">80</span>
-</code></pre></div></blockquote><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="5ddaefcc06446763cd3802109a108abd">4： <code>kubia.example.com </code> 访问服务的前提是 域名能正确解析为 ingress 的IP。</p><div data-sign="c985aa93fc9cc0df76657f2c810dce7e" data-type="codeBlock" data-lines="6"><pre class="prism language-shell" style="position: relative; z-index: 2;"><code class="language-shell">$ kubectl <span class="token keyword">get</span> ingress
-<span class="token constant">NAME</span>    <span class="token constant">CLASS</span>    <span class="token constant">HOSTS</span>               <span class="token constant">ADDRESS</span>        <span class="token constant">PORTS</span>   <span class="token constant">AGE</span>
-kubia   <span class="token operator">&lt;</span>none<span class="token operator">&gt;</span>   kubia<span class="token punctuation">.</span>example<span class="token punctuation">.</span>com   <span class="token number">192.168</span><span class="token number">.49</span><span class="token number">.2</span>   <span class="token number">80</span>      <span class="token number">70</span>s
-</code></pre>
-
-<p data-lines="1" data-type="p" data-sign="f1c9e7e56508876be81560ea89b26909">然后再 <code>/etc/hosts</code> 加入映射： </p><div data-sign="46c9844f769617fe88a389a29123f8d0" data-type="codeBlock" data-lines="8"><pre class="prism language-shell" style="position: relative; z-index: 2;"><code class="language-shell">root@ubuntu<span class="token operator">:</span><span class="token operator">~</span># cat <span class="token operator">/</span>etc<span class="token operator">/</span>hosts
-<span class="token number">127.0</span><span class="token number">.0</span><span class="token number">.1</span>       localhost
-<span class="token number">127.0</span><span class="token number">.1</span><span class="token number">.1</span>       ubuntu
-
-<span class="token number">192.168</span><span class="token number">.49</span><span class="token number">.2</span> kubia<span class="token punctuation">.</span>example<span class="token punctuation">.</span>com
-</code></pre>
-
-<p data-lines="1" data-type="p" data-sign="7bd668c0e67151328ada52b8cba5c694">通过地址访问： </p><div data-sign="1c1e9698147478aae3fe6f76242001ca" data-type="codeBlock" data-lines="6"><pre class="prism language-shell" style="position: relative; z-index: 2;"><code class="language-shell"># 必须 配置 hosts，直接通过 ingress <span class="token constant">IP</span> 访问是不行的，无法知道访问的是哪个服务
-$ curl http<span class="token operator">:</span><span class="token operator">/</span><span class="token operator">/</span>kubia<span class="token punctuation">.</span>example<span class="token punctuation">.</span>com
-You've hit kubia<span class="token operator">-</span>xvkpg
-</code></pre>
-
-<p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="eeae70e45dd7d1fcb7469a970d3d7430">5: ingress 访问流程如下： </p><ul class="cherry-list__default" data-lines="3" data-sign="ab66ad6c83f5fc93f2c128345204b949list3"><li>通过DNS查找  <code>http://kubia.example.com </code> 对应的ingress IP</li><li>向 Ingress控制器发送 请求，并在头部中包含 需要访问的 服务  <code>kubia.example.com</code></li><li>在 Endpoints 中查看该服务对应的 pod 的 IP 表，选择其中一个 pod 进行处理； </li></ul><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="393be6f5a759f8371df65b902e661c22" style=""><img alt="" src="./深入理解kubernetes - 游戏知识库 - KM平台_files/cos-file-url(33)" style="position: relative; z-index: 2;" class="amplify"></p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="a7b4e6710f601d734969cc74470eb25a">6： 若要采用 https 访问，需要 配置 tls.secrete</p><blockquote data-lines="2" data-sign="afd8cc329ccfb0afb9714d181d717d76_2">针对每个主机域名 配置一个。 <br><div data-sign="79da11cd405b30b90867128448a2500c" data-type="codeBlock" data-lines="9"><pre class="prism language-yaml" style="position: relative; z-index: 2;"><code class="language-yaml"><span class="token key atrule">name</span><span class="token punctuation">:</span> kubia
-<span class="token key atrule">spec</span><span class="token punctuation">:</span>
-  <span class="token key atrule">tls</span><span class="token punctuation">:</span>
-  <span class="token punctuation">-</span> <span class="token key atrule">hosts</span><span class="token punctuation">:</span>
-    <span class="token punctuation">-</span> kubia.example.com
-    <span class="token key atrule">secretName</span><span class="token punctuation">:</span> tls<span class="token punctuation">-</span>secret
-</code></pre></div></blockquote><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><h2 data-lines="1" data-sign="f74f026bc06759a51993a8e185698715" id="%E5%B0%B1%E7%BB%AA%E6%8E%A2%E9%92%88" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E5%B0%B1%E7%BB%AA%E6%8E%A2%E9%92%88" class="anchor"></a>就绪探针</h2><p data-lines="2" data-type="p" data-sign="3210ca43c1d8cd96467a6cbba074023c">1： 确认服务启动后，对外提供服务。 </p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><h2 data-lines="1" data-sign="388a5b6c96f76d03d975b6268ba7e1d0" id="headless%E6%9C%8D%E5%8A%A1" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#headless%E6%9C%8D%E5%8A%A1" class="anchor"></a>headless服务</h2><p data-lines="2" data-type="p" data-sign="edf81f67751d73e6921003dd90402049">有时候在集群内部/或者集群外部 需要知道 其它节点的 IP 列表，创建一个 headless 服务包裹一层， 去查询该服务的 DNS，会打印 该服务下的（标签选择器选中的）所有pod。  </p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="b168f43c62bc66ac711c671cbd0c66c4">1： <code>clusterIP:None</code>, DNS 服务器返回的是 pod的 IP，而非集群IP</p><p data-lines="2" data-type="p" data-sign="92544dbf1d209a39ef4f3ec8bd208b97">2： 创建 headless Service：</p><p data-lines="1" data-type="p" data-sign="4c391a90a4205c4324bfc4d44f680e15">该 headless 后端，包含标签选择器选择的所有 pod</p><div data-sign="09f27b098ce99ed777a302747195d2c3" data-type="codeBlock" data-lines="15"><pre class="prism language-yaml" style="position: relative; z-index: 2;"><code class="language-yaml"><span class="token key atrule">apiVersion</span><span class="token punctuation">:</span> v1
-<span class="token key atrule">kind</span><span class="token punctuation">:</span> Service
-<span class="token key atrule">metadata</span><span class="token punctuation">:</span>
-  <span class="token key atrule">name</span><span class="token punctuation">:</span> kubia<span class="token punctuation">-</span>headless
-<span class="token key atrule">spec</span><span class="token punctuation">:</span>
-  <span class="token comment"># headless 服务</span>
-  <span class="token key atrule">clusterIP</span><span class="token punctuation">:</span> None
-  <span class="token key atrule">ports</span><span class="token punctuation">:</span>
-  <span class="token punctuation">-</span> <span class="token key atrule">port</span><span class="token punctuation">:</span> <span class="token number">80</span>
-    <span class="token key atrule">targetPort</span><span class="token punctuation">:</span> <span class="token number">8080</span>
-  <span class="token key atrule">selector</span><span class="token punctuation">:</span>
-    <span class="token key atrule">app</span><span class="token punctuation">:</span> kubia
-</code></pre>
-
-<p data-lines="2" data-type="p" data-sign="d17e0342c7df11f470539add35371b4c">headless 服务无集群IP</p><p data-lines="2" data-type="p" data-sign="51bca61f4b84251e4132aed1e6f550d3" style=""><img alt="" src="./深入理解kubernetes - 游戏知识库 - KM平台_files/cos-file-url(34)" style="position: relative; z-index: 2;" class="amplify"></p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="56da3c15e46be22687fdf8add4b7bde9">运行临时 pod</p><div data-sign="c5ff355feeb55f71d233064c058bb39b" data-type="codeBlock" data-lines="4"><pre class="prism language-shell" style="position: relative; z-index: 2;"><code class="language-shell">kubectl run dnsutils <span class="token operator">--</span>image<span class="token operator">=</span>tutum<span class="token operator">/</span>dnsutils   <span class="token operator">--</span>command <span class="token operator">--</span> sleep infinitypod<span class="token operator">/</span>dnsutils created
-</code></pre>
-
-<p data-lines="2" data-type="p" data-sign="958b8800a7b4a0fe6b50a4e4fae877b6">在该临时 pod 查看 headless 服务标签选择器选择的pod</p><blockquote data-lines="2" data-sign="b93f9168958b5b6df57c27146de11afb_2">注意，只会展示 就绪的 pod ip<br><div data-sign="0a20b184291b3153faaf7d8bd9c932e8" data-type="codeBlock" data-lines="10"><pre class="prism language-shell" style="position: relative; z-index: 2;"><code class="language-shell">$ kubectl exec dnsutils nslookup kubia<span class="token operator">-</span>headless
-Name<span class="token operator">:</span>   kubia<span class="token operator">-</span>headless<span class="token punctuation">.</span>default<span class="token punctuation">.</span>svc<span class="token punctuation">.</span>cluster<span class="token punctuation">.</span>local
-Address<span class="token operator">:</span> <span class="token number">172.17</span><span class="token number">.0</span><span class="token number">.5</span>
-Name<span class="token operator">:</span>   kubia<span class="token operator">-</span>headless<span class="token punctuation">.</span>default<span class="token punctuation">.</span>svc<span class="token punctuation">.</span>cluster<span class="token punctuation">.</span>local
-Address<span class="token operator">:</span> <span class="token number">172.17</span><span class="token number">.0</span><span class="token number">.4</span>
-Name<span class="token operator">:</span>   kubia<span class="token operator">-</span>headless<span class="token punctuation">.</span>default<span class="token punctuation">.</span>svc<span class="token punctuation">.</span>cluster<span class="token punctuation">.</span>local
-Address<span class="token operator">:</span> <span class="token number">172.17</span><span class="token number">.0</span><span class="token number">.3</span>
-</code></pre></div></blockquote><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="db36562ab06b97ddcf000d4163bb1a1a">普通service 返回的是集群IP： </p><div data-sign="92899b6ab759cdffb75f890bd8574e3a" data-type="codeBlock" data-lines="7"><pre class="prism language-shell" style="position: relative; z-index: 2;"><code class="language-shell">$ kubectl exec dnsutils nslookup kubia
-
-Name<span class="token operator">:</span>   kubia<span class="token punctuation">.</span>default<span class="token punctuation">.</span>svc<span class="token punctuation">.</span>cluster<span class="token punctuation">.</span>local
-Address<span class="token operator">:</span> <span class="token number">10.105</span><span class="token number">.237</span><span class="token number">.81</span>
-</code></pre>
-
-<p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><h1 data-lines="1" data-sign="bcd2c0ffe855deeff1a08e632f27d6ce" id="%E5%8D%B7" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E5%8D%B7" class="anchor"></a>卷</h1><p data-lines="2" data-type="p" data-sign="27c1fd39bff501f26ef09bfea9ea0ff8">1： 卷的作用是将 磁盘挂载到容器。 </p><blockquote data-lines="2" data-sign="bc017d2a660f6c91a4b55e777b4ae8a4_2">这个 和linux 将指定目录挂载到盘 很类似。 </blockquote><p data-lines="2" data-type="p" data-sign="d00b90989d29141c61f23e0ad3d61b55">2： 每个 pod 都有独立的文件系统，文件系统来自于 容器镜像。 </p><blockquote data-lines="3" data-sign="7d844cfa376dd79c00838c811ef3894e_3">默认， 容器重启后并不能识别 之前容器写入文件系统的内容。 <br><br>这是因为 新的容器拥有 新的 写入层。 </blockquote><p data-lines="2" data-type="p" data-sign="7ef7fa40b4eada231d097a136c4621d4">3： pod 中的所有容器都能使用卷，但是需要提前挂载。 </p><p data-lines="2" data-type="p" data-sign="49f1e239206f0a1d1a5ebb522b12a059">4：emptyDir 卷是挂载一个空的目录。 </p><ul class="cherry-list__default" data-lines="2" data-sign="aacf1edd04d85ff7a93abf4b9b302a23list2"><li>卷的装载在容器启动之前执行； </li><li>emptyDir 卷 的生命周期 和 pod 相同； </li></ul><p data-lines="1" data-type="p" data-sign="e294ae2fcf3b79ef3b417e786ba32316">5： 可用的卷类型： </p><ul class="cherry-list__default" data-lines="10" data-sign="a73128a5ec46db5401a8ee4fa3fc8ec0list10"><li>emptyDir —— 用于存储临时数据的简单空目录。</li><li>hostPath —— 用于将目录从工作节点的文件系统挂载到pod中。</li><li>gitRepo —— 通过检出Git仓库的内容来初始化的卷。</li><li>nfs —— 挂载到pod中的NFS共享卷。  </li><li>gcePersistentDisk (Google 高效能型存储磁盘卷）、 awsElastic BlockStore (AmazonWeb 服务弹性块存储卷）、 azureDisk (Microsoft Azure 磁盘卷）一一用于挂载云服务商提供的特定存储类型。</li><li>cinder 、 cephf  、 iscsi 、 flocker 、 glusterfs 、 quobyte 、 rbd 、<br>flexVolume 、 vsphere-Volume 、 photonPersistentDis k、 scaleIO<br>用于挂载其他类型的网络存储。</li><li>configMap 、 secret 、 downwardAPI 一一用于将 Kubemetes 部分资源和集群信息公开给 pod 的特殊类型的卷 。</li><li>persistentVolumeClaim一一一种使用预置或者动态配置的持久存储类型（我们将在本章 的最后一节对此展开讨论） 。  </li></ul><blockquote data-lines="2" data-sign="feaa48a708e3a1c4b885cd01195ba04e_2">单个容器可同时使用不同类型的多个卷</blockquote><p data-lines="5" data-type="br" data-sign="br5">&nbsp;</p><h2 data-lines="1" data-sign="3a99041d246b54f4afff5c56303dae3f" id="emptydir" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#emptydir" class="anchor"></a>emptyDir</h2><p data-lines="1" data-type="p" data-sign="b01062f561df309fb1a29ef5e3fdcbf1">1： emptyDir: 在pod 中的多个容器间共享存储： </p><div data-sign="8883fa7465d7f77518cc2da274f35911" data-type="codeBlock" data-lines="29"><pre class="prism language-yaml" style="position: relative; z-index: 2;"><code class="language-yaml"><span class="token key atrule">apiVersion</span><span class="token punctuation">:</span> v1
-<span class="token key atrule">kind</span><span class="token punctuation">:</span> Pod
-<span class="token key atrule">metadata</span><span class="token punctuation">:</span>
-  <span class="token key atrule">name</span><span class="token punctuation">:</span> fortune
-<span class="token key atrule">spec</span><span class="token punctuation">:</span>
-  <span class="token key atrule">containers</span><span class="token punctuation">:</span>
-  <span class="token punctuation">-</span> <span class="token key atrule">image</span><span class="token punctuation">:</span> luksa/fortune
-    <span class="token key atrule">name</span><span class="token punctuation">:</span> html<span class="token punctuation">-</span>generator
-    <span class="token key atrule">volumeMounts</span><span class="token punctuation">:</span>
-    <span class="token punctuation">-</span> <span class="token key atrule">name</span><span class="token punctuation">:</span> html
-      <span class="token comment"># 挂载的目录</span>
-      <span class="token key atrule">mountPath</span><span class="token punctuation">:</span> /var/htdocs
-  <span class="token punctuation">-</span> <span class="token key atrule">image</span><span class="token punctuation">:</span> nginx<span class="token punctuation">:</span>alpine
-    <span class="token key atrule">name</span><span class="token punctuation">:</span> web<span class="token punctuation">-</span>server
-    <span class="token key atrule">volumeMounts</span><span class="token punctuation">:</span>
-    <span class="token punctuation">-</span> <span class="token key atrule">name</span><span class="token punctuation">:</span> html
-      <span class="token key atrule">mountPath</span><span class="token punctuation">:</span> /usr/share/nginx/html
-      <span class="token comment"># 只读</span>
-      <span class="token key atrule">readOnly</span><span class="token punctuation">:</span> <span class="token boolean important">true</span>
-    <span class="token key atrule">ports</span><span class="token punctuation">:</span>
-    <span class="token comment"># Nginx 监听80端口</span>
-    <span class="token punctuation">-</span> <span class="token key atrule">containerPort</span><span class="token punctuation">:</span> <span class="token number">80</span>
-      <span class="token key atrule">protocol</span><span class="token punctuation">:</span> TCP
-  <span class="token key atrule">volumes</span><span class="token punctuation">:</span>
-  <span class="token punctuation">-</span> <span class="token key atrule">name</span><span class="token punctuation">:</span> html <span class="token comment"># 卷名称</span>
-    <span class="token key atrule">emptyDir</span><span class="token punctuation">:</span> <span class="token punctuation">{</span><span class="token punctuation">}</span>
-</code></pre>
-
-<p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="923776fa01176384b1f1448c0163f87c">可在内存上创建 emptyDir </p><div data-sign="c4b8058c14c7ce4c9f93b70c232e55c2" data-type="codeBlock" data-lines="8"><pre class="prism language-yaml" style="position: relative; z-index: 2;"><code class="language-yaml"><span class="token key atrule">volumes</span><span class="token punctuation">:</span>
-  <span class="token punctuation">-</span> <span class="token key atrule">name</span><span class="token punctuation">:</span> html <span class="token comment"># 卷名称</span>
-    <span class="token comment"># emptyDir: {}</span>
-    <span class="token key atrule">emptyDir</span><span class="token punctuation">:</span>
-      <span class="token key atrule">medium</span><span class="token punctuation">:</span> Memory
-</code></pre>
-
-<p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><h2 data-lines="1" data-sign="b1de88fafdba5fe0bc8a0e5245892b78" id="gitrepo" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#gitrepo" class="anchor"></a>gitRepo</h2><p data-lines="3" data-type="p" data-sign="08c0d63ee6b3d14b8f3c7178d0d65bf3">1: gitRepo  卷：gitRepo 卷基本上也是 一 个 emptyDir 卷，它通过克隆 Git 仓库并<strong>在 pod 启</strong><br><strong>动时（但在创建容器之前 ） 检出特定版本</strong>来填充数据  </p><blockquote data-lines="2" data-sign="5da13ccc064d96946488c5bc162409e9_2">创建pod时，会checkout 指定版本。 <br><div data-sign="34fbf2315688f5edc2f240590edc5c05" data-type="codeBlock" data-lines="26"><pre class="prism language-yaml" style="position: relative; z-index: 2;"><code class="language-yaml"><span class="token key atrule">apiVersion</span><span class="token punctuation">:</span> v1
-<span class="token key atrule">kind</span><span class="token punctuation">:</span> Pod
-<span class="token key atrule">metadata</span><span class="token punctuation">:</span>
-  <span class="token key atrule">name</span><span class="token punctuation">:</span> gitrepo<span class="token punctuation">-</span>volume<span class="token punctuation">-</span>pod
-<span class="token key atrule">spec</span><span class="token punctuation">:</span>
-  <span class="token key atrule">containers</span><span class="token punctuation">:</span>
-  <span class="token punctuation">-</span> <span class="token key atrule">image</span><span class="token punctuation">:</span> nginx<span class="token punctuation">:</span>alpine
-    <span class="token key atrule">name</span><span class="token punctuation">:</span> web<span class="token punctuation">-</span>server
-    <span class="token key atrule">volumeMounts</span><span class="token punctuation">:</span>
-    <span class="token punctuation">-</span> <span class="token key atrule">name</span><span class="token punctuation">:</span> html
-      <span class="token key atrule">mountPath</span><span class="token punctuation">:</span> /usr/share/nginx/html
-      <span class="token key atrule">readOnly</span><span class="token punctuation">:</span> <span class="token boolean important">true</span>
-    <span class="token key atrule">ports</span><span class="token punctuation">:</span>
-    <span class="token punctuation">-</span> <span class="token key atrule">containerPort</span><span class="token punctuation">:</span> <span class="token number">80</span>
-      <span class="token key atrule">protocol</span><span class="token punctuation">:</span> TCP
-  <span class="token key atrule">volumes</span><span class="token punctuation">:</span>
-  <span class="token punctuation">-</span> <span class="token key atrule">name</span><span class="token punctuation">:</span> html
-    <span class="token comment"># 创建一个 gitRepo 卷</span>
-    <span class="token key atrule">gitRepo</span><span class="token punctuation">:</span>
-      <span class="token key atrule">repository</span><span class="token punctuation">:</span> https<span class="token punctuation">:</span>//github.com/luksa/kubia<span class="token punctuation">-</span>website<span class="token punctuation">-</span>example.git
-      <span class="token key atrule">revision</span><span class="token punctuation">:</span> master
-      <span class="token comment"># checkout 到当前目录， 可通过路径 /usr/share/nginx/html 访问</span>
-      <span class="token key atrule">directory</span><span class="token punctuation">:</span> .
-</code></pre></div></blockquote><p data-lines="2" data-type="p" data-sign="bfb1d0c3357b00b38e5bef7c06f9a927">8: 可创建一个 sidecar 容器，实时同步git， 如Docker Hub 上的 gitsync</p><p data-lines="5" data-type="br" data-sign="br5">&nbsp;</p><h2 data-lines="1" data-sign="14c3f385e3ee17473b53bc31b655c02d" id="hostpath" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#hostpath" class="anchor"></a>hostPath</h2><p data-lines="2" data-type="p" data-sign="d93903e1669f9e849885f499e9b2f920">1: hostPath 卷，指向节点文件系统上特定的文件或目录。 </p><blockquote data-lines="2" data-sign="9723e6032c4c41650863aaa7fb227635_2">注意是一些 系统级别的 pod （通常由 DaemonSet 管理）需要访问。 </blockquote><p data-lines="2" data-type="p" data-sign="80e7ef565dbdf0ff29a3ca7e40afd169">2： 多个pod hostPath 卷中使用相同的路径，可看到相同的文件。 </p><p data-lines="2" data-type="p" data-sign="b0d453e0d667222ba4f692feb9acc3d2" style=""><img alt="" src="./深入理解kubernetes - 游戏知识库 - KM平台_files/cos-file-url(35)" style="position: relative; z-index: 2;" class="amplify"></p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="25a7b9c584e51ab185773be74034c2fd">3： hostPath 是第一种持久性存储的卷。 【pod 删除后依然还在】</p><p data-lines="2" data-type="p" data-sign="5063884fbaace30f2f0199138e3574df">emptyDir 和 gitRepod 随 pod 删除而删除。</p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="b0abdce887f7ed27d7d56fd75965d996">4： 若将数据存储到 节点上，则 pod 不能随机调度，需要调度到指定节点才行。</p><blockquote data-lines="2" data-sign="1ec0bda29287a4f8667032c09db0621d_2">特别是 pod 重启时。 </blockquote><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><h2 data-lines="1" data-sign="9f26a91a55b0432c2021c3dda8bbaff4" id="nfs" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#nfs" class="anchor"></a>nfs</h2><p data-lines="1" data-type="p" data-sign="129efc8d61238da52fca29fcec99ec95">1: nfs 服务器可共享路径</p><div data-sign="cbe0d92f90600e0af19c8c47bac8710d" data-type="codeBlock" data-lines="24"><pre class="prism language-yaml" style="position: relative; z-index: 2;"><code class="language-yaml"><span class="token key atrule">apiVersion</span><span class="token punctuation">:</span> v1
-<span class="token key atrule">kind</span><span class="token punctuation">:</span> Pod
-<span class="token key atrule">metadata</span><span class="token punctuation">:</span>
-  <span class="token key atrule">name</span><span class="token punctuation">:</span> mongodb<span class="token punctuation">-</span>nfs
-<span class="token key atrule">spec</span><span class="token punctuation">:</span>
-  <span class="token key atrule">volumes</span><span class="token punctuation">:</span>
-  <span class="token punctuation">-</span> <span class="token key atrule">name</span><span class="token punctuation">:</span> mongodb<span class="token punctuation">-</span>data
-    <span class="token key atrule">nfs</span><span class="token punctuation">:</span>
-      <span class="token comment"># 指定 nfs 服务</span>
-      <span class="token key atrule">server</span><span class="token punctuation">:</span> 1.2.3.4
-      <span class="token comment"># 共享路径</span>
-      <span class="token key atrule">path</span><span class="token punctuation">:</span> /some/path
-  <span class="token key atrule">containers</span><span class="token punctuation">:</span>
-  <span class="token punctuation">-</span> <span class="token key atrule">image</span><span class="token punctuation">:</span> mongo
-    <span class="token key atrule">name</span><span class="token punctuation">:</span> mongodb
-    <span class="token key atrule">volumeMounts</span><span class="token punctuation">:</span>
-    <span class="token punctuation">-</span> <span class="token key atrule">name</span><span class="token punctuation">:</span> mongodb<span class="token punctuation">-</span>data
-      <span class="token key atrule">mountPath</span><span class="token punctuation">:</span> /data/db
-    <span class="token key atrule">ports</span><span class="token punctuation">:</span>
-    <span class="token punctuation">-</span> <span class="token key atrule">containerPort</span><span class="token punctuation">:</span> <span class="token number">27017</span>
-      <span class="token key atrule">protocol</span><span class="token punctuation">:</span> TCP
-</code></pre>
-
-<p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><h2 data-lines="1" data-sign="478346c8941a7f1825ea72612882f046" id="pv-%E5%92%8C-pvc" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#pv-%E5%92%8C-pvc" class="anchor"></a>PV 和 PVC</h2><p data-lines="2" data-type="p" data-sign="efedada8077e4472dd7bdac96e25addd">1: 将卷这种持久性信息 和pod解耦，可避免处理基础设施细节。 </p><p data-lines="2" data-type="p" data-sign="f883affd513ea59e79f9ea9121666a03">2： PersistentVlume (持久卷， 简称 PV)  ，由集群管理员设置的 底层存储。</p><p data-lines="2" data-type="p" data-sign="241c30407f41e26edee1f7e6584876a8">3：PersistentVlumeClaim （持久卷声明，简称 PVC），用户声明需要申请的（存储容量和访问模式）</p><p data-lines="2" data-type="p" data-sign="518ce96da3c9575b82119f1ac6e34267">API 服务器 负责找到满足要求的 持久卷并绑定到 持久卷声明。 </p><blockquote data-lines="2" data-sign="25d8da087a66e5a6ddaf5d6bd16eceef_2">持久卷声明可当做pod中的一个卷来使用；</blockquote><p data-lines="2" data-type="p" data-sign="67882a50d6ecf15763f019c0adac0d2a" style=""><img alt="" src="./深入理解kubernetes - 游戏知识库 - KM平台_files/cos-file-url(36)" style="position: relative; z-index: 2;" class="amplify"></p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="e3f31b76ed4d7719ca83948b93e975be">4: 创建 PV</p><div data-sign="cfcd7d7ea486cd7ad6232620fa7c600d" data-type="codeBlock" data-lines="28"><pre class="prism language-yaml" style="position: relative; z-index: 2;"><code class="language-yaml"><span class="token key atrule">apiVersion</span><span class="token punctuation">:</span> v1
-
-<span class="token comment"># 创建持久卷</span>
-<span class="token key atrule">kind</span><span class="token punctuation">:</span> PersistentVolume
-<span class="token key atrule">metadata</span><span class="token punctuation">:</span>
-  <span class="token key atrule">name</span><span class="token punctuation">:</span> mongodb<span class="token punctuation">-</span>pv
-<span class="token key atrule">spec</span><span class="token punctuation">:</span>
-  <span class="token comment"># 持久卷大小</span>
-  <span class="token key atrule">capacity</span><span class="token punctuation">:</span>
-    <span class="token key atrule">storage</span><span class="token punctuation">:</span> 1Gi
-  <span class="token comment"># 读写模式</span>
-  <span class="token key atrule">accessModes</span><span class="token punctuation">:</span>
-    <span class="token comment"># 单个客户端挂载是 读写模式</span>
-    <span class="token punctuation">-</span> ReadWriteOnce
-    <span class="token comment"># 多个客户端挂载是 只读模式</span>
-    <span class="token punctuation">-</span> ReadOnlyMany
-
-  <span class="token comment"># 设置策略， PVC 释放后，PB将保留</span>
-  <span class="token key atrule">persistentVolumeReclaimPolicy</span><span class="token punctuation">:</span> Retain
-
-  <span class="token comment"># 在Google的 gce 磁盘上分配</span>
-  <span class="token key atrule">gcePersistentDisk</span><span class="token punctuation">:</span>
-    <span class="token key atrule">pdName</span><span class="token punctuation">:</span> mongodb
-    <span class="token key atrule">fsType</span><span class="token punctuation">:</span> ext4
-
-</code></pre>
-
-<p data-lines="2" data-type="p" data-sign="1effd82674cb325f0a134de81826dd95"><code>persistentVolumeReclaimPolicy</code> 可指定回收策略：</p><ul class="cherry-list__default" data-lines="3" data-sign="9187460882d597a02a5431c04ade5b86list3"><li>Retain: 删除 PVC 后， PV 保留； </li><li>Recycle： 删除内容，可再次被 PVC 绑定</li><li>Deleet: 删除底层存储</li></ul><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="997efd5f5367757b427515e7f543ab8f">5: 特别注意的是：</p><p data-lines="2" data-type="p" data-sign="9a347b66016fabc34de25973391b3244">PV： 属于集群层面的资源； </p><p data-lines="2" data-type="p" data-sign="db34731306ce7662f294193ac1e3cf58">PVC 和 Pod: 属于命名空间内的资源； </p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="e98ea94d4cb8f42767ae10797dfd31c1">PVC 声明： </p><div data-sign="3a8ba551eac7a5059b50a347f196ba37" data-type="codeBlock" data-lines="18"><pre class="prism language-yaml" style="position: relative; z-index: 2;"><code class="language-yaml"><span class="token key atrule">apiVersion</span><span class="token punctuation">:</span> v1
-<span class="token key atrule">kind</span><span class="token punctuation">:</span> PersistentVolumeClaim
-<span class="token key atrule">metadata</span><span class="token punctuation">:</span>
-  <span class="token key atrule">name</span><span class="token punctuation">:</span> mongodb<span class="token punctuation">-</span>pvc
-<span class="token key atrule">spec</span><span class="token punctuation">:</span>
-  <span class="token key atrule">resources</span><span class="token punctuation">:</span>
-    <span class="token comment"># 申请 容量</span>
-    <span class="token key atrule">requests</span><span class="token punctuation">:</span>
-      <span class="token key atrule">storage</span><span class="token punctuation">:</span> 1Gi
-  <span class="token comment"># 单个客户端，支持读写</span>
-  <span class="token key atrule">accessModes</span><span class="token punctuation">:</span>
-  <span class="token punctuation">-</span> ReadWriteOnce
-  <span class="token comment"># 动态配置</span>
-  <span class="token key atrule">storageClassName</span><span class="token punctuation">:</span> <span class="token string">""</span>
-
-</code></pre>
-
-<blockquote data-lines="2" data-sign="dfcca933501560834060e446d16e55d3_2">k8s 根据声明的访问权限、容量大小， 寻找满足要求的PV</blockquote><p data-lines="2" data-type="p" data-sign="4dcece089a9b67163cf1180ffe8d0b37">PV 和 PVC 的创建相对独立。 </p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="c31fd991ced4fe38367a2c913896bfd4">6： 使用 PVC，只需要在 volumes 中引用即可。 </p><div data-sign="97b9ddddb8aa68ece5b1e047b55c51e1" data-type="codeBlock" data-lines="22"><pre class="prism language-yaml" style="position: relative; z-index: 2;"><code class="language-yaml"><span class="token key atrule">apiVersion</span><span class="token punctuation">:</span> v1
-<span class="token key atrule">kind</span><span class="token punctuation">:</span> Pod
-<span class="token key atrule">metadata</span><span class="token punctuation">:</span>
-  <span class="token key atrule">name</span><span class="token punctuation">:</span> mongodb
-<span class="token key atrule">spec</span><span class="token punctuation">:</span>
-  <span class="token key atrule">containers</span><span class="token punctuation">:</span>
-  <span class="token punctuation">-</span> <span class="token key atrule">image</span><span class="token punctuation">:</span> mongo
-    <span class="token key atrule">name</span><span class="token punctuation">:</span> mongodb
-    <span class="token key atrule">volumeMounts</span><span class="token punctuation">:</span>
-    <span class="token punctuation">-</span> <span class="token key atrule">name</span><span class="token punctuation">:</span> mongodb<span class="token punctuation">-</span>data
-      <span class="token key atrule">mountPath</span><span class="token punctuation">:</span> /data/db
-    <span class="token key atrule">ports</span><span class="token punctuation">:</span>
-    <span class="token punctuation">-</span> <span class="token key atrule">containerPort</span><span class="token punctuation">:</span> <span class="token number">27017</span>
-      <span class="token key atrule">protocol</span><span class="token punctuation">:</span> TCP
-  <span class="token key atrule">volumes</span><span class="token punctuation">:</span>
-  <span class="token punctuation">-</span> <span class="token key atrule">name</span><span class="token punctuation">:</span> mongodb<span class="token punctuation">-</span>data
-  <span class="token comment"># 引用 PVC</span>
-    <span class="token key atrule">persistentVolumeClaim</span><span class="token punctuation">:</span>
-      <span class="token key atrule">claimName</span><span class="token punctuation">:</span> mongodb<span class="token punctuation">-</span>pvc
-</code></pre>
-
-<p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="c602f8d8a0c13e325491ce600a9bdf4c">7: PV 和 PVC 的解耦，存储这块，方便管理。 </p><p data-lines="2" data-type="p" data-sign="fc04ff8834e17254a374795896b7aca6" style=""><img alt="" src="./深入理解kubernetes - 游戏知识库 - KM平台_files/cos-file-url(37)" style="position: relative; z-index: 2;" class="amplify"></p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><h2 data-lines="1" data-sign="10cab83eb515826af365846a86232b6f" id="storageclass" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#storageclass" class="anchor"></a>StorageClass</h2><p data-lines="2" data-type="p" data-sign="62ef13366a1660a7e66cb8fce3706160">1: 创建存储类 StorageClass，可动态创建 PV。</p><blockquote data-lines="2" data-sign="94c12c59d32f5d49d91f972d687b4077_2">方便集群管理员管理。 </blockquote><p data-lines="1" data-type="p" data-sign="98037f6b3a57696d2b9028817cc3188e">2： 不指定 StorgeClass ，会使用集群默认的存储类分配。 </p><div data-sign="c6b615c58e31f4f4355fb282a5b6648a" data-type="codeBlock" data-lines="15"><pre class="prism language-yaml" style="position: relative; z-index: 2;"><code class="language-yaml"><span class="token key atrule">apiVersion</span><span class="token punctuation">:</span> v1
-<span class="token key atrule">kind</span><span class="token punctuation">:</span> PersistentVolumeClaim
-<span class="token key atrule">metadata</span><span class="token punctuation">:</span>
-  <span class="token key atrule">name</span><span class="token punctuation">:</span> mongodb<span class="token punctuation">-</span>pvc2
-<span class="token key atrule">spec</span><span class="token punctuation">:</span>
-  <span class="token key atrule">resources</span><span class="token punctuation">:</span>
-    <span class="token key atrule">requests</span><span class="token punctuation">:</span>
-      <span class="token key atrule">storage</span><span class="token punctuation">:</span> 100Mi
-  <span class="token key atrule">accessModes</span><span class="token punctuation">:</span>
-    <span class="token punctuation">-</span> ReadWriteOnce
-
-  <span class="token comment"># 未指定 StorageClass，则使用默认的 StorageClass 分配</span>
-</code></pre>
-
-<p data-lines="2" data-type="p" data-sign="867ef9083ab9255c5469a20ad6f47108">3： 手动配置 的PV 和 StorageClass 可同时存在，若不想用 StorageClass 分配时，可将 <code>StorageClass:""</code> 配置为空，则将使用 预先配置的 PV 持久卷。</p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="579048bad5c593c8ea26e4c2550e3fab">4： 创建一个 StorageClass 对象： </p><div data-sign="4974b9fea76c894eae28a6386594d2a5" data-type="codeBlock" data-lines="13"><pre class="prism language-yaml" style="position: relative; z-index: 2;"><code class="language-yaml"><span class="token key atrule">apiVersion</span><span class="token punctuation">:</span> storage.k8s.io/v1
-<span class="token key atrule">kind</span><span class="token punctuation">:</span> StorageClass
-<span class="token key atrule">metadata</span><span class="token punctuation">:</span>
-  <span class="token key atrule">name</span><span class="token punctuation">:</span> fast
-
-<span class="token comment"># 创建 PV的预制程序</span>
-<span class="token key atrule">provisioner</span><span class="token punctuation">:</span> k8s.io/minikube<span class="token punctuation">-</span>hostpath
-<span class="token comment"># 参数</span>
-<span class="token key atrule">parameters</span><span class="token punctuation">:</span>
-  <span class="token key atrule">type</span><span class="token punctuation">:</span> pd<span class="token punctuation">-</span>ssd
-</code></pre>
-
-<p data-lines="1" data-type="p" data-sign="2ce19955ac8d51fc33ddc6ac7a9eceeb">在 PVC 中使用 StorageClass:</p><div data-sign="dd07c2f74a191a49c17f64456c8b8116" data-type="codeBlock" data-lines="15"><pre class="prism language-yaml" style="position: relative; z-index: 2;"><code class="language-yaml"><span class="token key atrule">apiVersion</span><span class="token punctuation">:</span> v1
-<span class="token key atrule">kind</span><span class="token punctuation">:</span> PersistentVolumeClaim
-<span class="token key atrule">metadata</span><span class="token punctuation">:</span>
-  <span class="token key atrule">name</span><span class="token punctuation">:</span> mongodb<span class="token punctuation">-</span>pvc
-<span class="token key atrule">spec</span><span class="token punctuation">:</span>
-  <span class="token comment"># 引用 StorageClass 即可</span>
-  <span class="token key atrule">storageClassName</span><span class="token punctuation">:</span> fast
-  <span class="token key atrule">resources</span><span class="token punctuation">:</span>
-    <span class="token key atrule">requests</span><span class="token punctuation">:</span>
-      <span class="token key atrule">storage</span><span class="token punctuation">:</span> 100Mi
-  <span class="token key atrule">accessModes</span><span class="token punctuation">:</span>
-    <span class="token punctuation">-</span> ReadWriteOnce
-</code></pre>
-
-<p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="9738fabe4fd49fd82fc30c635877e1ab">5： 整体关系如图所示： </p><p data-lines="2" data-type="p" data-sign="48317df5b1f8c895cbc5b86083647c43" style=""><img alt="" src="./深入理解kubernetes - 游戏知识库 - KM平台_files/cos-file-url(38)" style="position: relative; z-index: 2;" class="amplify"></p><p data-lines="5" data-type="br" data-sign="br5">&nbsp;</p><h1 data-lines="1" data-sign="84acee61cf73c0907bd9774e057d36aa" id="configmap-%E5%92%8C-secret" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#configmap-%E5%92%8C-secret" class="anchor"></a>ConfigMap 和 Secret</h1><h2 data-lines="2" data-sign="124fea1589675ae5bda5da340e743a61" id="configmap" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#configmap" class="anchor"></a>ConfigMap</h2><p data-lines="2" data-type="p" data-sign="6fab8ca720e4af09322deb27cee6948b">1： 给应用传递参数，有以下几种方式： </p><ul class="cherry-list__default" data-lines="2" data-sign="8ac3444b48ffc04e9cbe6f6d617bbde8list2"><li>命令行参数； <br><div data-sign="098f581e913913b4170474fb19308fbd" data-type="codeBlock" data-lines="4"><pre class="prism language-shell" style="position: relative; z-index: 2;"><code class="language-shell">docker run <span class="token operator">&lt;</span>image<span class="token operator">&gt;</span> <span class="token operator">&lt;</span>arguments<span class="token operator">&gt;</span>
-</code></pre></div></li></ul><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="bf1d4c6bd7861f981e825ca6e4c7e094">在容器中启动有两种方式： </p><p data-lines="2" data-type="p" data-sign="4091ff9cb6a9bca8cf293b8282c72acf">-- shell形式一如ENTRYPOINT node app.js。</p><p data-lines="2" data-type="p" data-sign="40a6ba40f4f8286dd47ad558bb351905">-- exec形式一如ENTRYPOINT ["node", "app. js"]  </p><blockquote data-lines="2" data-sign="eb1e28001d923a2e3786479073d95ed2_2">前者是通过 shell 启动的， 后者是 进程直接运行。 </blockquote><p data-lines="1" data-type="p" data-sign="c3b92997bd12fc3c32dd5864a52347eb">例如 在 Dockerfile 镜像中传入：</p><div data-sign="ca2a46de3ed24788cfc0e54cce4b1948" data-type="codeBlock" data-lines="11"><pre class="prism language-dockerfile" style="position: relative; z-index: 2;"><code class="language-dockerfile"><span class="token keyword">FROM</span> ubuntu<span class="token punctuation">:</span>latest
-
-<span class="token keyword">RUN</span> apt<span class="token punctuation">-</span>get update ; apt<span class="token punctuation">-</span>get <span class="token punctuation">-</span>y install fortune
-<span class="token keyword">ADD</span> fortuneloop.sh /bin/fortuneloop.sh
-
-<span class="token keyword">ENTRYPOINT</span> <span class="token punctuation">[</span><span class="token string">"/bin/fortuneloop.sh"</span><span class="token punctuation">]</span>
-<span class="token comment"># 参数列表</span>
-<span class="token keyword">CMD</span> <span class="token punctuation">[</span><span class="token string">"10"</span><span class="token punctuation">]</span>
-</code></pre>
-
-<p data-lines="1" data-type="p" data-sign="afcd6125b94bfa1db8ba3a0613c7bf44">在 pod 中定义容器时，可覆盖 ENTRYPOINT 和 CMD，只需要设置 command 和 args</p><div data-sign="5a38bbfa1091f22de06e889de51a9402" data-type="codeBlock" data-lines="17"><pre class="prism language-yaml" style="position: relative; z-index: 2;"><code class="language-yaml">kind<span class="token punctuation">:</span>pod
-<span class="token key atrule">spec</span><span class="token punctuation">:</span>
-	<span class="token key atrule">containers</span><span class="token punctuation">:</span>
-	<span class="token punctuation">-</span> <span class="token key atrule">image</span><span class="token punctuation">:</span> some/image
-	  <span class="token key atrule">command</span><span class="token punctuation">:</span> <span class="token punctuation">[</span><span class="token string">"/bin/command"</span><span class="token punctuation">]</span>
-	  <span class="token key atrule">args</span><span class="token punctuation">:</span> <span class="token punctuation">[</span><span class="token string">"arg1"</span><span class="token punctuation">,</span> <span class="token string">"arg2"</span><span class="token punctuation">,</span> <span class="token string">"arg3"</span><span class="token punctuation">]</span>
-
-	  <span class="token comment"># 多个参数，可用下面格式</span>
-	  <span class="token key atrule">args</span><span class="token punctuation">:</span>
-	  <span class="token punctuation">-</span> foo
-	  <span class="token punctuation">-</span> bar
-
-	  <span class="token comment"># 数值需要用引号</span>
-	  <span class="token punctuation">-</span> <span class="token string">"15"</span>
-</code></pre>
-
-<p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><ul class="cherry-list__default" data-lines="1" data-sign="a59171b21770871adaf64b2f128f4cc9list1"><li>环境变量； </li></ul><p data-lines="1" data-type="p" data-sign="ceaf780b132f743f884d3a9af97457de">在容器中设置环境变量如下， 可以在 shell 中直接引用该变量 <code>$INTERVAL</code></p><div data-sign="ba7189ab8e05866981a3f30da9c2a53d" data-type="codeBlock" data-lines="16"><pre class="prism language-yaml" style="position: relative; z-index: 2;"><code class="language-yaml"><span class="token key atrule">kind</span><span class="token punctuation">:</span> Pod
-<span class="token key atrule">metadata</span><span class="token punctuation">:</span>
-  <span class="token key atrule">name</span><span class="token punctuation">:</span> fortune<span class="token punctuation">-</span>env
-<span class="token key atrule">spec</span><span class="token punctuation">:</span>
-  <span class="token key atrule">containers</span><span class="token punctuation">:</span>
-  <span class="token punctuation">-</span> <span class="token key atrule">image</span><span class="token punctuation">:</span> luksa/fortune<span class="token punctuation">:</span>env
-    <span class="token key atrule">env</span><span class="token punctuation">:</span>
-    <span class="token punctuation">-</span> <span class="token key atrule">name</span><span class="token punctuation">:</span> INTERVAL
-      <span class="token key atrule">value</span><span class="token punctuation">:</span> <span class="token string">"30"</span>
-
-    <span class="token punctuation">-</span> <span class="token key atrule">name</span><span class="token punctuation">:</span> SECOND_VAR
-      <span class="token comment"># 引用第一个参数 30test</span>
-      <span class="token key atrule">value</span><span class="token punctuation">:</span> <span class="token string">"${INTERVAL}test"</span>
-</code></pre>
-
-<p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><ul class="cherry-list__default" data-lines="1" data-sign="7cdc8492b7051cbf77ff86aa8cb2ed88list1"><li>通过特殊类型的卷挂载到容器</li></ul><p data-lines="1" data-type="p" data-sign="4ae14ac810f95c2d85ef86bf0296ad3c">卷挂载如下： </p><div data-sign="4b6988b16b3c136e558e3e1310944767" data-type="codeBlock" data-lines="33"><pre class="prism language-yaml" style="position: relative; z-index: 2;"><code class="language-yaml"><span class="token key atrule">apiVersion</span><span class="token punctuation">:</span> v1
-<span class="token key atrule">kind</span><span class="token punctuation">:</span> Pod
-<span class="token key atrule">metadata</span><span class="token punctuation">:</span>
-  <span class="token key atrule">name</span><span class="token punctuation">:</span> fortune<span class="token punctuation">-</span>env
-<span class="token key atrule">spec</span><span class="token punctuation">:</span>
-  <span class="token key atrule">containers</span><span class="token punctuation">:</span>
-  <span class="token punctuation">-</span> <span class="token key atrule">image</span><span class="token punctuation">:</span> luksa/fortune<span class="token punctuation">:</span>env
-    <span class="token key atrule">env</span><span class="token punctuation">:</span>
-    <span class="token punctuation">-</span> <span class="token key atrule">name</span><span class="token punctuation">:</span> INTERVAL
-      <span class="token key atrule">value</span><span class="token punctuation">:</span> <span class="token string">"30"</span>
-
-    <span class="token punctuation">-</span> <span class="token key atrule">name</span><span class="token punctuation">:</span> SECOND_VAR
-      <span class="token comment"># 引用第一个参数 30test</span>
-      <span class="token key atrule">value</span><span class="token punctuation">:</span> <span class="token string">"${INTERVAL}test"</span>
-    <span class="token key atrule">name</span><span class="token punctuation">:</span> html<span class="token punctuation">-</span>generator
-    <span class="token key atrule">volumeMounts</span><span class="token punctuation">:</span>
-    <span class="token punctuation">-</span> <span class="token key atrule">name</span><span class="token punctuation">:</span> html
-      <span class="token key atrule">mountPath</span><span class="token punctuation">:</span> /var/htdocs
-  <span class="token punctuation">-</span> <span class="token key atrule">image</span><span class="token punctuation">:</span> nginx<span class="token punctuation">:</span>alpine
-    <span class="token key atrule">name</span><span class="token punctuation">:</span> web<span class="token punctuation">-</span>server
-    <span class="token key atrule">volumeMounts</span><span class="token punctuation">:</span>
-    <span class="token punctuation">-</span> <span class="token key atrule">name</span><span class="token punctuation">:</span> html
-      <span class="token key atrule">mountPath</span><span class="token punctuation">:</span> /usr/share/nginx/html
-      <span class="token key atrule">readOnly</span><span class="token punctuation">:</span> <span class="token boolean important">true</span>
-    <span class="token key atrule">ports</span><span class="token punctuation">:</span>
-    <span class="token punctuation">-</span> <span class="token key atrule">containerPort</span><span class="token punctuation">:</span> <span class="token number">80</span>
-      <span class="token key atrule">protocol</span><span class="token punctuation">:</span> TCP
-  <span class="token key atrule">volumes</span><span class="token punctuation">:</span>
-  <span class="token punctuation">-</span> <span class="token key atrule">name</span><span class="token punctuation">:</span> html
-    <span class="token key atrule">emptyDir</span><span class="token punctuation">:</span> <span class="token punctuation">{</span><span class="token punctuation">}</span>
-</code></pre>
-
-<p data-lines="2" data-type="p" data-sign="f02861906342aebfe7564b3bbf534d3a">​                   </p><ul class="cherry-list__default" data-lines="3" data-sign="a9ff7180865abb2ade8d40ff27bffccelist3"><li>ConfigMap 是k8s中存储配置数据的资源。 <br></li><li>证书和私钥相关的配置数据，使用 Secret 资源存储。 </li></ul><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="d4a4b75d6b17a8af62ba8fadc867dbf3">2: ConfigMap 主要是将配置 从 pod 中解耦出来， 这样生产环境和非生产环境下的 pod 定义文件可以保持不变。 </p><blockquote data-lines="2" data-sign="a809051385aa6a03c3766f970d2bc5ef_2">多种环境下，只要保证 ConfigMap 不同即可。 <br><div data-sign="c9cbf883fbdaffd4b24a08b676642e44" data-type="codeBlock" data-lines="6"><pre class="prism language-shell" style="position: relative; z-index: 2;"><code class="language-shell">kubectl create configmap <span class="token operator">&lt;</span>configmap<span class="token operator">-</span>name<span class="token operator">&gt;</span> <span class="token operator">--</span><span class="token keyword">from</span><span class="token operator">-</span>literal<span class="token operator">=</span>foo<span class="token operator">=</span>bar  # kv 结构，key 是 foo，value 是bar
-
-kubectl create configmap <span class="token operator">&lt;</span>configmap<span class="token operator">-</span>name<span class="token operator">&gt;</span> <span class="token operator">--</span><span class="token keyword">from</span><span class="token operator">-</span>file<span class="token operator">=</span>customkey<span class="token operator">=</span>config<span class="token punctuation">.</span>conf  # 从文件读取 或者 文件夹读取
-</code></pre></div></blockquote><p data-lines="2" data-type="p" data-sign="f061c66bb9e9cb77018cabef4e8b5666">如： </p><p data-lines="2" data-type="p" data-sign="fcc6e7a4a1fa60c81fe3052fc8aa0a4a" style=""><img alt="" src="./深入理解kubernetes - 游戏知识库 - KM平台_files/cos-file-url(39)" style="position: relative; z-index: 2;" class="amplify"></p><p data-lines="2" data-type="p" data-sign="38617ba1185903550e6e1d6ef7178511">对应关系如下： </p><p data-lines="2" data-type="p" data-sign="e119196fde1959d55504e7888bdc15e0" style=""><img alt="" src="./深入理解kubernetes - 游戏知识库 - KM平台_files/cos-file-url(40)" style="position: relative; z-index: 2;" class="amplify"></p><p data-lines="5" data-type="br" data-sign="br5">&nbsp;</p><p data-lines="1" data-type="p" data-sign="f446e851668ed99e20330635d054ed9f">3: 将 configMap 条目作为环境变量： </p><div data-sign="d26f26f881287d5d8f6b0fecd060ed9e" data-type="codeBlock" data-lines="18"><pre class="prism language-yaml" style="position: relative; z-index: 2;"><code class="language-yaml"><span class="token key atrule">kind</span><span class="token punctuation">:</span> Pod
-<span class="token key atrule">metadata</span><span class="token punctuation">:</span>
-  <span class="token key atrule">name</span><span class="token punctuation">:</span> fortune<span class="token punctuation">-</span>env<span class="token punctuation">-</span>from<span class="token punctuation">-</span>configmap
-<span class="token key atrule">spec</span><span class="token punctuation">:</span>
-  <span class="token key atrule">containers</span><span class="token punctuation">:</span>
-  <span class="token punctuation">-</span> <span class="token key atrule">image</span><span class="token punctuation">:</span> luksa/fortune<span class="token punctuation">:</span>env
-    <span class="token key atrule">env</span><span class="token punctuation">:</span>
-    <span class="token punctuation">-</span> <span class="token key atrule">name</span><span class="token punctuation">:</span> INTERVAL <span class="token comment"># 设置环境变量</span>
-      <span class="token key atrule">valueFrom</span><span class="token punctuation">:</span>
-        <span class="token key atrule">configMapKeyRef</span><span class="token punctuation">:</span> <span class="token comment"># 来自于 ConfigMap </span>
-          <span class="token comment"># 引用 config-map 的名称</span>
-          <span class="token key atrule">name</span><span class="token punctuation">:</span> fortune<span class="token punctuation">-</span>config
-          <span class="token comment"># config-map 下的 key</span>
-          <span class="token key atrule">key</span><span class="token punctuation">:</span> sleep<span class="token punctuation">-</span>interval
-    <span class="token key atrule">args</span><span class="token punctuation">:</span> <span class="token punctuation">[</span><span class="token string">"${INTERVAL}"</span><span class="token punctuation">]</span>  <span class="token comment"># 作为命令行参数</span>
-</code></pre>
-
-<blockquote data-lines="2" data-sign="87e8b2cb8caf3842ad608c07347f3271_2">引用不存在的 configMap, 容器会启动失败，从而一直重启。 </blockquote><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="4874798cef8d85cee15959db7f2f38bf">4： <code>envFrom</code> 字段可暴露所有来自 ConfigMap 的变量，并可在变量名引入后加入 前缀。 </p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="c4ca516c3f4735f42d3562ba425e897a">5： 可将configMap 中的条目挂载到指定目录下 【每个key 作为 文件存在】</p><div data-sign="48d733a5222e66074774db5da723082a" data-type="codeBlock" data-lines="43"><pre class="prism language-yaml" style="position: relative; z-index: 2;"><code class="language-yaml"><span class="token key atrule">kind</span><span class="token punctuation">:</span> Pod
-<span class="token key atrule">metadata</span><span class="token punctuation">:</span>
-  <span class="token key atrule">name</span><span class="token punctuation">:</span> fortune<span class="token punctuation">-</span>configmap<span class="token punctuation">-</span>volume
-<span class="token key atrule">spec</span><span class="token punctuation">:</span>
-  <span class="token key atrule">containers</span><span class="token punctuation">:</span>
-  <span class="token punctuation">-</span> <span class="token key atrule">image</span><span class="token punctuation">:</span> luksa/fortune<span class="token punctuation">:</span>env
-    <span class="token key atrule">env</span><span class="token punctuation">:</span>
-    <span class="token punctuation">-</span> <span class="token key atrule">name</span><span class="token punctuation">:</span> INTERVAL
-      <span class="token key atrule">valueFrom</span><span class="token punctuation">:</span>
-        <span class="token key atrule">configMapKeyRef</span><span class="token punctuation">:</span>
-          <span class="token key atrule">name</span><span class="token punctuation">:</span> fortune<span class="token punctuation">-</span>config
-          <span class="token key atrule">key</span><span class="token punctuation">:</span> sleep<span class="token punctuation">-</span>interval
-    <span class="token key atrule">name</span><span class="token punctuation">:</span> html<span class="token punctuation">-</span>generator
-    <span class="token key atrule">volumeMounts</span><span class="token punctuation">:</span>
-    <span class="token punctuation">-</span> <span class="token key atrule">name</span><span class="token punctuation">:</span> html
-    <span class="token comment"># 将卷中的条目，挂载至该目录下，条目的 名称就是该目录下的文件名</span>
-      <span class="token key atrule">mountPath</span><span class="token punctuation">:</span> /var/htdocs
-  <span class="token punctuation">-</span> <span class="token key atrule">image</span><span class="token punctuation">:</span> nginx<span class="token punctuation">:</span>alpine
-    <span class="token key atrule">name</span><span class="token punctuation">:</span> web<span class="token punctuation">-</span>server
-    <span class="token key atrule">volumeMounts</span><span class="token punctuation">:</span>
-    <span class="token punctuation">-</span> <span class="token key atrule">name</span><span class="token punctuation">:</span> html
-      <span class="token key atrule">mountPath</span><span class="token punctuation">:</span> /usr/share/nginx/html
-      <span class="token key atrule">readOnly</span><span class="token punctuation">:</span> <span class="token boolean important">true</span>
-    <span class="token punctuation">-</span> <span class="token key atrule">name</span><span class="token punctuation">:</span> config
-      <span class="token key atrule">mountPath</span><span class="token punctuation">:</span> /etc/nginx/conf.d
-      <span class="token key atrule">readOnly</span><span class="token punctuation">:</span> <span class="token boolean important">true</span>
-    <span class="token punctuation">-</span> <span class="token key atrule">name</span><span class="token punctuation">:</span> config
-      <span class="token key atrule">mountPath</span><span class="token punctuation">:</span> /tmp/whole<span class="token punctuation">-</span>fortune<span class="token punctuation">-</span>config<span class="token punctuation">-</span>volume
-      <span class="token key atrule">readOnly</span><span class="token punctuation">:</span> <span class="token boolean important">true</span>
-    <span class="token key atrule">ports</span><span class="token punctuation">:</span>
-      <span class="token punctuation">-</span> <span class="token key atrule">containerPort</span><span class="token punctuation">:</span> <span class="token number">80</span>
-        <span class="token key atrule">name</span><span class="token punctuation">:</span> http
-        <span class="token key atrule">protocol</span><span class="token punctuation">:</span> TCP
-  <span class="token key atrule">volumes</span><span class="token punctuation">:</span>
-  <span class="token punctuation">-</span> <span class="token key atrule">name</span><span class="token punctuation">:</span> html
-    <span class="token key atrule">emptyDir</span><span class="token punctuation">:</span> <span class="token punctuation">{</span><span class="token punctuation">}</span>
-  <span class="token punctuation">-</span> <span class="token key atrule">name</span><span class="token punctuation">:</span> config
-    <span class="token comment">#  configMap 卷</span>
-    <span class="token key atrule">configMap</span><span class="token punctuation">:</span>
-      <span class="token key atrule">name</span><span class="token punctuation">:</span> fortune<span class="token punctuation">-</span>config
-</code></pre>
-
-<p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="33c68cb51ee5cfca5e548044433ebaeb">6: 注意： configMap 挂载到已存在的文件夹，会隐藏所有已有的条目。 </p><p data-lines="1" data-type="p" data-sign="54802670d771afdf7fdc833fe81f6105">可以选择挂载部分卷，避免隐藏整个文件夹。 </p><div data-sign="b5f7efb72fea9074540b651f3d14ac4f" data-type="codeBlock" data-lines="12"><pre class="prism language-yaml" style="position: relative; z-index: 2;"><code class="language-yaml"><span class="token key atrule">spec</span><span class="token punctuation">:</span>
-  <span class="token key atrule">containers</span><span class="token punctuation">:</span>
-  <span class="token punctuation">-</span> <span class="token key atrule">image</span><span class="token punctuation">:</span> nginx<span class="token punctuation">:</span>alpine
-    <span class="token key atrule">name</span><span class="token punctuation">:</span> web<span class="token punctuation">-</span>server
-    <span class="token key atrule">volumeMounts</span><span class="token punctuation">:</span>
-    <span class="token punctuation">-</span> <span class="token key atrule">name</span><span class="token punctuation">:</span> html
-      <span class="token key atrule">mountPath</span><span class="token punctuation">:</span> /usr/share/nginx/html
-      <span class="token comment"># 只挂载 configmap 中的指定条目</span>
-      <span class="token key atrule">subPath</span><span class="token punctuation">:</span> myconfig.conf
-</code></pre>
-
-<blockquote data-lines="3" data-sign="d32f8d2406f1e10b157dba4d4ed9a92c_3">configMap 卷中的文件权限默认设置为 644 (-rw-r-r--)， <br><br>可通过 <code>defaultMode</code> 修改</blockquote><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="31ff019fda7639f94d62d5f376aeb5e6">7： ConfigMap 通过暴露卷，可以达到配置热更的效果，无需新建 pod 或 重启容器。</p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><h2 data-lines="1" data-sign="6093d2c4e867fdb83c760a69f9dbd1e1" id="secret" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#secret" class="anchor"></a>Secret</h2><p data-lines="2" data-type="p" data-sign="52a0dc888c5c68e157cd34f45b1f045e">1： 和 configMap 一样， secret 也是 key-val 存储。 </p><p data-lines="2" data-type="p" data-sign="f37c5ec91ec33579abd862cabe5c52ca">2： 使用 和 ConfigMap相同： </p><ul class="cherry-list__default" data-lines="2" data-sign="f0078f77e1a108fb95c924d30bb78a65list2"><li>将 Secret 条目作为环境变量传递给容器</li><li>将 Secret 条目暴露为卷中的文件  </li></ul><blockquote data-lines="2" data-sign="793addebadc1e99dc754866cf9522510_2">Secret 只会存储在节点的内存中， 永不写入物理存储，  </blockquote><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="bb9e68647126cd19198d962e44f92755">3： 使用场景： </p><ul class="cherry-list__default" data-lines="3" data-sign="66866fc41911a57c9bdeaa5c6c3e6857list3"><li>采用 ConfgMap 存储非敏感的文本配置数据。</li><li>采用 Secret 存储天生敏感的数据， 通过键来引用。 如果一 个配置文件同时包<br>含敏感与非敏感数据， 该文件应该被存储在 Secret 中。    </li></ul><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="82dbcc4448a49e6c1b262a43c1137502">4： Secretes 一般包含三种文件： </p><ul class="cherry-list__default" data-lines="4" data-sign="71676cbdfa00fbf02bca953ec48581cblist4"><li>ca.crt</li><li>namespace</li><li>token<br><div data-sign="aa8ee411a3eaaadd10b7d48d9d8248f3" data-type="codeBlock" data-lines="17"><pre class="prism language-shell" style="position: relative; z-index: 2;"><code class="language-shell">user00@ubuntu<span class="token operator">:</span><span class="token operator">~</span>$ kubectl describe secrets
-Name<span class="token operator">:</span>         <span class="token keyword">default</span><span class="token operator">-</span>token<span class="token operator">-</span>c2v26
-Namespace<span class="token operator">:</span>    <span class="token keyword">default</span>
-Labels<span class="token operator">:</span>       <span class="token operator">&lt;</span>none<span class="token operator">&gt;</span>
-Annotations<span class="token operator">:</span>  kubernetes<span class="token punctuation">.</span>io<span class="token operator">/</span>service<span class="token operator">-</span>account<span class="token punctuation">.</span>name<span class="token operator">:</span> <span class="token keyword">default</span>
-              kubernetes<span class="token punctuation">.</span>io<span class="token operator">/</span>service<span class="token operator">-</span>account<span class="token punctuation">.</span>uid<span class="token operator">:</span> <span class="token number">1</span>fe33279<span class="token operator">-</span>b738<span class="token operator">-</span><span class="token number">4</span>a3b<span class="token operator">-</span>a012<span class="token operator">-</span><span class="token number">5</span>c5a709cdcb8
-
-Type<span class="token operator">:</span>  kubernetes<span class="token punctuation">.</span>io<span class="token operator">/</span>service<span class="token operator">-</span>account<span class="token operator">-</span>token
+<p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="c0906f539571e70722a2f6a3b673ac55">5: 尽管命名空间对  对象进行了分组， 但<strong>==并不提供实质上的隔离==</strong>，例如不同命名空间的 pod 能否通信取决于网络策略。 </p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="7141ea50f17f2282bfaa55acfbffc74e">6： 删除pod 有多种方式：</p><div data-sign="a31cc19b7c7677f84e96dd80ac4ec109" data-type="codeBlock" data-lines="10"><pre><code>kubectl delete po &lt;pod-name&gt;  # 按名称删除
+kubectl delete po --all  # 删除当前命名空间的所有 pod, 若 ReplicationController 未删除，将重新创建 pods
+kubectl delete po -l &lt;label-key&gt;=&lt;label-val&gt;  # 按标签删除
+
+kubectl delete ns &lt;ns-anme&gt;  # 删除整个命名空间
+
+kubectl delete all --all     # 删除当前命名空间内的所有资源，包括托管的 ReplicationController， Service，  但 Secret 会保留
+</code></pre>
+
+<p data-lines="5" data-type="br" data-sign="br5">&nbsp;</p><h1 data-lines="1" data-sign="b6b8b559869ad8e11947a208b99b7804" id="%E6%89%98%E7%AE%A1%E9%9B%86%E7%BE%A4" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E6%89%98%E7%AE%A1%E9%9B%86%E7%BE%A4" class="anchor"></a>托管集群</h1><h2 data-lines="2" data-sign="73df7bc8526ac9d6393472aa3b27a7b4" id="%E4%BF%9D%E6%8C%81%E8%BF%9B%E7%A8%8B%E5%81%A5%E5%BA%B7" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E4%BF%9D%E6%8C%81%E8%BF%9B%E7%A8%8B%E5%81%A5%E5%BA%B7" class="anchor"></a>保持进程健康</h2><p data-lines="2" data-type="p" data-sign="3bbc32bb7720d785920c8704c09dbea1">1： 进程异常的几种情形： </p><ul class="cherry-list__default" data-lines="3" data-sign="e83c6e3a064e361fe2c29a00373b4864list3"><li>主进程 崩溃-&gt;kubelet 将 重启 容器； </li><li>内存泄漏， JVM 会一直运行，但会抛出 OutofMemoryErrors, 让程序 向 k8s 发出信号 触发 重启； </li><li>外部检查： 应用死循环 or 死锁</li></ul><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><h3 data-lines="1" data-sign="a06a399598ea20566b8aa11161046c6d" id="%E5%AD%98%E6%B4%BB%E6%8E%A2%E9%92%88" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E5%AD%98%E6%B4%BB%E6%8E%A2%E9%92%88" class="anchor"></a>存活探针</h3><p data-lines="2" data-type="p" data-sign="77f42e4163d3e27512601c713e7fccb1">1： 定期检查<strong>容器</strong></p><p data-lines="2" data-type="p" data-sign="9a1e0071ce7a76b99c1adc7a1c479235">2： 三种探测机制：</p><ul class="cherry-list__default" data-lines="3" data-sign="a4f0ab91f3016893a12308d6a128df8dlist3"><li>HTTP Get 向容器发送请求； </li><li>TCP 套接字，与容器建立 TCP连接； </li><li>Exec 探针，在容器内执行任意指令，查看退出状态码； </li></ul><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="d9607ce2c7a165ba67285c37d12ad872">3： HTTP 探针，定期发送 http Get 请求；</p><blockquote data-lines="2" data-sign="7dbd740fb555a033859bbe3030aac99a_2">/heath HTTP 站点不需要认证，否则会一直认为失败，容器 无限重启； <br><div data-sign="2ec58a614394a59a44c3599fee28f662" data-type="codeBlock" data-lines="17"><pre><code>apiVersion: v1
+kind: Pod
+metadata:
+  name: kubia-liveness
+spec:
+  containers:
+  # 镜像内有坏掉的应用
+  - image: luksa/kubia-unhealthy
+    name: kubia
+    # 存活探针
+    livenessProbe:
+      httpGet:
+        path: /
+        port: 8080
+</code></pre></div></blockquote><p data-lines="5" data-type="br" data-sign="br5">&nbsp;</p><p data-lines="1" data-type="p" data-sign="4a29c2e2a705199ae8bfe850b6ca93e7">4： 返回的状态码 137 和 143： </p><div data-sign="99096550141b765f2c6a585583bbf983" data-type="codeBlock" data-lines="11"><pre><code>$ kubectl describe  pod kubia-liveness
+ State:          Running
+      Started:      Thu, 17 Jun 2021 11:04:53 -0700
+    Last State:     Terminated
+      Reason:       Error
+      Exit Code:    137   # 有错误码返回
+
+ Warning  Unhealthy  10s    kubelet            Liveness probe failed: HTTP probe failed with statuscode: 500
+</code></pre>
+
+<p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="a01cc0f969d7e7bc0ac76308ac729a48">5： 探针的附加信息： </p><p data-lines="1" data-type="p" data-sign="f75ee889b16829bbe56f4a6bb291e576">查看状态时，可看到 存活探针信息：</p><div data-sign="4f4a8d8ea7c61ff388f8e1a376c0d48d" data-type="codeBlock" data-lines="4"><pre><code> Liveness:       http-get http://:8080/ delay=0s timeout=1s period=10s #success=1 #failure=3
+</code></pre>
+
+<p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><ul class="cherry-list__default" data-lines="4" data-sign="c7e349faa281953c3bcefa212c02256clist4"><li><code>delay=0s</code>: 容器启动后立即检测； </li><li><code>timeout=1s</code>： 限制容器在 1s 内响应，否则失败； </li><li><code>period=10s</code>： 每隔10s 探测一次； </li><li><code>failure=3</code>： 连续三次失败后，重启容器； </li></ul><p data-lines="5" data-type="br" data-sign="br5">&nbsp;</p><p data-lines="1" data-type="p" data-sign="30ddc10330308f76fef688945cd06e89">6: 具有初始延迟的 存活探针： 【程序还未 启动稳定】</p><div data-sign="6cdf9afcab2e7974ad2cdd14dba18829" data-type="codeBlock" data-lines="5"><pre><code># 第一次探针前，等15s，防止容器没准备好
+      initialDelaySeconds: 15
+</code></pre>
+
+<p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="29afeec8cf92891ab05cd261f7b5f0a1">7： 若无探针， k8s 认为进程还在运行，容器就是健康的。 </p><p data-lines="2" data-type="p" data-sign="f714b10ac89e8f545919aa98a9669d16">8：探针的注意事项： </p><ul class="cherry-list__default" data-lines="3" data-sign="8874747b2028c391d252ef5a43d07d41list3"><li>1： 探针应该轻量，不能占用太多cpu 【应 计入 容器的 CPU 配额】， 一般 1s 内执行完； </li><li>2： java 程序应该用 http get 探针，而非启动全新JVM 获取存活信息的 Exec 探针（太耗时）</li><li>3： 无需设置 探针的失败重试次数， k8s 为了确认一次探测的失败，==默认就会尝试若干次==； </li></ul><p data-lines="1" data-type="p" data-sign="2f14e2c5c58fa7cb94ca7b0f8dbff860">9： 重启容器由  kubelet 执行； 主服务器上的 k8s Control Plane 组件不会参与； </p><ul class="cherry-list__default" data-lines="2" data-sign="0d401ff044beacfaac892ad816dd26b8list2"><li>==若整个节点崩溃， 则无法重启== 【kubelet 依赖于节点】； </li><li>若要保证节点挂了，pod 能重启，应该使用 RC或 RS； </li></ul><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><h2 data-lines="1" data-sign="989ec3fcce2888b05ed090bd639f856b" id="replicationcontroller" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#replicationcontroller" class="anchor"></a>ReplicationController</h2><p data-lines="2" data-type="p" data-sign="dda89eba8d25179bdf522348982059e4">1: 用于管理 pod 的多个副本； </p><p data-lines="2" data-type="p" data-sign="797733df60df02ae7eb0de9d3c11155b">2：会自动调整 pod 数量为 指定数量： </p><p data-lines="2" data-type="p" data-sign="0489655f59c5adb6f0fa4081c7e5f769">多余副本在以下几种情况下会出现： </p><ul class="cherry-list__default" data-lines="3" data-sign="492b39be1d572713bf794befcc3e01e1list3"><li>有人会手动创建相同类型的pod。</li><li>有人更改现有的pod的 ” 类型” 。</li><li>有人减少了所需的pod的数量， 等等。   </li></ul><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="0cd58b3376c043a16a586a182ed12bbb">3： ReplicationController  的功能： </p><ul class="cherry-list__default" data-lines="3" data-sign="4423c84c3df957e8d6192d89ec0c948alist3"><li>确保一 个 pod (或多个 pod副本）持续运行， 方法是在现有 pod 丢失时启动一 个新 pod。</li><li>集群节点发生故障时， 它将为故障节 点 上运 行的所有 pod (即受 ReplicationController 控制的节点上的那些 pod) 创建替代副本。   </li><li>它能轻松实现 pod的水平伸缩： 手动和自动都可以</li></ul><p data-lines="5" data-type="br" data-sign="br5">&nbsp;</p><p data-lines="2" data-type="p" data-sign="11ae72b70efe7fa2cf15826503777d7d" style="">3: 根据 pod  是否匹配 标签选择器 来调整： <br></p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="e2c7d3a7d89a9de0924b960209d66b1c">4: 更改标签选择器 和 pod 模板，对当前的 pod 没有影响； </p><ul class="cherry-list__default" data-lines="2" data-sign="e9589b10702a67e06e238583903a1414list2"><li>也不关心 容器镜像、 环境变量和 其它； </li><li>只影响 创建新的pod （新的 曲奇 切模 cookie cutter ）</li></ul><p data-lines="1" data-type="p" data-sign="6c98a17bbc8e761b30dc8e836fba1a47">修改pod 模板： </p><p data-lines="2" data-type="p" data-sign="cf8564e1b55778d44f21beaa63d104b5" style=""></p><p data-lines="1" data-type="p" data-sign="471059d0288d9ce71eb1f986e9787946">更改副本个数，就能实现动态扩缩容： </p><div data-sign="d3d739b7cf30bd8f0d39164b732b372f" data-type="codeBlock" data-lines="4"><pre><code>kubectl scale rc kubia  --replicas=3 # 调整副本数为3
+</code></pre>
+
+<p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="ba432b510be3ec019ac7348e8fc12cfd">5: 创建对象： </p><p data-lines="2" data-type="p" data-sign="cc5507ccaa0aa2480666a5d272d7bda3">上传到 API 服务器， 会创建 kubia 的 ReplicationController 【简称RC】。</p><ul class="cherry-list__default" data-lines="4" data-sign="1165890cd4d637783960a3f46784eb8flist4"><li>模板中的pod 标签 必须 与RC一致，否则会无休止创建容器（达不到期望数量的 pod）</li><li>API 服务会校验 RC 的定义，不会接受错误配置； </li><li>可以不指定 RC的选择器，会自动根据 pod 模板中的标签自动设置； <br><div data-sign="a4acf988b7100b541dc5ca7070f146f5" data-type="codeBlock" data-lines="25"><pre><code>apiVersion: v1
+kind: ReplicationController
+metadata:
+  name: kubia
+spec:
+  replicas: 3  # pod 副本数量
+
+  # 标签选择器，选择 标签 app = kubia的pod进行管理
+  selector:
+    app: kubia
+
+  # pod 模板
+  template:
+    metadata:
+      labels:
+        app: kubia
+    spec:
+      containers:
+      - name: kubia
+        image: luksa/kubia
+        ports:
+        - containerPort: 8080
+</code></pre></div></li></ul><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="e528e70e7d099adb769d6d7bcf3efc54">6： 删除pod 标签（或者 移入另一个 RC的掌控）， 脱离RC 掌控，RC 会自动起一个 新的 pod; </p><ul class="cherry-list__default" data-lines="4" data-sign="ca9e2a2ed8083fa20a18aa1275dafab7list4"><li>原pod 可用于调试，完成后，手动删除 该pod 即可； </li><li>实际pod 数量， RC 通过就绪探针； </li><li>删除pod， 允许 客户端监听到 API 服务器的通知，通过检查实际的 pod 数量 采取适当的措施； <br><div data-sign="dbab5ec11dfd661840ef8c0f8eec84aa" data-type="codeBlock" data-lines="4"><pre><code>kubectl delete pod &lt;pod-name&gt;
+</code></pre></div></li></ul><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="11758aa45a664356c1fb6a68707daed1">添加 pod 另外的标签， RC 并不care； </p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="07c06b1166db2227026f306942fc3fd2">7： 通过 pod 的 <code>metadata.ownerReferences</code> 可以知道 该pod 属于哪个 RC； </p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="1224f28a2c8b470ac466276f250d08e7">8： 节点故障： 例如网络断开； </p><ul class="cherry-list__default" data-lines="2" data-sign="62dc17aca81065f76c91db6abe2b4386list2"><li>RC 一段时间后检测到 pod 关闭（旧节点变为 <code>unknown</code>）， 会启动新的 pod 代替原来的 pod； </li><li>当旧节点恢复时， 节点状态变为 <code>ready</code>,  <code>unknown</code> pod 会被删除； </li></ul><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="bed13a4a5265503b6de68dfb99542e1a">9： 更改 RC的 标签选择器： </p><ul class="cherry-list__default" data-lines="2" data-sign="8a853ebca38710ecd5a752b137038e5flist2"><li>原有  pod 都会脱离管控； </li><li>RC 会创建（若无）新的指定数量、指定标签 的pod</li></ul><blockquote data-lines="2" data-sign="bae324ff79de3f79ea333ddb728fdda4_2"><strong>==RC 的标签选择器可以修改，但其他的 控制器对象 不能。==</strong> </blockquote><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="57fda4d8834814ee9f671f55ea0ffa5d">10： 删除RC，默认会删除RC 管理的pod</p><blockquote data-lines="2" data-sign="ff2f9e653b85c048c879e6183fa009e8_2">可以使用 选项 <code>--cascade=false</code> 保留pod.<br><div data-sign="b51b39c9883d01d425c0f80863c67c83" data-type="codeBlock" data-lines="4"><pre><code>kubectl delete rc &lt;rc-name&gt; --cascade=false
+</code></pre></div></blockquote><p data-lines="5" data-type="br" data-sign="br5">&nbsp;</p><h2 data-lines="1" data-sign="18bf051d1fd50188ffc437778c6a9bd5" id="%E4%BD%BF%E7%94%A8replicaset-%E6%9B%BF%E6%8D%A2-replicationcontroller" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E4%BD%BF%E7%94%A8replicaset-%E6%9B%BF%E6%8D%A2-replicationcontroller" class="anchor"></a>使用ReplicaSet 替换 ReplicationController</h2><p data-lines="2" data-type="p" data-sign="3837aab1342cf8fae0bd1d7e8c4393aa">1: ReplicationController  最初是 用于赋值和异常时重新调度节点 的<strong>唯一</strong> 组件。 </p><p data-lines="2" data-type="p" data-sign="dab496c30e8a9641b245547f6e3340e8">2： 一般不会直接创建 ReplicaSet ， 而是 创建 更高层级的 Deployment 资源时（第9章） 自动创建他们。  </p><p data-lines="2" data-type="p" data-sign="d063a9397f4177d9191b3f698a4243ed">3： ReplicaSet  功能和 ReplicationController 一样， pod 选择器的 表达能力更强： </p><ul class="cherry-list__default" data-lines="3" data-sign="97fbb43986d31d3b26e0b5eea112e6cdlist3"><li>ReplicationController 只允许 <code>k和v</code>  <strong>同时</strong> 匹配的标签；</li><li>ReplicationController  只能匹配单个 kv; </li><li>ReplicaSet   基于 标签名 k 匹配； </li></ul><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="f17e34b80dcee2cbc094faf4d786dcdb">4： 若已经有了 3 个pod，不会创建任何新的 pod，会将 旧 pod 纳入自己的管辖范围； </p><blockquote data-lines="2" data-sign="68df516a598d0fdb509b8e300e0baced_2">基础使用 和 RC一样简单。 <br><div data-sign="1846f06e4f836239156a97df89109c35" data-type="codeBlock" data-lines="21"><pre><code>apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+  name: kubia
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: kubia
+  template:
+    metadata:
+      labels:
+        app: kubia
+    spec:
+      containers:
+      - name: kubia
+        image: luksa/kubia
+
+</code></pre></div></blockquote><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="f103bca078958b57d1e1458c4d20f232">5： <code>matchExpressions</code> 更强大的选择器； </p><div data-sign="b71a33086581eac3740d212650bdd97c" data-type="codeBlock" data-lines="10"><pre><code>selector:
+    # 标签 需要包含的 key 和 val
+    matchExpressions:
+      - key: app
+        operator: In
+        values:
+         - kubia
+</code></pre>
+
+<p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="fb5a0ee0614fd320875f4a7ce6508e7a">6： 四个有效的运算符 <code>operator</code>： </p><ul class="cherry-list__default" data-lines="4" data-sign="ba21ae5cd74ff3b7105092697ecf131dlist4"><li><code>In</code> : Label的值 必须与其中 一个指定的values 匹配。</li><li><code>Notln</code> : Label的值与任何指定的values 不匹配。</li><li><code>Exists</code> : pod 必须包含一个指定名称的标签（值不重要）。使用此运算符时，不应指定 values字段。</li><li><code>DoesNotExist</code> : pod不得包含有指定名称的标签。values属性不得指定 。  </li></ul><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="42cd986649998d7bc8417bcff8044652">7: <code>matchLabels</code> 和 <code>matchExpressions</code>  可以同时指定，条件是<strong>与</strong>的关系。 </p><p data-lines="1" data-type="p" data-sign="643a9921320638b9cb1d18255bf35e5d">8： 删除 ReplicaSet 也会删除pod:</p><div data-sign="5dc49cffd960cda313117bee592160dd" data-type="codeBlock" data-lines="4"><pre><code>kubectl delete rs &lt;rs-name&gt;
+</code></pre>
+
+<p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><h2 data-lines="1" data-sign="7208a8b28d3cad1535828106c0edbb3c" id="daemonset-%E5%9C%A8%E6%AF%8F%E4%B8%AA%E8%8A%82%E7%82%B9%E4%B8%8A%E8%BF%90%E8%A1%8C%E4%B8%80%E4%B8%AApod" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#daemonset-%E5%9C%A8%E6%AF%8F%E4%B8%AA%E8%8A%82%E7%82%B9%E4%B8%8A%E8%BF%90%E8%A1%8C%E4%B8%80%E4%B8%AApod" class="anchor"></a>DaemonSet: 在每个节点上运行一个pod</h2><p data-lines="2" data-type="p" data-sign="e2f8229c7638e68a1c56183d7c4663e7">1: 需在每个节点上运行日志收集 or 监控： 如 k8s 的<code>kube-proxy</code> 进程</p><p data-lines="2" data-type="p" data-sign="447b0db2a55b6e5584194c5b6c38f2f5">2： 通过  系统初始化脚本 or systemd 守护进程启动； </p><p data-lines="2" data-type="p" data-sign="6f621be92fd8decd86c52103e5ba3579">3： 无期望副本数概念，在 节点选择器下， 运行一个 pod； </p><ul class="cherry-list__default" data-lines="3" data-sign="9efdb76c170490fab98830e97dff1298list3"><li>和节点绑定在一起： 节点下线，并不会再创建 新 pod； </li><li>==新节点加入 【添加 节点 label 后】， 匹配节点选择器， 自动创建一个 新的 pod ；== </li><li>无意中删除了 该 pod， 会自动创建一个pod；</li></ul><p data-lines="1" data-type="p" data-sign="75b8f86b4db605bdf0611f55d84efb81">4： 从 DaemonSet 的 pod 模板 创建 pod</p><p data-lines="1" data-type="p" data-sign="6391af674d249d33621dc4e547f35785">5:   通过 节点选择器 <code>nodeSelector</code> 选中 部分节点创建 pod; </p><div data-sign="5a2f24359b31a9c398cd8398c0d4374e" data-type="codeBlock" data-lines="22"><pre><code>apiVersion: apps/v1beta2
+kind: DaemonSet
+metadata:
+  name: ssd-monitor
+spec:
+  selector:
+    matchLabels:
+      app: ssd-monitor
+  template:
+    metadata:
+      labels:
+        app: ssd-monitor
+    spec:
+      # 节点选择器，选择 标签为 disk=ssd 的节点
+      nodeSelector:
+        disk: ssd
+      containers:
+      - name: main
+        image: luksa/ssd-monitor
+</code></pre>
+
+<p data-lines="2" data-type="p" data-sign="3fce51e3d12b3b8a6bfabedc5bd863a4">6: 节点可以设置为 不可调度 【通过调度器控制】， 防止 pod 部署到 该节点；</p><p data-lines="2" data-type="p" data-sign="f29a63a7da58089953abf4d743e75632">但 DaemonSet 管理的 pod 作为==系统服务，完全绕过调度器，== 即使 节点是 不可调度的，仍然可以运行系统服务；  </p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="740217a98fc1741759106589dd9aeb61">7： 从节点删除 节点标签， DaemonSet 管理的 Pod 也会被删除： </p><div data-sign="e1fc7d9aeb2295f2ba8f4938e08a153e" data-type="codeBlock" data-lines="4"><pre><code>kubectl label node &lt;node-name&gt; disk=hdd --overwrite
+</code></pre>
+
+<p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><h2 data-lines="1" data-sign="d83a358a39497e4d1874274bf6fe6387" id="job%EF%BC%9A%E8%BF%90%E8%A1%8C%E5%8D%95%E4%B8%AA%E4%BB%BB%E5%8A%A1%E7%9A%84-pod" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#job%EF%BC%9A%E8%BF%90%E8%A1%8C%E5%8D%95%E4%B8%AA%E4%BB%BB%E5%8A%A1%E7%9A%84-pod" class="anchor"></a>Job：运行单个任务的 pod</h2><p data-lines="2" data-type="p" data-sign="424d78e902b0bef706ea9130d8dbe35d">1: Job: 一旦任务完成，不重启 容器； </p><p data-lines="2" data-type="p" data-sign="fe09215c6ce34a6658882e43d0723bcb">两个地方会重启： </p><ul class="cherry-list__default" data-lines="2" data-sign="9b0744234b542f7f33398c20a5e7ed26list2"><li>1： job 异常； </li><li>2： pod  在执行任务时，被从节点逐出； </li></ul><p data-lines="1" data-type="p" data-sign="59b46cc135fdb3267d5fd34e309332d3">2： 会重启的资源</p><blockquote data-lines="2" data-sign="585de4629a35e338ec07e4d26cde7d4d_2">job 只有在执行失败的时候才会被重启； </blockquote><p data-lines="2" data-type="p" data-sign="f9829d4884ee3e2377d9d43d9a9737e0">被托管的ReplicaSet 会重启， Job若未完成，也会重启。 </p><p data-lines="2" data-type="p" data-sign="a94b87050e060a57b08d7e17a25be144" style=""></p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="fab9d89ca98c0a23ae0d64f583fd66db">3: job 资源： </p><p data-lines="1" data-type="p" data-sign="65b05b8f45ff56e1430b9867fb4bcc5e"><code>restartPolicy</code> 配置为 <code>Onfailure</code> or <code>Never</code>： 完成后 不需要 一直重启</p><div data-sign="8e9d5e9588ab91e6baa1c9c1f0a719ca" data-type="codeBlock" data-lines="19"><pre><code>apiVersion: batch/v1
+kind: Job
+metadata:
+  name: batch-job
+spec:
+  template:
+    metadata:
+      labels:
+        # Job 未指定 pod 选择器，默认根据 pod 模板中的标签创建
+        app: batch-job
+    spec:
+      # job 不能使用默认的 Always 作为重启策略
+      restartPolicy: OnFailure
+      containers:
+      - name: main
+        image: luksa/batch-job
+</code></pre>
+
+<p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="e4ae968592ba15d0581e7b07782008b0">4： job 中串行运行多个 pod: </p><div data-sign="5a26a114dc0439386f7b85cd7b0e965b" data-type="codeBlock" data-lines="8"><pre><code>kind: Job
+metadata:
+  name: multi-completion-batch-job
+spec:
+  completions: 5 # 顺序执行 5 次
+</code></pre>
+
+<p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="4c542614a54dcce01d04430574b1f766">5： job 中并行运行多个 pod： </p><div data-sign="5411029501d1661c786f8c4f5fe04d26" data-type="codeBlock" data-lines="6"><pre><code>spec:
+  completions: 5  # 需要完成 5 次
+  parallelism: 2  # 最多同时 2 个并行
+</code></pre>
+
+<p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="6a329eb65326b67d09d4f02751b54ed9">6: Job 在运行时，可调整 Job 数量： </p><div data-sign="fa28a370720a4de9c4c19fd949471e26" data-type="codeBlock" data-lines="4"><pre><code>kubectl scale job &lt;job-name&gt; --replicas 3
+</code></pre>
+
+<p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="78c352b0126c4088fd4c1d70c557b19c">7: 限制 Job 完成时间和失败重试次数： </p><ul class="cherry-list__default" data-lines="2" data-sign="84008df888a70bb5509e21935f709102list2"><li>activeDeadlineSeconds: 限制 Job 运行的时间</li><li>spec.backoffLimit: 默认6，Job 失败前 可重试的次数</li></ul><p data-lines="9" data-type="br" data-sign="br9">&nbsp;</p><h2 data-lines="1" data-sign="a64eaeeba16ffcf0de7b0bf024effdb1" id="cronjob-%E5%AE%9A%E6%9C%9F%E6%89%A7%E8%A1%8C" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#cronjob-%E5%AE%9A%E6%9C%9F%E6%89%A7%E8%A1%8C" class="anchor"></a>CronJob: 定期执行</h2><p data-lines="2" data-type="p" data-sign="581bc770c2e1f229043664d9748b169d">1： 时间格式： cron </p><p data-lines="1" data-type="p" data-sign="72d9d87d26658133107c53cc901e4c39">2: 每隔 15 分钟运行一次： </p><div data-sign="6a4516c543ad65c79ae4c6a684580799" data-type="codeBlock" data-lines="22"><pre><code>apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: batch-job-every-fifteen-minutes
+spec:
+  # 每15分钟运行一次
+  schedule: "0,15,30,45 * * * *"
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app: periodic-batch-job
+        spec:
+          restartPolicy: OnFailure
+          containers:
+          - name: main
+            image: luksa/batch-job
+
+</code></pre>
+
+<p data-lines="2" data-type="p" data-sign="e8d8976fc1b578d9d025e79b3497f37e">3： 时间格式： </p><ul class="cherry-list__default" data-lines="5" data-sign="df2adaf47174f8374cf67a25a6af2e6blist5"><li>分钟</li><li>小时</li><li>每月中的第几天</li><li>月</li><li>星期几</li></ul><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="6538ec13310f6062662ff187d2c5ffd7">4： 注意事项</p><ul class="cherry-list__default" data-lines="4" data-sign="f4a2b779c4f7ad5eaa4ef7acece04b19list4"><li>CronJob 根据 <code>jobTemplate</code> 创建 job 对象;</li><li><code>startingDeadlineSeconds</code> 超时未执行 视为 Failed; </li><li>Job 能被重复执行，可能会被创建多个； </li><li>Job 应该是串行的， 中间不能有 遗漏的任务； </li></ul><p data-lines="5" data-type="br" data-sign="br5">&nbsp;</p><h1 data-lines="1" data-sign="22f99958984f6c99ff2b8ba847fec972" id="%E6%9C%8D%E5%8A%A1" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E6%9C%8D%E5%8A%A1" class="anchor"></a>服务</h1><p data-lines="2" data-type="p" data-sign="10fceccd0599157dfc7ab3b5d63d3a7d">1： 服务可以说是 k8s 中最复杂的一环。 </p><p data-lines="2" data-type="p" data-sign="c8153c8459d99ecc63cb00ba38922eda">k8s 集群和普通集群不同的是，</p><ul class="cherry-list__default" data-lines="2" data-sign="5c525639c2f895279a9f4a7d5533c8c3list2"><li>pod 是临时的，随时会被创建和关闭（动态扩缩容）</li><li>pod 重启，，会分配新的IP地址； </li></ul><p data-lines="1" data-type="p" data-sign="e714afa0a7f8e518d3a9462bc313871d">2： Service资源： 外部访问后端pod， 可提供一个统一可供外部访问的IP地址和端口</p><blockquote data-lines="2" data-sign="aba400256def5bf40255058262291ff0_2">这里更多的是针对无状态服务，所有pod 都是对等的， API 服务器只需 随机分配一个 pod </blockquote><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="08e20b47696f07bba3c7a65da676ec36">3： 应用服务的两种情形： </p><ul class="cherry-list__default" data-lines="2" data-sign="3b834c12ef45c24eec1945d080f7c766list2"><li>外部集群 可通过  服务 连接 pod </li><li>内部 pod 之间也可通过服务连接 </li></ul><p data-lines="1" data-type="p" data-sign="bea3217229dfd29bb8a6b3c4b54a2acc" style=""></p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><h2 data-lines="1" data-sign="3896b203501722767ef715b4412d202b" id="%E8%BF%9E%E6%8E%A5%E9%9B%86%E7%BE%A4%E5%86%85%E9%83%A8%E7%9A%84-service" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E8%BF%9E%E6%8E%A5%E9%9B%86%E7%BE%A4%E5%86%85%E9%83%A8%E7%9A%84-service" class="anchor"></a>连接集群内部的 Service</h2><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="ffce725c47efb4060e8552f9daa278c8">4: 服可通过标签选择器，选择 需要 连接的 pod</p><blockquote data-lines="2" data-sign="44ad63de9fb025371bc4c23ded3c9dca_2">控制 Service 服务的范围。 </blockquote><p data-lines="2" data-type="p" data-sign="2cdd85fbc82d2597e95684feb95dfbf8" style=""></p><p data-lines="1" data-type="p" data-sign="c2c9f9c2fc5846217a6f14f858e57c46">5： 服务可通过 <code>kubectl expose</code> 创建，也可通过 yaml 创建。 </p><div data-sign="70b8fe38cb370fc40dd46623175bd405" data-type="codeBlock" data-lines="17"><pre><code>apiVersion: v1
+kind: Service
+metadata:
+  name: kubia
+spec:
+  ports:
+  # 服务对外的端口
+  - port: 80
+    # 服务转发到容器的端口
+    targetPort: 8080
+
+  # 连接pod 集合是带有 app: kubia 标签的 pods
+  selector:
+    app: kubia
+</code></pre>
+
+<p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="d8bcbabe1d235cd960b6d1a02a71145c">创建 svc 后，会分配一个 <strong>集群IP</strong>，==该IP 对外不可用==，仅限于 集群内的 pod 访问 【pod 和 pod 之间也可通过 服务连接】。 </p><p data-lines="2" data-type="p" data-sign="155cb679537df0c0fe01581037702df9" style=""></p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="184fc89eea317fc496f0cd38487e95e5">集群内部测试服务，有三种方法向 Service 发送请求： </p><ul class="cherry-list__default" data-lines="3" data-sign="a40b359c168b7941bea93b601c5e0bbalist3"><li>创建一个 pod 应用，并向 集群IP 发送requests； </li><li>ssh 登录到节点上，使用 curl</li><li>登录到其中的一个 pod 运行curl指令</li></ul><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="c140a87d5bddce72c09cdf84b8ec69fd">6： 可用 <code>kubectl exec</code> 在远程容器里执行： </p><div data-sign="f735330b7763c7065b0a41a5956969e3" data-type="codeBlock" data-lines="12"><pre><code>user00@ubuntu:~$ kubectl get po
+NAME          READY   STATUS    RESTARTS   AGE
+kubia-jppwd   1/1     Running   0          5m13s
+kubia-sxkrr   1/1     Running   0          5m13s
+kubia-xvkpg   1/1     Running   0          5m13s
+
+#  --  表示 Kubectl 执行命令的结束
+# -s 告诉 kubectl 需要连接不同的 API服务器，而非默认的
+user00@ubuntu:~$ kubectl exec kubia-jppwd -- curl -s  http://10.105.237.81
+</code></pre>
+
+<p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="2" data-type="p" data-sign="d2db97aa045d31dd87ed2a8a7924f3e1" style="">curl 的过程如下， Service 选择 pod 是随机选择一个。 <br></p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="6ba2a1b1acdb7de1236009b4c6e70b04">7: Service 可以通过设置 <code>sessionAffinity: ClientIP</code> 来让同一个客户端的请求每次指向同一个 pod. </p><blockquote data-lines="2" data-sign="9a1736ef9b2a2d13c4604d23ca516f14_2">默认值是 None  </blockquote><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="8e5da8a0f2638a91b44be60f7d5f126d">8: Service 可同时暴露多个端口， 例如 http请求时， 80 端口映射到8080， https 请求时， 443 端口映射到 8443 </p><p data-lines="2" data-type="p" data-sign="3018c0f19bdc83ceb42900dc4a215a66">9： 在 Service的生命周期内， 服务ip不变。 </p><ul class="cherry-list__default" data-lines="2" data-sign="def4ca552b5b6a10fd419a8478c90dcalist2"><li>当pod 创建时，k8s 会初始环境变量指向现在的 集群IP<br><div data-sign="15c2e64577fca9356f96bd53599884de" data-type="codeBlock" data-lines="14"><pre><code>user00@ubuntu:~$ kubectl exec kubia-jppwd  env | grep -in  service
+kubectl exec [POD] [COMMAND] is DEPRECATED and will be removed in a future version. Use kubectl exec [POD] -- [COMMAND] instead.
+3:KUBERNETES_SERVICE_HOST=10.96.0.1
+4:KUBERNETES_SERVICE_PORT_HTTPS=443
+
+# 集群IP 和 端口
+7:KUBIA_SERVICE_HOST=10.105.237.81
+8:KUBIA_SERVICE_PORT=80
+12:KUBERNETES_SERVICE_PORT=443
+</code></pre></div></li></ul><p data-lines="1" data-type="p" data-sign="3f8a3c44f5e6a8389fc431b83dcb8e41">对应了两个服务： </p><div data-sign="ab70c91f6e9dba0360829a94d1308a53" data-type="codeBlock" data-lines="7"><pre><code>$ kubectl get svc
+NAME         TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)   AGE
+kubernetes   ClusterIP   10.96.0.1       &lt;none&gt;        443/TCP   2d21h
+kubia        ClusterIP   10.105.237.81   &lt;none&gt;        80/TCP    50m
+</code></pre>
+
+<p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="ffa715ce9ea6961fe086feb49ed0bb43">10: 每个 pod 默认使用的 dns: </p><div data-sign="50211088b7a0e30f7e9afb9a2e9b6372" data-type="codeBlock" data-lines="7"><pre><code>$kubectl exec kubia-jppwd  -- cat /etc/resolv.conf
+nameserver 10.96.0.10
+search default.svc.cluster.local svc.cluster.local cluster.local localdomain
+options ndots:5
+</code></pre>
+
+<p data-lines="2" data-type="p" data-sign="18b26779ac6857a211b1cbc99d598485">pod 是否适用 dns， 由 <code>dnsPolicy</code> 属性决定。 </p><p data-lines="1" data-type="p" data-sign="ade48c921f0e2b18e5f9a261a1153dbd">系统命名空间，通常有个 pod 运行 DNS 服务； </p><div data-sign="0a9836f4fae386674a661de523ef8c01" data-type="codeBlock" data-lines="6"><pre><code>$ kubectl get po -n kube-system
+NAME                               READY   STATUS    RESTARTS   AGE
+coredns-74ff55c5b-pvqxv            1/1     Running   0          2d21h
+</code></pre>
+
+<p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="cf1f5bcd71e73994a207252555ddc523">11： 在pod 中，可使用全限定域名（FQDN） 来访问 Service。 </p><p data-lines="1" data-type="p" data-sign="b2c105f6ae7a4435f894fc5e3cc580ac">格式如下： </p><div data-sign="daaacc72cc877f0b0109a23bab6e1f89" data-type="codeBlock" data-lines="8"><pre><code>kubia.default.svc.cluster.local
+
+# kubia: Service 名称
+# default: namespace
+# svc.cluster.local： 所有集群本地服务中使用的可配置集群域后缀
+</code></pre>
+
+<p data-lines="1" data-type="p" data-sign="a7628de13cd13d8e294148d6d0395f7a">若在同命名空间下， <code>svc.cluster.local</code> 和 <code>default</code> 可省略。 </p><div data-sign="fe93ff9239b4c5d97b9bf2fe831dd826" data-type="codeBlock" data-lines="11"><pre><code>user00@ubuntu:~$  kubectl exec -it  kubia-jppwd  bash
+kubectl exec [POD] [COMMAND] is DEPRECATED and will be removed in a future version. Use kubectl exec [POD] -- [COMMAND] instead.
+root@kubia-jppwd:/# curl http://kubia.default.svc.cluster.local
+You've hit kubia-sxkrr
+root@kubia-jppwd:/# curl http://kubia.default
+You've hit kubia-xvkpg
+root@kubia-jppwd:/# curl http://kubia
+You've hit kubia-xvkpg
+</code></pre>
+
+<p data-lines="5" data-type="br" data-sign="br5">&nbsp;</p><p data-lines="1" data-type="p" data-sign="c952d56acb15c44bcfeb6bbb3b9054cc">12: 集群IP是一个 虚拟的IP， 只有配合服务端口才有意义。</p><div data-sign="95868ce72c488512e49f77b7b7fe920a" data-type="codeBlock" data-lines="7"><pre><code>root@kubia-jppwd:/# ping kubia
+PING kubia.default.svc.cluster.local (10.105.237.81): 56 data bytes
+^C--- kubia.default.svc.cluster.local ping statistics ---
+51 packets transmitted, 0 packets received, 100% packet loss
+</code></pre>
+
+<p data-lines="5" data-type="br" data-sign="br5">&nbsp;</p><h2 data-lines="1" data-sign="b8c699f9ce30a25f6840034888919c98" id="%E8%BF%9E%E6%8E%A5%E9%9B%86%E7%BE%A4%E5%A4%96%E9%83%A8%E7%9A%84-service" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E8%BF%9E%E6%8E%A5%E9%9B%86%E7%BE%A4%E5%A4%96%E9%83%A8%E7%9A%84-service" class="anchor"></a>连接集群外部的 Service</h2><p data-lines="2" data-type="p" data-sign="62c2b7efbc425da74fa1514aa6095be2">1： 让 pod 连接到集群外部。 </p><p data-lines="1" data-type="p" data-sign="d54a00af7ab46d83b5f9b508f4c61444">2： 服务并不是和 pod 直接相连，中间有 Endpoint 资源</p><div data-sign="612b705b705973e9cdf7e9606abf9301" data-type="codeBlock" data-lines="8"><pre><code>user00@ubuntu:~$ kubectl get svc kubia
+Selector:          app=kubia # 创建 endpoint 资源，选择的 pod 标签
+
+TargetPort:        8080/TCP
+Endpoints:         172.17.0.3:8080,172.17.0.4:8080,172.17.0.5:8080
+</code></pre>
+
+<p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><blockquote data-lines="2" data-sign="c31ba61b7fd087c5d161d7c04a187561_2">Service 通过选择器构建 IP 和 端口 列表，然后存储在 endpoint 资源中<br><br>连接时，随机选择其中一个</blockquote><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="1b438787b07c187b6624e0f1fc5c6db3">3： 当 Service 无节点选择器时，不会自动创建 Endpoint 资源。 </p><div data-sign="9ab0507a467e54aa400a72c05bdb713a" data-type="codeBlock" data-lines="13"><pre><code>apiVersion: v1
+kind: Service
+metadata:
+  # Service 名称，后面会用
+  name: external-service
+spec:
+  ports:
+  - port: 80
+
+  # 无 选择器
+</code></pre>
+
+<p data-lines="1" data-type="p" data-sign="1bf5b2edd1e4e75cb226d1e541531ab9">手动指定 Endpoint 注意需要<strong>==和 Service 同名称==</strong>。 </p><div data-sign="4341c43f452b5d6a09c931298575a39a" data-type="codeBlock" data-lines="15"><pre><code>apiVersion: v1
+kind: Endpoints
+metadata:
+  # 和 Service 同名称
+  name: external-service
+subsets:
+  # Service 重定向的 IP 地址
+  - addresses:
+    - ip: 11.11.11.11
+    - ip: 22.22.22.22
+    ports:
+    - port: 80
+</code></pre>
+
+<p data-lines="2" data-type="p" data-sign="1932144841eb3af77390e98feb6a7619">通过endpoint 列表， 可连向其它地址。</p><p data-lines="2" data-type="p" data-sign="44ec53cfda9dd9f0fa14594306f32345" style=""></p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="92cbe9520ad3a528b1f8aabcfe67c244">4： 也可创建具有别名的外部服务： </p><div data-sign="b8997da3219bccd6bdb36e3388d95ff6" data-type="codeBlock" data-lines="13"><pre><code>apiVersion: v1
+kind: Service
+metadata:
+  name: external-service
+spec:
+  # 别名
+  type: ExternalName
+  externalName: api.somecompany.com
+  ports:
+  - port: 80
+</code></pre>
+
+<p data-lines="2" data-type="p" data-sign="8c0dfe4c9f6ae8299ae3790a968d53e2">创建该服务后，内部pod 可通过 <code>external-service.default.svc.cluster.local</code> 访问外部域名</p><p data-lines="5" data-type="br" data-sign="br5">&nbsp;</p><h2 data-lines="1" data-sign="82d681bc0f2223c9f252da38675d9da2" id="%E5%B0%86%E6%9C%8D%E5%8A%A1%E6%9A%B4%E9%9C%B2%E7%BB%99%E5%A4%96%E9%83%A8%E5%AE%A2%E6%88%B7%E7%AB%AF" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E5%B0%86%E6%9C%8D%E5%8A%A1%E6%9A%B4%E9%9C%B2%E7%BB%99%E5%A4%96%E9%83%A8%E5%AE%A2%E6%88%B7%E7%AB%AF" class="anchor"></a>将服务暴露给外部客户端</h2><p data-lines="2" data-type="p" data-sign="20bc4e0b222d96810e10a00116125a6c">1: pod 向外部公开的服务，如 web 服务。 </p><p data-lines="2" data-type="p" data-sign="aba0d98ef4b9628ac89376d0b65918d2">2： 有以下几种方式，使外部可访问服务：</p><ul class="cherry-list__default" data-lines="3" data-sign="02233e4aeff4beaa538700eeaa88bcc3list3"><li>服务类型为 NodePort: 每个节点上开放一个端口，访问内部服务 (可被 Service 访问)。</li><li>服务类型 为 LoadBalance： NodePort 的一种扩展， 通过负载均衡器访问， 将流量重定向到所有节点的 NodePort; </li><li>创建 Ingress 资源： 通过一个 IP 地址公开多个 服务 （运行在 HTTP 层） </li></ul><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><h3 data-lines="1" data-sign="f8bb423b6c2991e7ad4c26f624539316" id="nodeport" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#nodeport" class="anchor"></a>NodePort</h3><p data-lines="1" data-type="p" data-sign="60d7128a99e882be7322229db43fde6e">1: 创建一个 NodePort 类型的 Service。 </p><div data-sign="c00ab467e187f4698d60353a049a7195" data-type="codeBlock" data-lines="20"><pre><code>apiVersion: v1
+kind: Service
+metadata:
+  name: kubia-nodeport
+spec:
+  # 服务类型为 NodePort
+  type: NodePort
+  ports:
+   # 集群IP的端口
+  - port: 80
+    # pod 开放的端口
+    targetPort: 8080
+
+    # 不指定端口，将随机选择一个端口
+    nodePort: 30123
+  selector:
+    app: kubia
+</code></pre>
+
+<p data-lines="1" data-type="p" data-sign="059a52f637d3fb92cd5e6becf5c83178">2： 现在可通过以下几种方式访问服务： </p><div data-sign="722f95e8a1fc78404e4d2b510b7f5d84" data-type="codeBlock" data-lines="6"><pre><code>user00@ubuntu:~$ kubectl get svc
+NAME               TYPE           CLUSTER-IP
+kubia-nodeport     NodePort       10.104.119.122   &lt;none&gt;          80:30123/TCP   5m21s
+</code></pre>
+
+<ul class="cherry-list__default" data-lines="4" data-sign="b0676c49fccdaab74546c0cbfee78aa2list4"><li>1: &lt;集群IP&gt;:80</li><li>2: 多节点集群<ul class="cherry-list__default"><li>节点1IP:30123</li><li>节点2IP:30123</li></ul></li></ul><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><blockquote data-lines="2" data-sign="b64f47f870b0bb46b2ee285376a104b7_2">注意： 即使连到节点1 的端口， 也可能分配到 节点2上执行。 <br><br>设置 <code>externalTrafficPolicy:local</code> 属性，可将 流量路由到当前节点所在的 pod . 若当前节点pod 不存在，连接挂起。 </blockquote><p data-lines="2" data-type="p" data-sign="b3eef0d97a93c780cbf108b03e223295"><code>externalTrafficPolicy:local</code> 不利于负载均衡， 当节点上的 pod 分散不均时。 </p><blockquote data-lines="2" data-sign="a2370a485d9cc36553387b23007a5c94_2">有个好处是，转发到本地pod，不用进行 SNAT（源网路地址转换），这会将 改变 源IP记录。 </blockquote><p data-lines="2" data-type="p" data-sign="f45a1f29eaa6ec96ecce5a7e64697039" style=""></p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="638c63dd67d56e168ebd23190439d1b2">开放  NodePort 端口。 </p><p data-lines="2" data-type="p" data-sign="c060731e6281ea3676e30f407d43226d" style=""></p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="e6d2792e4a4400a31c3f2858943a30de">3： 获取 节点IP 【特意观察了下，节点IP 和 机器IP不是一个，但在同一网关下】</p><div data-sign="e6042bde34f6268efc03ba7a89fd06b8" data-type="codeBlock" data-lines="6"><pre><code>user00@ubuntu:~$ kubectl get nodes -o json | grep address
+                "addresses": [
+                        "address": "192.168.49.2",
+</code></pre>
+
+<p data-lines="1" data-type="p" data-sign="3414f5e8fa3f0f60176c923b096cdfd0">可在本地机器上，向 <code>节点IP:nodePort</code> 发送请求：</p><div data-sign="ffcb402f20e1953abf7e77d880630c61" data-type="codeBlock" data-lines="5"><pre><code>$ curl http://192.168.49.2:30123
+You've hit kubia-jppwd
+</code></pre>
+
+<p data-lines="3" data-type="p" data-sign="901eef56f2df6a53c2f87fd5d9b265af" style="">minikue 可通过网页访问 <code>minikube service &lt;service-name&gt;</code>： <br></p><p data-lines="5" data-type="br" data-sign="br5">&nbsp;</p><h3 data-lines="1" data-sign="395ced088af3af9d08f76c6bec57d3be" id="loadbalancer" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#loadbalancer" class="anchor"></a>LoadBalancer</h3><p data-lines="2" data-type="p" data-sign="2c1d8c0e1973e5de6a0ac801f8749554">负载均衡器在 NodePort 外面包了一层。 </p><p data-lines="2" data-type="p" data-sign="bd25e34b629fd85e7e6f7f59515a4191">1:负载均衡器<strong>放在节点前面</strong>，将请求传播到 健康的节点。 </p><p data-lines="1" data-type="p" data-sign="47fb257a9448e665004adb3c5dd5ba65">负载均衡器拥有 自己独一无二的 可公开访问的<strong>IP 地址</strong>， 并将连接重定向到服务。</p><div data-sign="981aa3788ce71c1d10235df40c46d3b1" data-type="codeBlock" data-lines="15"><pre><code>apiVersion: v1
+kind: Service
+metadata:
+  name: kubia-loadbalancer
+spec:
+  # 负载均衡器类型
+  type: LoadBalancer
+  ports:
+  - port: 80
+    targetPort: 8080
+  selector:
+    app: kubia
+</code></pre>
+
+<blockquote data-lines="2" data-sign="c30cc15d0fc64016dabb73261b9291b8_2">若没有指定特定端口，负载均衡器会随机选择一个端口。 <br><div data-sign="9b051776014ce8cfe9330196da40b38c" data-type="codeBlock" data-lines="8"><pre><code>$ kubectl get svc | grep load
+												  # &lt;EXTERNAL IP&gt;
+kubia-loadbalancer   LoadBalancer   10.96.24.178     &lt;pending&gt;       80:30600/TCP   11m
+</code></pre></div></blockquote><p data-lines="2" data-type="p" data-sign="653482e9479c25774f80036ec6f13e86">2： 创建服务后，要等待很长时间， 才能将 外部IP地址写入对象。 </p><p data-lines="1" data-type="p" data-sign="cda94e6942dd3e60405cd7e703110ae0">可通过外部ip直接访问： </p><div data-sign="e444b9ff6dccbd1cdad5f72c48a3d4db" data-type="codeBlock" data-lines="4"><pre><code>curl http://&lt;EXTERNAL IP&gt;
+</code></pre>
+
+<p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="5fa8a375a60bdddf105bef7ac97d01e0">3: 可以通过 浏览器访问，但每次访问都是一个pod， 即使 <code>Session Affinity</code> 设为None</p><p data-lines="2" data-type="p" data-sign="d0a7d1e3409dd41d8808a9c8fdb43477">因为浏览器采用 keep-alive 连接，而curl每次开新连接。 </p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="6fe373ec465a7777f0cfaf4fe1987f4d">4： 请求连的时候， 会连接到负载均衡器的 80端口， 并路由到某个节点上分配的 NodePort 上，随后转发到 一个 pod 实例上。 </p><p data-lines="1" data-type="p" data-sign="00613cbae0fa1e249f8f16e648a10291">本质还是打开了 NodePort，仍能继续使用 <code>节点IP:隐式 NodePort</code> 端口访问： </p><div data-sign="fb057ff009adaa923bfbfa2cdc3ccc04" data-type="codeBlock" data-lines="5"><pre><code>$ curl http://192.168.49.2:30600
+You've hit kubia-sxkrr
+</code></pre>
+
+<p data-lines="2" data-type="p" data-sign="b3b65ccaa87b69d84e64d4dfa44de888" style=""></p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><h3 data-lines="1" data-sign="0a5cf086aeba483ea76c0ca0420d82fe" id="ingress" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#ingress" class="anchor"></a>Ingress</h3><p data-lines="2" data-type="p" data-sign="cea15f39c9a9127fcad32035770c8595">1： Ingress 也可对外暴露服务，准入流量控制。 </p><p data-lines="2" data-type="p" data-sign="8d8eced5f569f02a0e09887a77134ba6">2： Ingress工作在HTTP层，通过一个 主机名 + 路径 就能转到不同的服务</p><p data-lines="2" data-type="p" data-sign="8e2dc5095d66b408f3ece7b80ce7219a">而 每个 LoadBalancer 服务需要自己的负载均衡器和独有的 公有IP地址。 </p><blockquote data-lines="2" data-sign="9f898ac8a258bb921feb80c050640e96_2">工作在更高层次的协议层，可以提供更丰富的服务。 </blockquote><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="2" data-type="p" data-sign="040119b391bdc5438403548130fddc2e" style="">ingress 可以绑定 <strong>==多主机、同主机多路径。==</strong> <br></p><p data-lines="2" data-type="p" data-sign="4dd50a6b45c27360df938a6ac10bf621">3： 启用 Ingress 资源需要 Ingress 控制器。 </p><blockquote data-lines="2" data-sign="ffae1c2e1b2bdcabbcde642fad1c74f6_2">通过 <code> minikube addons list</code> 确认。<br><div data-sign="67d596ce7a6de1097a96bb7d52849d62" data-type="codeBlock" data-lines="17"><pre><code>apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: kubia
+spec:
+  rules:
+  - host: kubia.example.com
+    http:
+      paths:
+      - path: /
+        backend:
+          # 将 kubia.example.com/ 请求转发到 nodeport 服务
+          serviceName: kubia-nodeport
+          servicePort: 80
+</code></pre></div></blockquote><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="5ddaefcc06446763cd3802109a108abd">4： <code>kubia.example.com </code> 访问服务的前提是 域名能正确解析为 ingress 的IP。</p><div data-sign="c985aa93fc9cc0df76657f2c810dce7e" data-type="codeBlock" data-lines="6"><pre><code>$ kubectl get ingress
+NAME    CLASS    HOSTS               ADDRESS        PORTS   AGE
+kubia   &lt;none&gt;   kubia.example.com   192.168.49.2   80      70s
+</code></pre>
+
+<p data-lines="1" data-type="p" data-sign="f1c9e7e56508876be81560ea89b26909">然后再 <code>/etc/hosts</code> 加入映射： </p><div data-sign="46c9844f769617fe88a389a29123f8d0" data-type="codeBlock" data-lines="8"><pre><code>root@ubuntu:~# cat /etc/hosts
+127.0.0.1       localhost
+127.0.1.1       ubuntu
+
+192.168.49.2 kubia.example.com
+</code></pre>
+
+<p data-lines="1" data-type="p" data-sign="7bd668c0e67151328ada52b8cba5c694">通过地址访问： </p><div data-sign="1c1e9698147478aae3fe6f76242001ca" data-type="codeBlock" data-lines="6"><pre><code># 必须 配置 hosts，直接通过 ingress IP 访问是不行的，无法知道访问的是哪个服务
+$ curl http://kubia.example.com
+You've hit kubia-xvkpg
+</code></pre>
+
+<p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="eeae70e45dd7d1fcb7469a970d3d7430">5: ingress 访问流程如下： </p><ul class="cherry-list__default" data-lines="3" data-sign="ab66ad6c83f5fc93f2c128345204b949list3"><li>通过DNS查找  <code>http://kubia.example.com </code> 对应的ingress IP</li><li>向 Ingress控制器发送 请求，并在头部中包含 需要访问的 服务  <code>kubia.example.com</code></li><li>在 Endpoints 中查看该服务对应的 pod 的 IP 表，选择其中一个 pod 进行处理； </li></ul><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="393be6f5a759f8371df65b902e661c22" style=""></p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="a7b4e6710f601d734969cc74470eb25a">6： 若要采用 https 访问，需要 配置 tls.secrete</p><blockquote data-lines="2" data-sign="afd8cc329ccfb0afb9714d181d717d76_2">针对每个主机域名 配置一个。 <br><div data-sign="79da11cd405b30b90867128448a2500c" data-type="codeBlock" data-lines="9"><pre><code>name: kubia
+spec:
+  tls:
+  - hosts:
+    - kubia.example.com
+    secretName: tls-secret
+</code></pre></div></blockquote><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><h2 data-lines="1" data-sign="f74f026bc06759a51993a8e185698715" id="%E5%B0%B1%E7%BB%AA%E6%8E%A2%E9%92%88" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E5%B0%B1%E7%BB%AA%E6%8E%A2%E9%92%88" class="anchor"></a>就绪探针</h2><p data-lines="2" data-type="p" data-sign="3210ca43c1d8cd96467a6cbba074023c">1： 确认服务启动后，对外提供服务。 </p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><h2 data-lines="1" data-sign="388a5b6c96f76d03d975b6268ba7e1d0" id="headless%E6%9C%8D%E5%8A%A1" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#headless%E6%9C%8D%E5%8A%A1" class="anchor"></a>headless服务</h2><p data-lines="2" data-type="p" data-sign="edf81f67751d73e6921003dd90402049">有时候在集群内部/或者集群外部 需要知道 其它节点的 IP 列表，创建一个 headless 服务包裹一层， 去查询该服务的 DNS，会打印 该服务下的（标签选择器选中的）所有pod。  </p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="b168f43c62bc66ac711c671cbd0c66c4">1： <code>clusterIP:None</code>, DNS 服务器返回的是 pod的 IP，而非集群IP</p><p data-lines="2" data-type="p" data-sign="92544dbf1d209a39ef4f3ec8bd208b97">2： 创建 headless Service：</p><p data-lines="1" data-type="p" data-sign="4c391a90a4205c4324bfc4d44f680e15">该 headless 后端，包含标签选择器选择的所有 pod</p><div data-sign="09f27b098ce99ed777a302747195d2c3" data-type="codeBlock" data-lines="15"><pre><code>apiVersion: v1
+kind: Service
+metadata:
+  name: kubia-headless
+spec:
+  # headless 服务
+  clusterIP: None
+  ports:
+  - port: 80
+    targetPort: 8080
+  selector:
+    app: kubia
+</code></pre>
+
+<p data-lines="2" data-type="p" data-sign="d17e0342c7df11f470539add35371b4c">headless 服务无集群IP</p><p data-lines="2" data-type="p" data-sign="51bca61f4b84251e4132aed1e6f550d3" style=""></p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="56da3c15e46be22687fdf8add4b7bde9">运行临时 pod</p><div data-sign="c5ff355feeb55f71d233064c058bb39b" data-type="codeBlock" data-lines="4"><pre><code>kubectl run dnsutils --image=tutum/dnsutils   --command -- sleep infinitypod/dnsutils created
+</code></pre>
+
+<p data-lines="2" data-type="p" data-sign="958b8800a7b4a0fe6b50a4e4fae877b6">在该临时 pod 查看 headless 服务标签选择器选择的pod</p><blockquote data-lines="2" data-sign="b93f9168958b5b6df57c27146de11afb_2">注意，只会展示 就绪的 pod ip<br><div data-sign="0a20b184291b3153faaf7d8bd9c932e8" data-type="codeBlock" data-lines="10"><pre><code>$ kubectl exec dnsutils nslookup kubia-headless
+Name:   kubia-headless.default.svc.cluster.local
+Address: 172.17.0.5
+Name:   kubia-headless.default.svc.cluster.local
+Address: 172.17.0.4
+Name:   kubia-headless.default.svc.cluster.local
+Address: 172.17.0.3
+</code></pre></div></blockquote><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="db36562ab06b97ddcf000d4163bb1a1a">普通service 返回的是集群IP： </p><div data-sign="92899b6ab759cdffb75f890bd8574e3a" data-type="codeBlock" data-lines="7"><pre><code>$ kubectl exec dnsutils nslookup kubia
+
+Name:   kubia.default.svc.cluster.local
+Address: 10.105.237.81
+</code></pre>
+
+<p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><h1 data-lines="1" data-sign="bcd2c0ffe855deeff1a08e632f27d6ce" id="%E5%8D%B7" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E5%8D%B7" class="anchor"></a>卷</h1><p data-lines="2" data-type="p" data-sign="27c1fd39bff501f26ef09bfea9ea0ff8">1： 卷的作用是将 磁盘挂载到容器。 </p><blockquote data-lines="2" data-sign="bc017d2a660f6c91a4b55e777b4ae8a4_2">这个 和linux 将指定目录挂载到盘 很类似。 </blockquote><p data-lines="2" data-type="p" data-sign="d00b90989d29141c61f23e0ad3d61b55">2： 每个 pod 都有独立的文件系统，文件系统来自于 容器镜像。 </p><blockquote data-lines="3" data-sign="7d844cfa376dd79c00838c811ef3894e_3">默认， 容器重启后并不能识别 之前容器写入文件系统的内容。 <br><br>这是因为 新的容器拥有 新的 写入层。 </blockquote><p data-lines="2" data-type="p" data-sign="7ef7fa40b4eada231d097a136c4621d4">3： pod 中的所有容器都能使用卷，但是需要提前挂载。 </p><p data-lines="2" data-type="p" data-sign="49f1e239206f0a1d1a5ebb522b12a059">4：emptyDir 卷是挂载一个空的目录。 </p><ul class="cherry-list__default" data-lines="2" data-sign="aacf1edd04d85ff7a93abf4b9b302a23list2"><li>卷的装载在容器启动之前执行； </li><li>emptyDir 卷 的生命周期 和 pod 相同； </li></ul><p data-lines="1" data-type="p" data-sign="e294ae2fcf3b79ef3b417e786ba32316">5： 可用的卷类型： </p><ul class="cherry-list__default" data-lines="10" data-sign="a73128a5ec46db5401a8ee4fa3fc8ec0list10"><li>emptyDir —— 用于存储临时数据的简单空目录。</li><li>hostPath —— 用于将目录从工作节点的文件系统挂载到pod中。</li><li>gitRepo —— 通过检出Git仓库的内容来初始化的卷。</li><li>nfs —— 挂载到pod中的NFS共享卷。  </li><li>gcePersistentDisk (Google 高效能型存储磁盘卷）、 awsElastic BlockStore (AmazonWeb 服务弹性块存储卷）、 azureDisk (Microsoft Azure 磁盘卷）一一用于挂载云服务商提供的特定存储类型。</li><li>cinder 、 cephf  、 iscsi 、 flocker 、 glusterfs 、 quobyte 、 rbd 、<br>flexVolume 、 vsphere-Volume 、 photonPersistentDis k、 scaleIO<br>用于挂载其他类型的网络存储。</li><li>configMap 、 secret 、 downwardAPI 一一用于将 Kubemetes 部分资源和集群信息公开给 pod 的特殊类型的卷 。</li><li>persistentVolumeClaim一一一种使用预置或者动态配置的持久存储类型（我们将在本章 的最后一节对此展开讨论） 。  </li></ul><blockquote data-lines="2" data-sign="feaa48a708e3a1c4b885cd01195ba04e_2">单个容器可同时使用不同类型的多个卷</blockquote><p data-lines="5" data-type="br" data-sign="br5">&nbsp;</p><h2 data-lines="1" data-sign="3a99041d246b54f4afff5c56303dae3f" id="emptydir" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#emptydir" class="anchor"></a>emptyDir</h2><p data-lines="1" data-type="p" data-sign="b01062f561df309fb1a29ef5e3fdcbf1">1： emptyDir: 在pod 中的多个容器间共享存储： </p><div data-sign="8883fa7465d7f77518cc2da274f35911" data-type="codeBlock" data-lines="29"><pre><code>apiVersion: v1
+kind: Pod
+metadata:
+  name: fortune
+spec:
+  containers:
+  - image: luksa/fortune
+    name: html-generator
+    volumeMounts:
+    - name: html
+      # 挂载的目录
+      mountPath: /var/htdocs
+  - image: nginx:alpine
+    name: web-server
+    volumeMounts:
+    - name: html
+      mountPath: /usr/share/nginx/html
+      # 只读
+      readOnly: true
+    ports:
+    # Nginx 监听80端口
+    - containerPort: 80
+      protocol: TCP
+  volumes:
+  - name: html # 卷名称
+    emptyDir: {}
+</code></pre>
+
+<p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="923776fa01176384b1f1448c0163f87c">可在内存上创建 emptyDir </p><div data-sign="c4b8058c14c7ce4c9f93b70c232e55c2" data-type="codeBlock" data-lines="8"><pre><code>volumes:
+  - name: html # 卷名称
+    # emptyDir: {}
+    emptyDir:
+      medium: Memory
+</code></pre>
+
+<p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><h2 data-lines="1" data-sign="b1de88fafdba5fe0bc8a0e5245892b78" id="gitrepo" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#gitrepo" class="anchor"></a>gitRepo</h2><p data-lines="3" data-type="p" data-sign="08c0d63ee6b3d14b8f3c7178d0d65bf3">1: gitRepo  卷：gitRepo 卷基本上也是 一 个 emptyDir 卷，它通过克隆 Git 仓库并<strong>在 pod 启</strong><br><strong>动时（但在创建容器之前 ） 检出特定版本</strong>来填充数据  </p><blockquote data-lines="2" data-sign="5da13ccc064d96946488c5bc162409e9_2">创建pod时，会checkout 指定版本。 <br><div data-sign="34fbf2315688f5edc2f240590edc5c05" data-type="codeBlock" data-lines="26"><pre><code>apiVersion: v1
+kind: Pod
+metadata:
+  name: gitrepo-volume-pod
+spec:
+  containers:
+  - image: nginx:alpine
+    name: web-server
+    volumeMounts:
+    - name: html
+      mountPath: /usr/share/nginx/html
+      readOnly: true
+    ports:
+    - containerPort: 80
+      protocol: TCP
+  volumes:
+  - name: html
+    # 创建一个 gitRepo 卷
+    gitRepo:
+      repository: https://github.com/luksa/kubia-website-example.git
+      revision: master
+      # checkout 到当前目录， 可通过路径 /usr/share/nginx/html 访问
+      directory: .
+</code></pre></div></blockquote><p data-lines="2" data-type="p" data-sign="bfb1d0c3357b00b38e5bef7c06f9a927">8: 可创建一个 sidecar 容器，实时同步git， 如Docker Hub 上的 gitsync</p><p data-lines="5" data-type="br" data-sign="br5">&nbsp;</p><h2 data-lines="1" data-sign="14c3f385e3ee17473b53bc31b655c02d" id="hostpath" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#hostpath" class="anchor"></a>hostPath</h2><p data-lines="2" data-type="p" data-sign="d93903e1669f9e849885f499e9b2f920">1: hostPath 卷，指向节点文件系统上特定的文件或目录。 </p><blockquote data-lines="2" data-sign="9723e6032c4c41650863aaa7fb227635_2">注意是一些 系统级别的 pod （通常由 DaemonSet 管理）需要访问。 </blockquote><p data-lines="2" data-type="p" data-sign="80e7ef565dbdf0ff29a3ca7e40afd169">2： 多个pod hostPath 卷中使用相同的路径，可看到相同的文件。 </p><p data-lines="2" data-type="p" data-sign="b0d453e0d667222ba4f692feb9acc3d2" style=""></p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="25a7b9c584e51ab185773be74034c2fd">3： hostPath 是第一种持久性存储的卷。 【pod 删除后依然还在】</p><p data-lines="2" data-type="p" data-sign="5063884fbaace30f2f0199138e3574df">emptyDir 和 gitRepod 随 pod 删除而删除。</p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="b0abdce887f7ed27d7d56fd75965d996">4： 若将数据存储到 节点上，则 pod 不能随机调度，需要调度到指定节点才行。</p><blockquote data-lines="2" data-sign="1ec0bda29287a4f8667032c09db0621d_2">特别是 pod 重启时。 </blockquote><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><h2 data-lines="1" data-sign="9f26a91a55b0432c2021c3dda8bbaff4" id="nfs" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#nfs" class="anchor"></a>nfs</h2><p data-lines="1" data-type="p" data-sign="129efc8d61238da52fca29fcec99ec95">1: nfs 服务器可共享路径</p><div data-sign="cbe0d92f90600e0af19c8c47bac8710d" data-type="codeBlock" data-lines="24"><pre><code>apiVersion: v1
+kind: Pod
+metadata:
+  name: mongodb-nfs
+spec:
+  volumes:
+  - name: mongodb-data
+    nfs:
+      # 指定 nfs 服务
+      server: 1.2.3.4
+      # 共享路径
+      path: /some/path
+  containers:
+  - image: mongo
+    name: mongodb
+    volumeMounts:
+    - name: mongodb-data
+      mountPath: /data/db
+    ports:
+    - containerPort: 27017
+      protocol: TCP
+</code></pre>
+
+<p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><h2 data-lines="1" data-sign="478346c8941a7f1825ea72612882f046" id="pv-%E5%92%8C-pvc" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#pv-%E5%92%8C-pvc" class="anchor"></a>PV 和 PVC</h2><p data-lines="2" data-type="p" data-sign="efedada8077e4472dd7bdac96e25addd">1: 将卷这种持久性信息 和pod解耦，可避免处理基础设施细节。 </p><p data-lines="2" data-type="p" data-sign="f883affd513ea59e79f9ea9121666a03">2： PersistentVlume (持久卷， 简称 PV)  ，由集群管理员设置的 底层存储。</p><p data-lines="2" data-type="p" data-sign="241c30407f41e26edee1f7e6584876a8">3：PersistentVlumeClaim （持久卷声明，简称 PVC），用户声明需要申请的（存储容量和访问模式）</p><p data-lines="2" data-type="p" data-sign="518ce96da3c9575b82119f1ac6e34267">API 服务器 负责找到满足要求的 持久卷并绑定到 持久卷声明。 </p><blockquote data-lines="2" data-sign="25d8da087a66e5a6ddaf5d6bd16eceef_2">持久卷声明可当做pod中的一个卷来使用；</blockquote><p data-lines="2" data-type="p" data-sign="67882a50d6ecf15763f019c0adac0d2a" style=""></p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="e3f31b76ed4d7719ca83948b93e975be">4: 创建 PV</p><div data-sign="cfcd7d7ea486cd7ad6232620fa7c600d" data-type="codeBlock" data-lines="28"><pre><code>apiVersion: v1
+
+# 创建持久卷
+kind: PersistentVolume
+metadata:
+  name: mongodb-pv
+spec:
+  # 持久卷大小
+  capacity:
+    storage: 1Gi
+  # 读写模式
+  accessModes:
+    # 单个客户端挂载是 读写模式
+    - ReadWriteOnce
+    # 多个客户端挂载是 只读模式
+    - ReadOnlyMany
+
+  # 设置策略， PVC 释放后，PB将保留
+  persistentVolumeReclaimPolicy: Retain
+
+  # 在Google的 gce 磁盘上分配
+  gcePersistentDisk:
+    pdName: mongodb
+    fsType: ext4
+
+</code></pre>
+
+<p data-lines="2" data-type="p" data-sign="1effd82674cb325f0a134de81826dd95"><code>persistentVolumeReclaimPolicy</code> 可指定回收策略：</p><ul class="cherry-list__default" data-lines="3" data-sign="9187460882d597a02a5431c04ade5b86list3"><li>Retain: 删除 PVC 后， PV 保留； </li><li>Recycle： 删除内容，可再次被 PVC 绑定</li><li>Deleet: 删除底层存储</li></ul><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="997efd5f5367757b427515e7f543ab8f">5: 特别注意的是：</p><p data-lines="2" data-type="p" data-sign="9a347b66016fabc34de25973391b3244">PV： 属于集群层面的资源； </p><p data-lines="2" data-type="p" data-sign="db34731306ce7662f294193ac1e3cf58">PVC 和 Pod: 属于命名空间内的资源； </p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="e98ea94d4cb8f42767ae10797dfd31c1">PVC 声明： </p><div data-sign="3a8ba551eac7a5059b50a347f196ba37" data-type="codeBlock" data-lines="18"><pre><code>apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mongodb-pvc
+spec:
+  resources:
+    # 申请 容量
+    requests:
+      storage: 1Gi
+  # 单个客户端，支持读写
+  accessModes:
+  - ReadWriteOnce
+  # 动态配置
+  storageClassName: ""
+
+</code></pre>
+
+<blockquote data-lines="2" data-sign="dfcca933501560834060e446d16e55d3_2">k8s 根据声明的访问权限、容量大小， 寻找满足要求的PV</blockquote><p data-lines="2" data-type="p" data-sign="4dcece089a9b67163cf1180ffe8d0b37">PV 和 PVC 的创建相对独立。 </p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="c31fd991ced4fe38367a2c913896bfd4">6： 使用 PVC，只需要在 volumes 中引用即可。 </p><div data-sign="97b9ddddb8aa68ece5b1e047b55c51e1" data-type="codeBlock" data-lines="22"><pre><code>apiVersion: v1
+kind: Pod
+metadata:
+  name: mongodb
+spec:
+  containers:
+  - image: mongo
+    name: mongodb
+    volumeMounts:
+    - name: mongodb-data
+      mountPath: /data/db
+    ports:
+    - containerPort: 27017
+      protocol: TCP
+  volumes:
+  - name: mongodb-data
+  # 引用 PVC
+    persistentVolumeClaim:
+      claimName: mongodb-pvc
+</code></pre>
+
+<p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="c602f8d8a0c13e325491ce600a9bdf4c">7: PV 和 PVC 的解耦，存储这块，方便管理。 </p><p data-lines="2" data-type="p" data-sign="fc04ff8834e17254a374795896b7aca6" style=""></p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><h2 data-lines="1" data-sign="10cab83eb515826af365846a86232b6f" id="storageclass" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#storageclass" class="anchor"></a>StorageClass</h2><p data-lines="2" data-type="p" data-sign="62ef13366a1660a7e66cb8fce3706160">1: 创建存储类 StorageClass，可动态创建 PV。</p><blockquote data-lines="2" data-sign="94c12c59d32f5d49d91f972d687b4077_2">方便集群管理员管理。 </blockquote><p data-lines="1" data-type="p" data-sign="98037f6b3a57696d2b9028817cc3188e">2： 不指定 StorgeClass ，会使用集群默认的存储类分配。 </p><div data-sign="c6b615c58e31f4f4355fb282a5b6648a" data-type="codeBlock" data-lines="15"><pre><code>apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mongodb-pvc2
+spec:
+  resources:
+    requests:
+      storage: 100Mi
+  accessModes:
+    - ReadWriteOnce
+
+  # 未指定 StorageClass，则使用默认的 StorageClass 分配
+</code></pre>
+
+<p data-lines="2" data-type="p" data-sign="867ef9083ab9255c5469a20ad6f47108">3： 手动配置 的PV 和 StorageClass 可同时存在，若不想用 StorageClass 分配时，可将 <code>StorageClass:""</code> 配置为空，则将使用 预先配置的 PV 持久卷。</p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="579048bad5c593c8ea26e4c2550e3fab">4： 创建一个 StorageClass 对象： </p><div data-sign="4974b9fea76c894eae28a6386594d2a5" data-type="codeBlock" data-lines="13"><pre><code>apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: fast
+
+# 创建 PV的预制程序
+provisioner: k8s.io/minikube-hostpath
+# 参数
+parameters:
+  type: pd-ssd
+</code></pre>
+
+<p data-lines="1" data-type="p" data-sign="2ce19955ac8d51fc33ddc6ac7a9eceeb">在 PVC 中使用 StorageClass:</p><div data-sign="dd07c2f74a191a49c17f64456c8b8116" data-type="codeBlock" data-lines="15"><pre><code>apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mongodb-pvc
+spec:
+  # 引用 StorageClass 即可
+  storageClassName: fast
+  resources:
+    requests:
+      storage: 100Mi
+  accessModes:
+    - ReadWriteOnce
+</code></pre>
+
+<p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="9738fabe4fd49fd82fc30c635877e1ab">5： 整体关系如图所示： </p><p data-lines="2" data-type="p" data-sign="48317df5b1f8c895cbc5b86083647c43" style=""></p><p data-lines="5" data-type="br" data-sign="br5">&nbsp;</p><h1 data-lines="1" data-sign="84acee61cf73c0907bd9774e057d36aa" id="configmap-%E5%92%8C-secret" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#configmap-%E5%92%8C-secret" class="anchor"></a>ConfigMap 和 Secret</h1><h2 data-lines="2" data-sign="124fea1589675ae5bda5da340e743a61" id="configmap" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#configmap" class="anchor"></a>ConfigMap</h2><p data-lines="2" data-type="p" data-sign="6fab8ca720e4af09322deb27cee6948b">1： 给应用传递参数，有以下几种方式： </p><ul class="cherry-list__default" data-lines="2" data-sign="8ac3444b48ffc04e9cbe6f6d617bbde8list2"><li>命令行参数； <br><div data-sign="098f581e913913b4170474fb19308fbd" data-type="codeBlock" data-lines="4"><pre><code>docker run &lt;image&gt; &lt;arguments&gt;
+</code></pre></div></li></ul><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="bf1d4c6bd7861f981e825ca6e4c7e094">在容器中启动有两种方式： </p><p data-lines="2" data-type="p" data-sign="4091ff9cb6a9bca8cf293b8282c72acf">-- shell形式一如ENTRYPOINT node app.js。</p><p data-lines="2" data-type="p" data-sign="40a6ba40f4f8286dd47ad558bb351905">-- exec形式一如ENTRYPOINT ["node", "app. js"]  </p><blockquote data-lines="2" data-sign="eb1e28001d923a2e3786479073d95ed2_2">前者是通过 shell 启动的， 后者是 进程直接运行。 </blockquote><p data-lines="1" data-type="p" data-sign="c3b92997bd12fc3c32dd5864a52347eb">例如 在 Dockerfile 镜像中传入：</p><div data-sign="ca2a46de3ed24788cfc0e54cce4b1948" data-type="codeBlock" data-lines="11"><pre><code>FROM ubuntu:latest
+
+RUN apt-get update ; apt-get -y install fortune
+ADD fortuneloop.sh /bin/fortuneloop.sh
+
+ENTRYPOINT ["/bin/fortuneloop.sh"]
+# 参数列表
+CMD ["10"]
+</code></pre>
+
+<p data-lines="1" data-type="p" data-sign="afcd6125b94bfa1db8ba3a0613c7bf44">在 pod 中定义容器时，可覆盖 ENTRYPOINT 和 CMD，只需要设置 command 和 args</p><div data-sign="5a38bbfa1091f22de06e889de51a9402" data-type="codeBlock" data-lines="17"><pre><code>kind:pod
+spec:
+	containers:
+	- image: some/image
+	  command: ["/bin/command"]
+	  args: ["arg1", "arg2", "arg3"]
+
+	  # 多个参数，可用下面格式
+	  args:
+	  - foo
+	  - bar
+
+	  # 数值需要用引号
+	  - "15"
+</code></pre>
+
+<p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><ul class="cherry-list__default" data-lines="1" data-sign="a59171b21770871adaf64b2f128f4cc9list1"><li>环境变量； </li></ul><p data-lines="1" data-type="p" data-sign="ceaf780b132f743f884d3a9af97457de">在容器中设置环境变量如下， 可以在 shell 中直接引用该变量 <code>$INTERVAL</code></p><div data-sign="ba7189ab8e05866981a3f30da9c2a53d" data-type="codeBlock" data-lines="16"><pre><code>kind: Pod
+metadata:
+  name: fortune-env
+spec:
+  containers:
+  - image: luksa/fortune:env
+    env:
+    - name: INTERVAL
+      value: "30"
+
+    - name: SECOND_VAR
+      # 引用第一个参数 30test
+      value: "${INTERVAL}test"
+</code></pre>
+
+<p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><ul class="cherry-list__default" data-lines="1" data-sign="7cdc8492b7051cbf77ff86aa8cb2ed88list1"><li>通过特殊类型的卷挂载到容器</li></ul><p data-lines="1" data-type="p" data-sign="4ae14ac810f95c2d85ef86bf0296ad3c">卷挂载如下： </p><div data-sign="4b6988b16b3c136e558e3e1310944767" data-type="codeBlock" data-lines="33"><pre><code>apiVersion: v1
+kind: Pod
+metadata:
+  name: fortune-env
+spec:
+  containers:
+  - image: luksa/fortune:env
+    env:
+    - name: INTERVAL
+      value: "30"
+
+    - name: SECOND_VAR
+      # 引用第一个参数 30test
+      value: "${INTERVAL}test"
+    name: html-generator
+    volumeMounts:
+    - name: html
+      mountPath: /var/htdocs
+  - image: nginx:alpine
+    name: web-server
+    volumeMounts:
+    - name: html
+      mountPath: /usr/share/nginx/html
+      readOnly: true
+    ports:
+    - containerPort: 80
+      protocol: TCP
+  volumes:
+  - name: html
+    emptyDir: {}
+</code></pre>
+
+<p data-lines="2" data-type="p" data-sign="f02861906342aebfe7564b3bbf534d3a">​                   </p><ul class="cherry-list__default" data-lines="3" data-sign="a9ff7180865abb2ade8d40ff27bffccelist3"><li>ConfigMap 是k8s中存储配置数据的资源。 <br></li><li>证书和私钥相关的配置数据，使用 Secret 资源存储。 </li></ul><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="d4a4b75d6b17a8af62ba8fadc867dbf3">2: ConfigMap 主要是将配置 从 pod 中解耦出来， 这样生产环境和非生产环境下的 pod 定义文件可以保持不变。 </p><blockquote data-lines="2" data-sign="a809051385aa6a03c3766f970d2bc5ef_2">多种环境下，只要保证 ConfigMap 不同即可。 <br><div data-sign="c9cbf883fbdaffd4b24a08b676642e44" data-type="codeBlock" data-lines="6"><pre><code>kubectl create configmap &lt;configmap-name&gt; --from-literal=foo=bar  # kv 结构，key 是 foo，value 是bar
+
+kubectl create configmap &lt;configmap-name&gt; --from-file=customkey=config.conf  # 从文件读取 或者 文件夹读取
+</code></pre></div></blockquote><p data-lines="2" data-type="p" data-sign="f061c66bb9e9cb77018cabef4e8b5666">如： </p><p data-lines="2" data-type="p" data-sign="fcc6e7a4a1fa60c81fe3052fc8aa0a4a" style=""></p><p data-lines="2" data-type="p" data-sign="38617ba1185903550e6e1d6ef7178511">对应关系如下： </p><p data-lines="2" data-type="p" data-sign="e119196fde1959d55504e7888bdc15e0" style=""></p><p data-lines="5" data-type="br" data-sign="br5">&nbsp;</p><p data-lines="1" data-type="p" data-sign="f446e851668ed99e20330635d054ed9f">3: 将 configMap 条目作为环境变量： </p><div data-sign="d26f26f881287d5d8f6b0fecd060ed9e" data-type="codeBlock" data-lines="18"><pre><code>kind: Pod
+metadata:
+  name: fortune-env-from-configmap
+spec:
+  containers:
+  - image: luksa/fortune:env
+    env:
+    - name: INTERVAL # 设置环境变量
+      valueFrom:
+        configMapKeyRef: # 来自于 ConfigMap
+          # 引用 config-map 的名称
+          name: fortune-config
+          # config-map 下的 key
+          key: sleep-interval
+    args: ["${INTERVAL}"]  # 作为命令行参数
+</code></pre>
+
+<blockquote data-lines="2" data-sign="87e8b2cb8caf3842ad608c07347f3271_2">引用不存在的 configMap, 容器会启动失败，从而一直重启。 </blockquote><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="4874798cef8d85cee15959db7f2f38bf">4： <code>envFrom</code> 字段可暴露所有来自 ConfigMap 的变量，并可在变量名引入后加入 前缀。 </p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="c4ca516c3f4735f42d3562ba425e897a">5： 可将configMap 中的条目挂载到指定目录下 【每个key 作为 文件存在】</p><div data-sign="48d733a5222e66074774db5da723082a" data-type="codeBlock" data-lines="43"><pre><code>kind: Pod
+metadata:
+  name: fortune-configmap-volume
+spec:
+  containers:
+  - image: luksa/fortune:env
+    env:
+    - name: INTERVAL
+      valueFrom:
+        configMapKeyRef:
+          name: fortune-config
+          key: sleep-interval
+    name: html-generator
+    volumeMounts:
+    - name: html
+    # 将卷中的条目，挂载至该目录下，条目的 名称就是该目录下的文件名
+      mountPath: /var/htdocs
+  - image: nginx:alpine
+    name: web-server
+    volumeMounts:
+    - name: html
+      mountPath: /usr/share/nginx/html
+      readOnly: true
+    - name: config
+      mountPath: /etc/nginx/conf.d
+      readOnly: true
+    - name: config
+      mountPath: /tmp/whole-fortune-config-volume
+      readOnly: true
+    ports:
+      - containerPort: 80
+        name: http
+        protocol: TCP
+  volumes:
+  - name: html
+    emptyDir: {}
+  - name: config
+    #  configMap 卷
+    configMap:
+      name: fortune-config
+</code></pre>
+
+<p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="33c68cb51ee5cfca5e548044433ebaeb">6: 注意： configMap 挂载到已存在的文件夹，会隐藏所有已有的条目。 </p><p data-lines="1" data-type="p" data-sign="54802670d771afdf7fdc833fe81f6105">可以选择挂载部分卷，避免隐藏整个文件夹。 </p><div data-sign="b5f7efb72fea9074540b651f3d14ac4f" data-type="codeBlock" data-lines="12"><pre><code>spec:
+  containers:
+  - image: nginx:alpine
+    name: web-server
+    volumeMounts:
+    - name: html
+      mountPath: /usr/share/nginx/html
+      # 只挂载 configmap 中的指定条目
+      subPath: myconfig.conf
+</code></pre>
+
+<blockquote data-lines="3" data-sign="d32f8d2406f1e10b157dba4d4ed9a92c_3">configMap 卷中的文件权限默认设置为 644 (-rw-r-r--)， <br><br>可通过 <code>defaultMode</code> 修改</blockquote><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="31ff019fda7639f94d62d5f376aeb5e6">7： ConfigMap 通过暴露卷，可以达到配置热更的效果，无需新建 pod 或 重启容器。</p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><h2 data-lines="1" data-sign="6093d2c4e867fdb83c760a69f9dbd1e1" id="secret" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#secret" class="anchor"></a>Secret</h2><p data-lines="2" data-type="p" data-sign="52a0dc888c5c68e157cd34f45b1f045e">1： 和 configMap 一样， secret 也是 key-val 存储。 </p><p data-lines="2" data-type="p" data-sign="f37c5ec91ec33579abd862cabe5c52ca">2： 使用 和 ConfigMap相同： </p><ul class="cherry-list__default" data-lines="2" data-sign="f0078f77e1a108fb95c924d30bb78a65list2"><li>将 Secret 条目作为环境变量传递给容器</li><li>将 Secret 条目暴露为卷中的文件  </li></ul><blockquote data-lines="2" data-sign="793addebadc1e99dc754866cf9522510_2">Secret 只会存储在节点的内存中， 永不写入物理存储，  </blockquote><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="bb9e68647126cd19198d962e44f92755">3： 使用场景： </p><ul class="cherry-list__default" data-lines="3" data-sign="66866fc41911a57c9bdeaa5c6c3e6857list3"><li>采用 ConfgMap 存储非敏感的文本配置数据。</li><li>采用 Secret 存储天生敏感的数据， 通过键来引用。 如果一 个配置文件同时包<br>含敏感与非敏感数据， 该文件应该被存储在 Secret 中。    </li></ul><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="82dbcc4448a49e6c1b262a43c1137502">4： Secretes 一般包含三种文件： </p><ul class="cherry-list__default" data-lines="4" data-sign="71676cbdfa00fbf02bca953ec48581cblist4"><li>ca.crt</li><li>namespace</li><li>token<br><div data-sign="aa8ee411a3eaaadd10b7d48d9d8248f3" data-type="codeBlock" data-lines="17"><pre><code>user00@ubuntu:~$ kubectl describe secrets
+Name:         default-token-c2v26
+Namespace:    default
+Labels:       &lt;none&gt;
+Annotations:  kubernetes.io/service-account.name: default
+              kubernetes.io/service-account.uid: 1fe33279-b738-4a3b-a012-5c5a709cdcb8
+
+Type:  kubernetes.io/service-account-token
 
 Data
-<span class="token operator">===</span><span class="token operator">=</span>
-ca<span class="token punctuation">.</span>crt<span class="token operator">:</span>     <span class="token number">1111</span> bytes
-namespace<span class="token operator">:</span>  <span class="token number">7</span> bytes
-token<span class="token operator">:</span>      eyJhbGciOiJSUzI1NiIsImtpZCI6IjVVWWRld2FCX0tLbGJFZFdBd3JBcncxRmxQRnBGMTFaRDZfM2FJWTVra0kifQ<span class="token punctuation">.</span>
-</code></pre></div></li></ul><blockquote data-lines="2" data-sign="fcb21cbd389a75b499f2037e64b6a9e5_2">Secret 条目的内容会以 Base64 编码</blockquote><p data-lines="5" data-type="br" data-sign="br5">&nbsp;</p><p data-lines="1" data-type="p" data-sign="4983020f9b9cfdbe2c322a181b600bf0">5： 挂载 Secrete 卷： </p><div data-sign="7e99719f429fb003be67edd651816265" data-type="codeBlock" data-lines="24"><pre class="prism language-yaml" style="position: relative; z-index: 2;"><code class="language-yaml"><span class="token key atrule">kind</span><span class="token punctuation">:</span> Pod
-<span class="token key atrule">spec</span><span class="token punctuation">:</span>
-  <span class="token key atrule">containers</span><span class="token punctuation">:</span>
-  <span class="token punctuation">-</span> <span class="token key atrule">image</span><span class="token punctuation">:</span> nginx<span class="token punctuation">:</span>alpine
-    <span class="token key atrule">name</span><span class="token punctuation">:</span> web<span class="token punctuation">-</span>server
-    <span class="token key atrule">volumeMounts</span><span class="token punctuation">:</span>
-    <span class="token punctuation">-</span> <span class="token key atrule">name</span><span class="token punctuation">:</span> certs
+====
+ca.crt:     1111 bytes
+namespace:  7 bytes
+token:      eyJhbGciOiJSUzI1NiIsImtpZCI6IjVVWWRld2FCX0tLbGJFZFdBd3JBcncxRmxQRnBGMTFaRDZfM2FJWTVra0kifQ.
+</code></pre></div></li></ul><blockquote data-lines="2" data-sign="fcb21cbd389a75b499f2037e64b6a9e5_2">Secret 条目的内容会以 Base64 编码</blockquote><p data-lines="5" data-type="br" data-sign="br5">&nbsp;</p><p data-lines="1" data-type="p" data-sign="4983020f9b9cfdbe2c322a181b600bf0">5： 挂载 Secrete 卷： </p><div data-sign="7e99719f429fb003be67edd651816265" data-type="codeBlock" data-lines="24"><pre><code>kind: Pod
+spec:
+  containers:
+  - image: nginx:alpine
+    name: web-server
+    volumeMounts:
+    - name: certs
 
-      <span class="token comment"># 挂载证书的路径</span>
-      <span class="token key atrule">mountPath</span><span class="token punctuation">:</span> /etc/nginx/certs/
-      <span class="token key atrule">readOnly</span><span class="token punctuation">:</span> <span class="token boolean important">true</span>
-    <span class="token key atrule">ports</span><span class="token punctuation">:</span>
-    <span class="token punctuation">-</span> <span class="token key atrule">containerPort</span><span class="token punctuation">:</span> <span class="token number">80</span>
-    <span class="token punctuation">-</span> <span class="token key atrule">containerPort</span><span class="token punctuation">:</span> <span class="token number">443</span>
-  <span class="token key atrule">volumes</span><span class="token punctuation">:</span>
+      # 挂载证书的路径
+      mountPath: /etc/nginx/certs/
+      readOnly: true
+    ports:
+    - containerPort: 80
+    - containerPort: 443
+  volumes:
 
-  <span class="token comment"># 引用 secret 卷</span>
-  <span class="token punctuation">-</span> <span class="token key atrule">name</span><span class="token punctuation">:</span> certs
-    <span class="token key atrule">secret</span><span class="token punctuation">:</span>
-      <span class="token key atrule">secretName</span><span class="token punctuation">:</span> fortune<span class="token punctuation">-</span>https
-
-</code></pre>
-
-<p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="4885e568f35529984b9b422da7362c81">5: k8s 允许通过环境变量暴露 Secret，但是不安全。 </p><div data-sign="caee5ef7ae36dd7a8cba048ac53dbe72" data-type="codeBlock" data-lines="11"><pre class="prism language-yaml" style="position: relative; z-index: 2;"><code class="language-yaml"><span class="token key atrule">env</span><span class="token punctuation">:</span>
-	<span class="token punctuation">-</span><span class="token key atrule">name</span><span class="token punctuation">:</span> FOO_SECRET
-	<span class="token key atrule">valueFrom</span><span class="token punctuation">:</span>
-		<span class="token key atrule">secretKeyRef</span><span class="token punctuation">:</span>
-		    <span class="token comment"># secret 资源名称</span>
-			<span class="token key atrule">name</span><span class="token punctuation">:</span> fortune<span class="token punctuation">-</span>https
-			<span class="token comment"># 引用的条目</span>
-			key<span class="token punctuation">:</span>foo
-</code></pre>
-
-<p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="a95209b593f371357562a65be9dd317e">6： 从 Docker Hub 网站拉取私有 Docker 镜像仓库时，需用 Secret 鉴权</p><div data-sign="370eded84754006b181ac1dcb9c818ee" data-type="codeBlock" data-lines="6"><pre class="prism language-shell" style="position: relative; z-index: 2;"><code class="language-shell">$ kubectl create secret docker<span class="token operator">-</span>registry mydockerhubsecret \
-<span class="token operator">--</span>docker<span class="token operator">-</span>username<span class="token operator">=</span>myusername <span class="token operator">--</span>docker<span class="token operator">-</span>password<span class="token operator">=</span>mypassword \
-<span class="token operator">--</span>docker<span class="token operator">-</span>email<span class="token operator">=</span>my<span class="token punctuation">.</span>email@provider<span class="token punctuation">.</span>com
-</code></pre>
-
-<p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="0b1215c6f1543525b6133a8234d3b985">7: Pod 中使用 Secret。</p><div data-sign="a1649493cae13b64c9fc0de43e924680" data-type="codeBlock" data-lines="13"><pre class="prism language-yaml" style="position: relative; z-index: 2;"><code class="language-yaml"><span class="token key atrule">kind</span><span class="token punctuation">:</span> Pod
-<span class="token key atrule">metadata</span><span class="token punctuation">:</span>
-  <span class="token key atrule">name</span><span class="token punctuation">:</span> private<span class="token punctuation">-</span>pod
-<span class="token key atrule">spec</span><span class="token punctuation">:</span>
-  <span class="token comment"># 引用  Secret</span>
-  <span class="token key atrule">imagePullSecrets</span><span class="token punctuation">:</span>
-  <span class="token punctuation">-</span> <span class="token key atrule">name</span><span class="token punctuation">:</span> mydockerhubsecret
-  <span class="token key atrule">containers</span><span class="token punctuation">:</span>
-  <span class="token punctuation">-</span> <span class="token key atrule">image</span><span class="token punctuation">:</span> username/private<span class="token punctuation">:</span>tag
-    <span class="token key atrule">name</span><span class="token punctuation">:</span> main
-</code></pre>
-
-<p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="58d4fa1ef9b347e4b67e6c9dc3edc442">若运行大量pod，可通过将 Secret 添加到 ServiceAccout， 所有 pod 只要使用了 sa，都能自动添加上镜像拉取的 Secret.</p><p data-lines="13" data-type="br" data-sign="br13">&nbsp;</p><h1 data-lines="1" data-sign="e49d0dfba17b0561f28fc0bf34f0700c" id="%E4%BB%8E%E5%BA%94%E7%94%A8%E8%AE%BF%E9%97%AE-pod-%E5%85%83%E6%95%B0%E6%8D%AE%E5%8F%8A%E5%85%B6%E5%AE%83%E8%B5%84%E6%BA%90" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E4%BB%8E%E5%BA%94%E7%94%A8%E8%AE%BF%E9%97%AE-pod-%E5%85%83%E6%95%B0%E6%8D%AE%E5%8F%8A%E5%85%B6%E5%AE%83%E8%B5%84%E6%BA%90" class="anchor"></a>从应用访问 pod 元数据及其它资源</h1><h2 data-lines="2" data-sign="815391914ce3df71a8ed35d833925695" id="downward-api" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#downward-api" class="anchor"></a>Downward API</h2><p data-lines="2" data-type="p" data-sign="59a36bb008a90b4a80cbc9784bf8c26f">1： 传递不能提前知道的数据，如 pod的 IP、主机名</p><p data-lines="2" data-type="p" data-sign="5b966afa7da6e93018609c51c591775f">或者在别处预定义的数据，如 pod 标签和注解。 </p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="fb9b313d3aacdc71ca657437adf7cb23">2： Downward API 不像 REST Endpoint 那样需要通过访问的方式获取数据； </p><p data-lines="2" data-type="p" data-sign="e8a9715703ba8403a58bd97d7a4782bd">通过将  pod  中取得的数据作为环境变量 或 文件的值（Downward API  卷）对外暴露。 </p><blockquote data-lines="2" data-sign="ca8be7b78a39df7b7c4a24b7528494ee_2">注意： 标签和注解只能通过卷暴露</blockquote><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="bf085134ede5ec08c2f10c65505c5c83">3： Downward API 可以给容器传递的 元数据有：</p><ul class="cherry-list__default" data-lines="10" data-sign="85be055702191814599f443d1b640974list10"><li>pod的名称</li><li>pod的IP</li><li>pod所在的命名空间</li><li>pod运行节点的名称</li><li>pod运行所归属的服务账户的名称</li><li>每个容器请求的CPU和内存的使用量  <br></li><li>每个容器可以使用的CPU和内存的限制</li><li>pod的标签</li><li>pod的注解  </li></ul><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="e3971ef18cd1f03583a12bfb2d4fbb35">4： 使用元数据作为环境变量： </p><div data-sign="585d4f6564db9c5b82406575259ad64f" data-type="codeBlock" data-lines="55"><pre class="prism language-yaml" style="position: relative; z-index: 2;"><code class="language-yaml"><span class="token key atrule">apiVersion</span><span class="token punctuation">:</span> v1
-<span class="token key atrule">kind</span><span class="token punctuation">:</span> Pod
-<span class="token key atrule">metadata</span><span class="token punctuation">:</span>
-  <span class="token key atrule">name</span><span class="token punctuation">:</span> downward
-<span class="token key atrule">spec</span><span class="token punctuation">:</span>
-  <span class="token key atrule">containers</span><span class="token punctuation">:</span>
-  <span class="token punctuation">-</span> <span class="token key atrule">name</span><span class="token punctuation">:</span> main
-    <span class="token key atrule">image</span><span class="token punctuation">:</span> busybox
-    <span class="token key atrule">command</span><span class="token punctuation">:</span> <span class="token punctuation">[</span><span class="token string">"sleep"</span><span class="token punctuation">,</span> <span class="token string">"9999999"</span><span class="token punctuation">]</span>
-    <span class="token key atrule">resources</span><span class="token punctuation">:</span>
-      <span class="token key atrule">requests</span><span class="token punctuation">:</span>
-        <span class="token key atrule">cpu</span><span class="token punctuation">:</span> 15m
-        <span class="token key atrule">memory</span><span class="token punctuation">:</span> 100Ki
-      <span class="token key atrule">limits</span><span class="token punctuation">:</span>
-        <span class="token key atrule">cpu</span><span class="token punctuation">:</span> 100m
-        <span class="token key atrule">memory</span><span class="token punctuation">:</span> 4Mi
-
-    <span class="token comment"># 设置环境变量</span>
-    <span class="token key atrule">env</span><span class="token punctuation">:</span>
-    <span class="token punctuation">-</span> <span class="token key atrule">name</span><span class="token punctuation">:</span> POD_NAME
-      <span class="token key atrule">valueFrom</span><span class="token punctuation">:</span>
-        <span class="token key atrule">fieldRef</span><span class="token punctuation">:</span>
-          <span class="token key atrule">fieldPath</span><span class="token punctuation">:</span> metadata.name  <span class="token comment"># 应用 pod 中的元数据名称字段</span>
-    <span class="token punctuation">-</span> <span class="token key atrule">name</span><span class="token punctuation">:</span> POD_NAMESPACE
-      <span class="token key atrule">valueFrom</span><span class="token punctuation">:</span>
-        <span class="token key atrule">fieldRef</span><span class="token punctuation">:</span>
-          <span class="token key atrule">fieldPath</span><span class="token punctuation">:</span> metadata.namespace
-    <span class="token punctuation">-</span> <span class="token key atrule">name</span><span class="token punctuation">:</span> POD_IP
-      <span class="token key atrule">valueFrom</span><span class="token punctuation">:</span>
-        <span class="token key atrule">fieldRef</span><span class="token punctuation">:</span>
-          <span class="token key atrule">fieldPath</span><span class="token punctuation">:</span> status.podIP
-    <span class="token punctuation">-</span> <span class="token key atrule">name</span><span class="token punctuation">:</span> NODE_NAME
-      <span class="token key atrule">valueFrom</span><span class="token punctuation">:</span>
-        <span class="token key atrule">fieldRef</span><span class="token punctuation">:</span>
-          <span class="token key atrule">fieldPath</span><span class="token punctuation">:</span> spec.nodeName
-    <span class="token punctuation">-</span> <span class="token key atrule">name</span><span class="token punctuation">:</span> SERVICE_ACCOUNT
-      <span class="token key atrule">valueFrom</span><span class="token punctuation">:</span>
-        <span class="token key atrule">fieldRef</span><span class="token punctuation">:</span>
-          <span class="token key atrule">fieldPath</span><span class="token punctuation">:</span> spec.serviceAccountName
-    <span class="token punctuation">-</span> <span class="token key atrule">name</span><span class="token punctuation">:</span> CONTAINER_CPU_REQUEST_MILLICORES
-      <span class="token key atrule">valueFrom</span><span class="token punctuation">:</span>
-        <span class="token comment"># 注意: CPU 和 内存的引用使用 resourceFieldRef， 而非 fieldRef</span>
-        <span class="token key atrule">resourceFieldRef</span><span class="token punctuation">:</span>
-          <span class="token key atrule">resource</span><span class="token punctuation">:</span> requests.cpu
-          <span class="token comment"># 基数单位是 1 毫核，1/1000 核</span>
-          <span class="token key atrule">divisor</span><span class="token punctuation">:</span> 1m
-    <span class="token punctuation">-</span> <span class="token key atrule">name</span><span class="token punctuation">:</span> CONTAINER_MEMORY_LIMIT_KIBIBYTES
-      <span class="token key atrule">valueFrom</span><span class="token punctuation">:</span>
-        <span class="token key atrule">resourceFieldRef</span><span class="token punctuation">:</span>
-          <span class="token key atrule">resource</span><span class="token punctuation">:</span> limits.memory
-          <span class="token key atrule">divisor</span><span class="token punctuation">:</span> 1Ki
+  # 引用 secret 卷
+  - name: certs
+    secret:
+      secretName: fortune-https
 
 </code></pre>
 
-<p data-lines="2" data-type="p" data-sign="8b4a8fa91a27c68098db324eb740417d">对应关系如下：</p><p data-lines="2" data-type="p" data-sign="dd28e3dfde2cb18cefb310779838fbd6" style=""><img alt="" src="./深入理解kubernetes - 游戏知识库 - KM平台_files/cos-file-url(41)" style="position: relative; z-index: 2;" class="amplify"></p><p data-lines="2" data-type="br" data-sign="br2">&nbsp;</p><p data-lines="1" data-type="p" data-sign="8cbd89c5deb6e44dfe590a72db3f57e2">6： 挂载 Downward API 卷暴露 【推荐】</p><div data-sign="faf80ea74374e7ebc59acbc819917673" data-type="codeBlock" data-lines="72"><pre class="prism language-yaml" style="position: relative; z-index: 2;"><code class="language-yaml"><span class="token key atrule">apiVersion</span><span class="token punctuation">:</span> v1
-<span class="token key atrule">kind</span><span class="token punctuation">:</span> Pod
-<span class="token key atrule">metadata</span><span class="token punctuation">:</span>
-  <span class="token key atrule">name</span><span class="token punctuation">:</span> downward
+<p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="4885e568f35529984b9b422da7362c81">5: k8s 允许通过环境变量暴露 Secret，但是不安全。 </p><div data-sign="caee5ef7ae36dd7a8cba048ac53dbe72" data-type="codeBlock" data-lines="11"><pre><code>env:
+	-name: FOO_SECRET
+	valueFrom:
+		secretKeyRef:
+		    # secret 资源名称
+			name: fortune-https
+			# 引用的条目
+			key:foo
+</code></pre>
 
-  <span class="token comment"># 将会在 Downward API 卷暴露的元数据</span>
-  <span class="token key atrule">labels</span><span class="token punctuation">:</span>
-    <span class="token key atrule">foo</span><span class="token punctuation">:</span> bar
-  <span class="token key atrule">annotations</span><span class="token punctuation">:</span>
-    <span class="token key atrule">key1</span><span class="token punctuation">:</span> value1
-    <span class="token key atrule">key2</span><span class="token punctuation">:</span> <span class="token punctuation">|</span><span class="token scalar string">
+<p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="a95209b593f371357562a65be9dd317e">6： 从 Docker Hub 网站拉取私有 Docker 镜像仓库时，需用 Secret 鉴权</p><div data-sign="370eded84754006b181ac1dcb9c818ee" data-type="codeBlock" data-lines="6"><pre><code>$ kubectl create secret docker-registry mydockerhubsecret \
+--docker-username=myusername --docker-password=mypassword \
+--docker-email=my.email@provider.com
+</code></pre>
+
+<p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="0b1215c6f1543525b6133a8234d3b985">7: Pod 中使用 Secret。</p><div data-sign="a1649493cae13b64c9fc0de43e924680" data-type="codeBlock" data-lines="13"><pre><code>kind: Pod
+metadata:
+  name: private-pod
+spec:
+  # 引用  Secret
+  imagePullSecrets:
+  - name: mydockerhubsecret
+  containers:
+  - image: username/private:tag
+    name: main
+</code></pre>
+
+<p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="58d4fa1ef9b347e4b67e6c9dc3edc442">若运行大量pod，可通过将 Secret 添加到 ServiceAccout， 所有 pod 只要使用了 sa，都能自动添加上镜像拉取的 Secret.</p><p data-lines="13" data-type="br" data-sign="br13">&nbsp;</p><h1 data-lines="1" data-sign="e49d0dfba17b0561f28fc0bf34f0700c" id="%E4%BB%8E%E5%BA%94%E7%94%A8%E8%AE%BF%E9%97%AE-pod-%E5%85%83%E6%95%B0%E6%8D%AE%E5%8F%8A%E5%85%B6%E5%AE%83%E8%B5%84%E6%BA%90" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E4%BB%8E%E5%BA%94%E7%94%A8%E8%AE%BF%E9%97%AE-pod-%E5%85%83%E6%95%B0%E6%8D%AE%E5%8F%8A%E5%85%B6%E5%AE%83%E8%B5%84%E6%BA%90" class="anchor"></a>从应用访问 pod 元数据及其它资源</h1><h2 data-lines="2" data-sign="815391914ce3df71a8ed35d833925695" id="downward-api" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#downward-api" class="anchor"></a>Downward API</h2><p data-lines="2" data-type="p" data-sign="59a36bb008a90b4a80cbc9784bf8c26f">1： 传递不能提前知道的数据，如 pod的 IP、主机名</p><p data-lines="2" data-type="p" data-sign="5b966afa7da6e93018609c51c591775f">或者在别处预定义的数据，如 pod 标签和注解。 </p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="fb9b313d3aacdc71ca657437adf7cb23">2： Downward API 不像 REST Endpoint 那样需要通过访问的方式获取数据； </p><p data-lines="2" data-type="p" data-sign="e8a9715703ba8403a58bd97d7a4782bd">通过将  pod  中取得的数据作为环境变量 或 文件的值（Downward API  卷）对外暴露。 </p><blockquote data-lines="2" data-sign="ca8be7b78a39df7b7c4a24b7528494ee_2">注意： 标签和注解只能通过卷暴露</blockquote><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="bf085134ede5ec08c2f10c65505c5c83">3： Downward API 可以给容器传递的 元数据有：</p><ul class="cherry-list__default" data-lines="10" data-sign="85be055702191814599f443d1b640974list10"><li>pod的名称</li><li>pod的IP</li><li>pod所在的命名空间</li><li>pod运行节点的名称</li><li>pod运行所归属的服务账户的名称</li><li>每个容器请求的CPU和内存的使用量  <br></li><li>每个容器可以使用的CPU和内存的限制</li><li>pod的标签</li><li>pod的注解  </li></ul><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="e3971ef18cd1f03583a12bfb2d4fbb35">4： 使用元数据作为环境变量： </p><div data-sign="585d4f6564db9c5b82406575259ad64f" data-type="codeBlock" data-lines="55"><pre><code>apiVersion: v1
+kind: Pod
+metadata:
+  name: downward
+spec:
+  containers:
+  - name: main
+    image: busybox
+    command: ["sleep", "9999999"]
+    resources:
+      requests:
+        cpu: 15m
+        memory: 100Ki
+      limits:
+        cpu: 100m
+        memory: 4Mi
+
+    # 设置环境变量
+    env:
+    - name: POD_NAME
+      valueFrom:
+        fieldRef:
+          fieldPath: metadata.name  # 应用 pod 中的元数据名称字段
+    - name: POD_NAMESPACE
+      valueFrom:
+        fieldRef:
+          fieldPath: metadata.namespace
+    - name: POD_IP
+      valueFrom:
+        fieldRef:
+          fieldPath: status.podIP
+    - name: NODE_NAME
+      valueFrom:
+        fieldRef:
+          fieldPath: spec.nodeName
+    - name: SERVICE_ACCOUNT
+      valueFrom:
+        fieldRef:
+          fieldPath: spec.serviceAccountName
+    - name: CONTAINER_CPU_REQUEST_MILLICORES
+      valueFrom:
+        # 注意: CPU 和 内存的引用使用 resourceFieldRef， 而非 fieldRef
+        resourceFieldRef:
+          resource: requests.cpu
+          # 基数单位是 1 毫核，1/1000 核
+          divisor: 1m
+    - name: CONTAINER_MEMORY_LIMIT_KIBIBYTES
+      valueFrom:
+        resourceFieldRef:
+          resource: limits.memory
+          divisor: 1Ki
+
+</code></pre>
+
+<p data-lines="2" data-type="p" data-sign="8b4a8fa91a27c68098db324eb740417d">对应关系如下：</p><p data-lines="2" data-type="p" data-sign="dd28e3dfde2cb18cefb310779838fbd6" style=""></p><p data-lines="2" data-type="br" data-sign="br2">&nbsp;</p><p data-lines="1" data-type="p" data-sign="8cbd89c5deb6e44dfe590a72db3f57e2">6： 挂载 Downward API 卷暴露 【推荐】</p><div data-sign="faf80ea74374e7ebc59acbc819917673" data-type="codeBlock" data-lines="72"><pre><code>apiVersion: v1
+kind: Pod
+metadata:
+  name: downward
+
+  # 将会在 Downward API 卷暴露的元数据
+  labels:
+    foo: bar
+  annotations:
+    key1: value1
+    key2: |
       multi
       line
-      value</span>
-<span class="token key atrule">spec</span><span class="token punctuation">:</span>
-  <span class="token key atrule">containers</span><span class="token punctuation">:</span>
-  <span class="token punctuation">-</span> <span class="token key atrule">name</span><span class="token punctuation">:</span> main
-    <span class="token key atrule">image</span><span class="token punctuation">:</span> busybox
-    <span class="token key atrule">command</span><span class="token punctuation">:</span> <span class="token punctuation">[</span><span class="token string">"sleep"</span><span class="token punctuation">,</span> <span class="token string">"9999999"</span><span class="token punctuation">]</span>
-    <span class="token key atrule">resources</span><span class="token punctuation">:</span>
-      <span class="token key atrule">requests</span><span class="token punctuation">:</span>
-        <span class="token key atrule">cpu</span><span class="token punctuation">:</span> 15m
-        <span class="token key atrule">memory</span><span class="token punctuation">:</span> 100Ki
-      <span class="token key atrule">limits</span><span class="token punctuation">:</span>
-        <span class="token key atrule">cpu</span><span class="token punctuation">:</span> 100m
-        <span class="token key atrule">memory</span><span class="token punctuation">:</span> 4Mi
-    <span class="token key atrule">volumeMounts</span><span class="token punctuation">:</span>
-    <span class="token punctuation">-</span> <span class="token key atrule">name</span><span class="token punctuation">:</span> downward
-      <span class="token comment"># Downward API 挂载的目录</span>
-      <span class="token key atrule">mountPath</span><span class="token punctuation">:</span> /etc/downward
-  <span class="token key atrule">volumes</span><span class="token punctuation">:</span>
-  <span class="token punctuation">-</span> <span class="token key atrule">name</span><span class="token punctuation">:</span> downward
-    <span class="token key atrule">downwardAPI</span><span class="token punctuation">:</span>
-      <span class="token key atrule">items</span><span class="token punctuation">:</span>
-      <span class="token comment"># pod 的名称会写入文件 /etc/downward/podName</span>
-      <span class="token punctuation">-</span> <span class="token key atrule">path</span><span class="token punctuation">:</span> <span class="token string">"podName"</span>
-        <span class="token key atrule">fieldRef</span><span class="token punctuation">:</span>
-          <span class="token key atrule">fieldPath</span><span class="token punctuation">:</span> metadata.name
+      value
+spec:
+  containers:
+  - name: main
+    image: busybox
+    command: ["sleep", "9999999"]
+    resources:
+      requests:
+        cpu: 15m
+        memory: 100Ki
+      limits:
+        cpu: 100m
+        memory: 4Mi
+    volumeMounts:
+    - name: downward
+      # Downward API 挂载的目录
+      mountPath: /etc/downward
+  volumes:
+  - name: downward
+    downwardAPI:
+      items:
+      # pod 的名称会写入文件 /etc/downward/podName
+      - path: "podName"
+        fieldRef:
+          fieldPath: metadata.name
 
-      <span class="token comment"># 写入文件 /etc/downward/podNamespace</span>
-      <span class="token punctuation">-</span> <span class="token key atrule">path</span><span class="token punctuation">:</span> <span class="token string">"podNamespace"</span>
-        <span class="token key atrule">fieldRef</span><span class="token punctuation">:</span>
-          <span class="token key atrule">fieldPath</span><span class="token punctuation">:</span> metadata.namespace
+      # 写入文件 /etc/downward/podNamespace
+      - path: "podNamespace"
+        fieldRef:
+          fieldPath: metadata.namespace
 
-      <span class="token comment"># 写入文件 /etc/downward/labels</span>
-      <span class="token punctuation">-</span> <span class="token key atrule">path</span><span class="token punctuation">:</span> <span class="token string">"labels"</span>
-        <span class="token key atrule">fieldRef</span><span class="token punctuation">:</span>
-          <span class="token key atrule">fieldPath</span><span class="token punctuation">:</span> metadata.labels
+      # 写入文件 /etc/downward/labels
+      - path: "labels"
+        fieldRef:
+          fieldPath: metadata.labels
 
-      <span class="token comment"># 写入文件 /etc/downward/annotations</span>
-      <span class="token punctuation">-</span> <span class="token key atrule">path</span><span class="token punctuation">:</span> <span class="token string">"annotations"</span>
-        <span class="token key atrule">fieldRef</span><span class="token punctuation">:</span>
-          <span class="token key atrule">fieldPath</span><span class="token punctuation">:</span> metadata.annotations
+      # 写入文件 /etc/downward/annotations
+      - path: "annotations"
+        fieldRef:
+          fieldPath: metadata.annotations
 
-      <span class="token comment"># 写入文件 /etc/downward/containerCpuRequestMilliCores</span>
-      <span class="token punctuation">-</span> <span class="token key atrule">path</span><span class="token punctuation">:</span> <span class="token string">"containerCpuRequestMilliCores"</span>
-        <span class="token key atrule">resourceFieldRef</span><span class="token punctuation">:</span>
-          <span class="token comment"># 资源相关的必须指定容器名称，因为卷 是 pod 级别的</span>
-          <span class="token key atrule">containerName</span><span class="token punctuation">:</span> main
-          <span class="token key atrule">resource</span><span class="token punctuation">:</span> requests.cpu
-          <span class="token key atrule">divisor</span><span class="token punctuation">:</span> 1m
+      # 写入文件 /etc/downward/containerCpuRequestMilliCores
+      - path: "containerCpuRequestMilliCores"
+        resourceFieldRef:
+          # 资源相关的必须指定容器名称，因为卷 是 pod 级别的
+          containerName: main
+          resource: requests.cpu
+          divisor: 1m
 
-      <span class="token comment"># 写入文件 /etc/downward/containerMemoryLimitBytes</span>
-      <span class="token punctuation">-</span> <span class="token key atrule">path</span><span class="token punctuation">:</span> <span class="token string">"containerMemoryLimitBytes"</span>
-        <span class="token key atrule">resourceFieldRef</span><span class="token punctuation">:</span>
-          <span class="token key atrule">containerName</span><span class="token punctuation">:</span> main
-          <span class="token key atrule">resource</span><span class="token punctuation">:</span> limits.memory
-          <span class="token key atrule">divisor</span><span class="token punctuation">:</span> <span class="token number">1</span>
-
-</code></pre>
-
-<p data-lines="2" data-type="p" data-sign="7ba9fbd69794d2a94bbc219ac5db083b">文件列表的对应关系： </p><p data-lines="2" data-type="p" data-sign="a58e2c3d056a91ab5a90be4c0e2894f8" style=""><img alt="" src="./深入理解kubernetes - 游戏知识库 - KM平台_files/cos-file-url(42)" style="position: relative; z-index: 2;" class="amplify"></p><p data-lines="2" data-type="br" data-sign="br2">&nbsp;</p><p data-lines="1" data-type="p" data-sign="c635401bc60819d2e23fe059ce420858">7： 推荐用卷的方式暴露，在运行时修改 注解 或 标签， k8s 会更新相关的文件；</p><p data-lines="2" data-type="p" data-sign="61a83fbcacd88ff4a7973d7336baa86f">且卷能在 同pod 的多容器间传递； </p><p data-lines="2" data-type="p" data-sign="20e30a950161741b5573fbf1a142ffde">但环境变量一旦设置，修改后无法暴露新值。 </p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="7e80b76fdeb29c83c3c9e46e91513cdd">8： Downward API 只能对pod 内的容器暴露数据，有一定的局限性； </p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><h2 data-lines="1" data-sign="a327570428a52399ae8f388b3d323304" id="%E4%B8%8E-k8s-api-%E6%9C%8D%E5%8A%A1%E5%99%A8%E4%BA%A4%E4%BA%92" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E4%B8%8E-k8s-api-%E6%9C%8D%E5%8A%A1%E5%99%A8%E4%BA%A4%E4%BA%92" class="anchor"></a>与 k8s API 服务器交互</h2><p data-lines="2" data-type="p" data-sign="4473ccae740a069e6c4a1fc872513fad">1： k8s API 可获取其它 pod 或集群中其它资源信息； </p><p data-lines="2" data-type="p" data-sign="72f2e946803dc7c38579634ca5938c5b">2： 可以通过 <code>kube proxy</code> 启动一个代理服务接收本地的 http 连接并转发至 API 服务器。 </p><p data-lines="2" data-type="p" data-sign="825227ba2ff080823132d8f1578b2d4a">同时处理<strong>身份认证</strong>， 所以不需要每次请求都上传认证凭证。 它也可以确保我们直接与真实的 API 服务器交互  ， 而不是一个中间入（通过每次验证服务器证书的方式）  </p><blockquote data-lines="2" data-sign="2979dd45018dec85ee08bc6a8b6270c1_2">kube proxy 会捎带 API 服务器的 URL 、认证凭证等。 </blockquote><p data-lines="1" data-type="p" data-sign="113c3ab0cb8160dc52d5aaf6919eddfe">代理服务器 在本地的 8001 端口接收请求。</p><div data-sign="cefc873be9d5beec53b58ba79f2ea758" data-type="codeBlock" data-lines="8"><pre class="prism language-sh" style="position: relative; z-index: 2;"><code class="language-sh">$ curl localhost<span class="token operator">:</span><span class="token number">8001</span>
-<span class="token punctuation">{</span>
-<span class="token string">"paths"</span><span class="token operator">:</span> <span class="token punctuation">[</span>
-<span class="token string">"/api"</span><span class="token punctuation">,</span>
-<span class="token string">"/api/vl"</span><span class="token punctuation">,</span>
-</code></pre>
-
-<p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="be9410c559f99cfe6155c59ecf6c89e3">3: 可以通过 URL 查看对应资源的 API， 例如 Job 资源的API，分组在 <code>/apis/batch</code></p><p data-lines="2" data-type="p" data-sign="19f1c433efd3c578ce720ea568bb1af4">例如： </p><p data-lines="2" data-type="p" data-sign="12870ac189fe6a6526aa3efede44b5fa" style=""><img alt="" src="./深入理解kubernetes - 游戏知识库 - KM平台_files/cos-file-url(43)" style="position: relative; z-index: 2;" class="amplify"></p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="2688d63bcbfd71d33064028e7f0b831e">4： 从 pod 内部访问 API 服务器，需要带上 凭证和授权： </p><p data-lines="2" data-type="p" data-sign="b5a969e54e677ef8ff20d346c54d8a02" style=""><img alt="" src="./深入理解kubernetes - 游戏知识库 - KM平台_files/cos-file-url(44)" style="position: relative; z-index: 2;" class="amplify">A</p><blockquote data-lines="2" data-sign="b3470b9e0f881c205a71b74b8696430d_2">后续可通过 ServiceAccount 和 RBAC 解决账户和授权的问题。 </blockquote><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="48d93007e866ef8a66493d567d56013e">5： Pod 与API 服务器的交互如下： </p><ul class="cherry-list__default" data-lines="3" data-sign="be970ed11d96b9b701e5e9045b9c5580list3"><li>应用应该验证 API服务器的证书是否是证书机构所签发， 这个证书是在ca.crt 文件中。</li><li>应用应该将它在 token文件中持有的凭证通过Authorization标头来获得 API服务器的授权。</li><li>当对pod所 在 命 名空间的 API对 象进行CRUD操作时， 应 该使 用namespace文件来传递命名空间信息到 API服务器  </li></ul><blockquote data-lines="2" data-sign="b90bf7ab34bafe3bd3c6cbc1006bad27_2">CRUD代表创建、 读取、 修改和删除操作， 与之对应的HTTP方法分别是POST、 GET、 PATCH/PUT以及DELETE。  </blockquote><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="5c3a88ab0e2efb1d4ae6489cd4a9b33e">可在 pod 中运行一个 sidecar 容器（代理服务器）； </p><ul class="cherry-list__default" data-lines="2" data-sign="35821ff693c83cc85c3f36387a258f4alist2"><li>主容器 通过 端口访问 代理 容器 【同一网络命名空间】</li><li>代理服务器 运行 <code>kubectl-proxy</code> 命令，实现和 API 服务器通信； </li></ul><p data-lines="1" data-type="p" data-sign="9bf84acbfa18cc40608a76f1ed8dab2f" style=""><img alt="" src="./深入理解kubernetes - 游戏知识库 - KM平台_files/cos-file-url(45)" style="position: relative; z-index: 2;" class="amplify"></p><p data-lines="1" data-type="p" data-sign="ededd5543070f383a11a5f7299a40e77">代理容器如下， </p><div data-sign="6b0c6186db0d7207cb11dc505d856546" data-type="codeBlock" data-lines="16"><pre class="prism language-yaml" style="position: relative; z-index: 2;"><code class="language-yaml"><span class="token key atrule">apiVersion</span><span class="token punctuation">:</span> v1
-<span class="token key atrule">kind</span><span class="token punctuation">:</span> Pod
-<span class="token key atrule">metadata</span><span class="token punctuation">:</span>
-  <span class="token key atrule">name</span><span class="token punctuation">:</span> curl<span class="token punctuation">-</span>with<span class="token punctuation">-</span>ambassador
-<span class="token key atrule">spec</span><span class="token punctuation">:</span>
-  <span class="token key atrule">containers</span><span class="token punctuation">:</span>
-  <span class="token punctuation">-</span> <span class="token key atrule">name</span><span class="token punctuation">:</span> main
-    <span class="token key atrule">image</span><span class="token punctuation">:</span> curlimages/curl<span class="token punctuation">:</span>7.77.0
-    <span class="token key atrule">command</span><span class="token punctuation">:</span> <span class="token punctuation">[</span><span class="token string">"sleep"</span><span class="token punctuation">,</span> <span class="token string">"9999999"</span><span class="token punctuation">]</span>
-  <span class="token punctuation">-</span> <span class="token key atrule">name</span><span class="token punctuation">:</span> ambassador
-    <span class="token comment"># 代理容器，在该容器中, 可 通过 curl localhost:8001  访问 API 服务器</span>
-    <span class="token key atrule">image</span><span class="token punctuation">:</span> luksa/kubectl<span class="token punctuation">-</span>proxy<span class="token punctuation">:</span>1.6.2
+      # 写入文件 /etc/downward/containerMemoryLimitBytes
+      - path: "containerMemoryLimitBytes"
+        resourceFieldRef:
+          containerName: main
+          resource: limits.memory
+          divisor: 1
 
 </code></pre>
 
-<p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="97ab26b3bdcee71f40bcc135d3efc7d5">由于主容器和sidecar 容器共享网络命名空间， 直接可以访问 代理服务器的 8001 端口。 </p><p data-lines="2" data-type="p" data-sign="a2b9fc276fecd80be52b504cd71b2621" style=""><img alt="" src="./深入理解kubernetes - 游戏知识库 - KM平台_files/cos-file-url(46)" style="position: relative; z-index: 2;" class="amplify"></p><p data-lines="2" data-type="p" data-sign="76e20fdcfbad947f2d41301be4f884b0">6： 也可使用标准的 客户端库与 API 服务器交互。 </p><p data-lines="7" data-type="br" data-sign="br7">&nbsp;</p><h1 data-lines="1" data-sign="090142a7db9f9e95941611a1fff073c7" id="deployment" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#deployment" class="anchor"></a>Deployment</h1><p data-lines="3" data-type="p" data-sign="462628c5fd1a60a5aee763bec5b4aac5" style="">1： Deployment 是基于 ReplicaSet 资源， 声明式的升级应用 【滚动更新】<br><img alt="" src="./深入理解kubernetes - 游戏知识库 - KM平台_files/cos-file-url(47)" style="position: relative; z-index: 2;" class="amplify"></p><blockquote data-lines="2" data-sign="e88d7f950bba13408227bf4d0e726571_2">Deployment 在上层 控制期望的状态，更新时，会创建 新的 ReplicaSet 资源</blockquote><p data-lines="7" data-type="br" data-sign="br7">&nbsp;</p><p data-lines="1" data-type="p" data-sign="9a16958878e6c9318ae89e0165c4d9eb">2： 通常有两种更新方式： </p><ul class="cherry-list__default" data-lines="2" data-sign="81a7ac7802ac72604166cec9ce2f042alist2"><li>直接删除所有现有的 pod, 然后创建新的 pod。	<ul class="cherry-list__default"><li>停机更新，短时间不可用</li></ul></li></ul><p data-lines="1" data-type="p" data-sign="a218fe0f62004ed0c98950cf77da6599">使用 ReplicationController  管理，修改 replicas 副本数即可。 </p><p data-lines="2" data-type="p" data-sign="af3d82e75718d3bcecb60ad7084807b4" style=""><img alt="" src="./深入理解kubernetes - 游戏知识库 - KM平台_files/cos-file-url(48)" style="position: relative; z-index: 2;" class="amplify"></p><p data-lines="5" data-type="br" data-sign="br5">&nbsp;</p><ul class="cherry-list__default" data-lines="2" data-sign="fba548341566b7efa98e6d235ce77824list2"><li>也可以先创建新的 pod, 并等待它们成功运行之后， 再删除旧的 pod。 可以先创建所有新的 pod, 然后一 次性删除所有旧的 pod, 或者按顺序创建新的pod, 然后逐渐删除旧的 pod。  <ul class="cherry-list__default"><li>需要支持两个版本同时对外提供服务</li></ul></li></ul><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="2" data-type="p" data-sign="2c20b5901137f799edb9371742fd4011" style="">第一种方法： 先创建新的，可用后，一次性删除旧的 【蓝绿部署】：<br><img alt="" src="./深入理解kubernetes - 游戏知识库 - KM平台_files/cos-file-url(49)" style="position: relative; z-index: 2;" class="amplify"></p><p data-lines="2" data-type="p" data-sign="92b69fd7ace9f242f3750c5215616a04">第二种方法： 手动执行滚动升级 【旧的副本数在减少，新的副本数在增加。 】： </p><p data-lines="2" data-type="p" data-sign="d2befca5631698d5d81a80c1c6630b9c" style=""><img alt="" src="./深入理解kubernetes - 游戏知识库 - KM平台_files/cos-file-url(50)" style="position: relative; z-index: 2;" class="amplify"></p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="c8dccd96d88560fb43a883fd861137f4">3： 创建一个 Deployment 示例： </p><div data-sign="9d545a36afdb31935e6cde423298c477" data-type="codeBlock" data-lines="26"><pre class="prism language-yaml" style="position: relative; z-index: 2;"><code class="language-yaml"><span class="token key atrule">apiVersion</span><span class="token punctuation">:</span> apps/v1
-<span class="token key atrule">kind</span><span class="token punctuation">:</span> Deployment
-<span class="token key atrule">metadata</span><span class="token punctuation">:</span>
-  <span class="token key atrule">name</span><span class="token punctuation">:</span> kubia
-<span class="token key atrule">spec</span><span class="token punctuation">:</span>
-  <span class="token comment"># 目标副本数</span>
-  <span class="token key atrule">replicas</span><span class="token punctuation">:</span> <span class="token number">3</span>
-
-  <span class="token comment"># 新的 pod 模板</span>
-  <span class="token key atrule">template</span><span class="token punctuation">:</span>
-    <span class="token key atrule">metadata</span><span class="token punctuation">:</span>
-      <span class="token key atrule">name</span><span class="token punctuation">:</span> kubia
-      <span class="token key atrule">labels</span><span class="token punctuation">:</span>
-        <span class="token key atrule">app</span><span class="token punctuation">:</span> kubia
-    <span class="token key atrule">spec</span><span class="token punctuation">:</span>
-      <span class="token key atrule">containers</span><span class="token punctuation">:</span>
-      <span class="token punctuation">-</span> <span class="token key atrule">image</span><span class="token punctuation">:</span> luksa/kubia<span class="token punctuation">:</span>v1
-        <span class="token key atrule">name</span><span class="token punctuation">:</span> nodejs
-
-  <span class="token comment"># 需要更新的 pod</span>
-  <span class="token key atrule">selector</span><span class="token punctuation">:</span>
-    <span class="token key atrule">matchLabels</span><span class="token punctuation">:</span>
-      <span class="token key atrule">app</span><span class="token punctuation">:</span> kubia
+<p data-lines="2" data-type="p" data-sign="7ba9fbd69794d2a94bbc219ac5db083b">文件列表的对应关系： </p><p data-lines="2" data-type="p" data-sign="a58e2c3d056a91ab5a90be4c0e2894f8" style=""></p><p data-lines="2" data-type="br" data-sign="br2">&nbsp;</p><p data-lines="1" data-type="p" data-sign="c635401bc60819d2e23fe059ce420858">7： 推荐用卷的方式暴露，在运行时修改 注解 或 标签， k8s 会更新相关的文件；</p><p data-lines="2" data-type="p" data-sign="61a83fbcacd88ff4a7973d7336baa86f">且卷能在 同pod 的多容器间传递； </p><p data-lines="2" data-type="p" data-sign="20e30a950161741b5573fbf1a142ffde">但环境变量一旦设置，修改后无法暴露新值。 </p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="7e80b76fdeb29c83c3c9e46e91513cdd">8： Downward API 只能对pod 内的容器暴露数据，有一定的局限性； </p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><h2 data-lines="1" data-sign="a327570428a52399ae8f388b3d323304" id="%E4%B8%8E-k8s-api-%E6%9C%8D%E5%8A%A1%E5%99%A8%E4%BA%A4%E4%BA%92" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E4%B8%8E-k8s-api-%E6%9C%8D%E5%8A%A1%E5%99%A8%E4%BA%A4%E4%BA%92" class="anchor"></a>与 k8s API 服务器交互</h2><p data-lines="2" data-type="p" data-sign="4473ccae740a069e6c4a1fc872513fad">1： k8s API 可获取其它 pod 或集群中其它资源信息； </p><p data-lines="2" data-type="p" data-sign="72f2e946803dc7c38579634ca5938c5b">2： 可以通过 <code>kube proxy</code> 启动一个代理服务接收本地的 http 连接并转发至 API 服务器。 </p><p data-lines="2" data-type="p" data-sign="825227ba2ff080823132d8f1578b2d4a">同时处理<strong>身份认证</strong>， 所以不需要每次请求都上传认证凭证。 它也可以确保我们直接与真实的 API 服务器交互  ， 而不是一个中间入（通过每次验证服务器证书的方式）  </p><blockquote data-lines="2" data-sign="2979dd45018dec85ee08bc6a8b6270c1_2">kube proxy 会捎带 API 服务器的 URL 、认证凭证等。 </blockquote><p data-lines="1" data-type="p" data-sign="113c3ab0cb8160dc52d5aaf6919eddfe">代理服务器 在本地的 8001 端口接收请求。</p><div data-sign="cefc873be9d5beec53b58ba79f2ea758" data-type="codeBlock" data-lines="8"><pre><code>$ curl localhost:8001
+{
+"paths": [
+"/api",
+"/api/vl",
 </code></pre>
 
-<p data-lines="2" data-type="p" data-sign="821dcf838e308e735e4a6242f6d1855a">4: Deployment 提供两种升级策略： </p><ul class="cherry-list__default" data-lines="1" data-sign="3839ababe17df0ebb56ab8570912b5c4list1"><li>1： 滚动更新， RollingUpdate; </li></ul><p data-lines="1" data-type="p" data-sign="1bef83ed0283d7916ddb86f5b6029844">升级过程中 速度可控： <code>minReadySeconds  </code>  可控制滚动更新的速度</p><blockquote data-lines="3" data-sign="3e746cd6c289303fca40717a23c81b71_3">minReadySeconds  要求 pod 至少运行多久才算可用。 在 新pod 可用之前， maxUnavailable 会卡主更新。 <br><br>若在 minReadySeconds  时间内，就绪探针失败， 新版本滚动会停止。 </blockquote><p data-lines="2" data-type="p" data-sign="f40047e274cc26da8780ede224e5b574">pod 未就绪时，新的请求也不会 分发到上面。 </p><p data-lines="2" data-type="p" data-sign="74ee53fb06994935d93d443319b912f0" style=""><img alt="" src="./深入理解kubernetes - 游戏知识库 - KM平台_files/cos-file-url(51)" style="position: relative; z-index: 2;" class="amplify"></p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="8a73cdb1e241d16e90f67b856309d36b">触发更新如下， 直接设置新的镜像版本即可： </p><div data-sign="ed16844bd8594158451adb66b943eb38" data-type="codeBlock" data-lines="4"><pre class="prism language-sh" style="position: relative; z-index: 2;"><code class="language-sh">kubectl <span class="token keyword">set</span> image deployment<span class="token operator">/</span>replicationcontroller<span class="token operator">/</span>replicaset <span class="token operator">&lt;</span>资源名<span class="token operator">&gt;</span> <span class="token operator">&lt;</span>container<span class="token operator">-</span>name<span class="token operator">&gt;=</span><span class="token operator">&lt;</span><span class="token constant">ID</span><span class="token operator">&gt;</span><span class="token operator">/</span><span class="token operator">&lt;</span>image<span class="token operator">&gt;</span><span class="token operator">:</span><span class="token operator">&lt;</span>tag<span class="token operator">&gt;</span><span class="token operator">:</span> 修改 资源下容器里的 镜像，会修改 pod 模板<span class="token punctuation">;</span> 并 触发 Deployment 的 滚动升级
-</code></pre>
-
-<p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><ul class="cherry-list__default" data-lines="1" data-sign="7b5cf511f1d51a1882a0ee973890f514list1"><li>2： 一次性删除所有旧的，然后创建新的, Recreate</li></ul><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="dadfb0c250a932f6472399e861b3fd16">5： Deployment 升级完后，旧的 ReplicaSet 还会保留，方便出错之后 回滚。 </p><p data-lines="2" data-type="p" data-sign="969866c68ac1613db3b0c111f45f8a59" style=""><img alt="" src="./深入理解kubernetes - 游戏知识库 - KM平台_files/cos-file-url(52)" style="position: relative; z-index: 2;" class="amplify"></p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="44167c3a442c1c1d943b8328eefa4dd4">可以回滚到指定的版本，保留的历史版本数 通过 <code>revisionHistoryLimit</code> 属性控制： </p><p data-lines="2" data-type="p" data-sign="031761b200b8a49284b5b0ec55231846" style=""><img alt="" src="./深入理解kubernetes - 游戏知识库 - KM平台_files/cos-file-url(53)" style="position: relative; z-index: 2;" class="amplify"></p><p data-lines="5" data-type="br" data-sign="br5">&nbsp;</p><p data-lines="1" data-type="p" data-sign="b8f580699a14c68fe59b56596f2f4f9a">6： 控制滚动 更新速度的两个参数： </p><ul class="cherry-list__default" data-lines="2" data-sign="bd04b80a4fbc1845a3c1d204f385fd01list2"><li>maxSurge: 某一时刻，最多运行的 pod 数量（包括 新版本下的pod 和旧版本下的pod 数总和）， 控制 每次<strong>新版本</strong> 增加的 pod 数</li><li>maxUnavaliable: 滚动期间，最大不可用 pod 数量，控制必须得保留一定量 <strong>旧版本</strong>的 pod 树； </li></ul><p data-lines="2" data-type="p" data-sign="b546ce42dff57d9fa6a93911cec9ca95" style=""><img alt="" src="./深入理解kubernetes - 游戏知识库 - KM平台_files/cos-file-url(54)" style="position: relative; z-index: 2;" class="amplify"><br>假设 集群目标数量是3， maxSurge 允许最多 pod 数量达到4， 同时 maxUnavailable = 0（任意时刻， 必须至少有3个可用） </p><p data-lines="2" data-type="p" data-sign="4eeaa5d17332fe6cba527d37ea246928">3 个副本数下的更新过程： </p><p data-lines="2" data-type="p" data-sign="2cbfa6c0f239c791aa3943147047e6ad" style=""><img alt="" src="./深入理解kubernetes - 游戏知识库 - KM平台_files/cos-file-url(55)" style="position: relative; z-index: 2;" class="amplify"></p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="99a64928826649225ea5c1f670c214b4">7： 升级过程中，可以暂停滚动升级（发布金丝雀版本进行测试），但在哪个时刻暂停无法控制。 </p><blockquote data-lines="2" data-sign="44a43d27bc85f31da6944db20d5813cb_2">功能验证后，可恢复滚动升级。 </blockquote><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="eb6bcb739c4acd98fa92b0bacf8a257f">8： 可以通过 <code>progressDeadlineSeconds  </code> 属性指定滚动升级必须在 多长时间 <strong>内</strong> 完成，否则视为失败。 </p><p data-lines="11" data-type="br" data-sign="br11">&nbsp;</p><h1 data-lines="1" data-sign="9728fff387ff7c18d8cccde59fffc7ef" id="%E9%83%A8%E7%BD%B2%E6%9C%89%E7%8A%B6%E6%80%81%E5%A4%9A%E5%89%AF%E6%9C%AC" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E9%83%A8%E7%BD%B2%E6%9C%89%E7%8A%B6%E6%80%81%E5%A4%9A%E5%89%AF%E6%9C%AC" class="anchor"></a>部署有状态多副本</h1><p data-lines="2" data-type="p" data-sign="700705596fc4d502f0170dc80c92841f">1：有状态服务通常需要考虑：  </p><ul class="cherry-list__default" data-lines="2" data-sign="3e3861a17354e96025b9671501b0fbdelist2"><li>有状态服务需要有独立的存储：</li><li>不变的主机名和ip 地址</li></ul><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><h2 data-lines="1" data-sign="188c5b41e1e35850fbc14b3849bad2cd" id="statefulset" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#statefulset" class="anchor"></a>StatefulSet</h2><p data-lines="2" data-type="p" data-sign="4d5670d34564b6d9bafc47530eb88e3c">1: StatefulSet 可以保证重启一个 pod 实例，拥有和之前一样的 名称 和 主机名。 </p><p data-lines="2" data-type="p" data-sign="470d950ea05473b7fc6d3df828c64ecb">2：StatefulSet 可以保证每个 pod 都有稳定的名字和状态； </p><ul class="cherry-list__default" data-lines="2" data-sign="9b889a51ccc70c59ccd7d7ccb50793e2list2"><li>RS分配的主机名都是随机的（默认平等）</li><li>StatefulSet 分配主机名是按顺序递增的</li></ul><p data-lines="1" data-type="p" data-sign="0b71b83923f12e2d3127ac7bcc30aa6b" style=""><img alt="" src="./深入理解kubernetes - 游戏知识库 - KM平台_files/cos-file-url(56)" style="position: relative; z-index: 2;" class="amplify"></p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="397b0e6eb94dff450d2537be236bbfd3">3： pod 重启后，并不保证在原来的节点上： </p><blockquote data-lines="2" data-sign="5cf2931e4b0ecd8360b996bfbae2631b_2">但 主机名和 ip 保持不变</blockquote><p data-lines="2" data-type="p" data-sign="0984e1006301d7412eba4d20578aca91" style=""><img alt="" src="./深入理解kubernetes - 游戏知识库 - KM平台_files/cos-file-url(57)" style="position: relative; z-index: 2;" class="amplify"></p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="8916664d0ad6ae84ff32706fb87e9bc2">4： StatefulSet 缩容时，会优先删除  高索引主机名的 实例 （如下，第一次缩容，Pod A-2 最先被删除。 ）</p><p data-lines="2" data-type="p" data-sign="d8469cbae4117b06797d5cd2c31cab0d" style=""><img alt="" src="./深入理解kubernetes - 游戏知识库 - KM平台_files/cos-file-url(58)" style="position: relative; z-index: 2;" class="amplify"></p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="ce8569a1eacd8a92c2260cb9b6f9427a">5： 为每个 pod 声明单独的 PVC，提供独立的存储</p><p data-lines="2" data-type="p" data-sign="ff72702e8eb5deecfb76b02fef22f778" style=""><img alt="" src="./深入理解kubernetes - 游戏知识库 - KM平台_files/cos-file-url(59)" style="position: relative; z-index: 2;" class="amplify"></p><p data-lines="2" data-type="p" data-sign="ea7078226ce8ed3d02de6d3738000b52">缩容时，只会删除 pod， PVC 默认不会删除（除非手动），当下次重新扩容时， 会绑定到之前的 PVC</p><blockquote data-lines="2" data-sign="83f8400f067da93b0ed5d7101f77e924_2">可以保证扩容出来的 pod 还是写相同的文件。 </blockquote><p data-lines="2" data-type="p" data-sign="056175098472d22788512b088370ad16"></p><p data-lines="5" data-type="br" data-sign="br5">&nbsp;</p><p data-lines="1" data-type="p" data-sign="9976e3e02d5b368d1578c5e3ed7b39ac">6: StatefulSet 实例，创建三个对象 </p><ul class="cherry-list__default" data-lines="2" data-sign="42b06529bd5c49660021a149b5a03c21list2"><li>创建 PV <br><div data-sign="dd376cb1465baaadfffbbc251a43e59c" data-type="codeBlock" data-lines="46"><pre class="prism language-yaml" style="position: relative; z-index: 2;"><code class="language-yaml"><span class="token key atrule">kind</span><span class="token punctuation">:</span> List
-<span class="token key atrule">apiVersion</span><span class="token punctuation">:</span> v1
-<span class="token key atrule">items</span><span class="token punctuation">:</span>
-<span class="token punctuation">-</span> <span class="token key atrule">apiVersion</span><span class="token punctuation">:</span> v1
-  <span class="token key atrule">kind</span><span class="token punctuation">:</span> PersistentVolume
-  <span class="token key atrule">metadata</span><span class="token punctuation">:</span>
-    <span class="token key atrule">name</span><span class="token punctuation">:</span> pv<span class="token punctuation">-</span>a
-  <span class="token key atrule">spec</span><span class="token punctuation">:</span>
-    <span class="token key atrule">capacity</span><span class="token punctuation">:</span>
-      <span class="token key atrule">storage</span><span class="token punctuation">:</span> 1Mi
-    <span class="token key atrule">accessModes</span><span class="token punctuation">:</span>
-      <span class="token punctuation">-</span> ReadWriteOnce
-    <span class="token key atrule">persistentVolumeReclaimPolicy</span><span class="token punctuation">:</span> Recycle
-    <span class="token key atrule">gcePersistentDisk</span><span class="token punctuation">:</span>
-      <span class="token key atrule">pdName</span><span class="token punctuation">:</span> pv<span class="token punctuation">-</span>a
-      <span class="token key atrule">fsType</span><span class="token punctuation">:</span> ext4
-<span class="token punctuation">-</span> <span class="token key atrule">apiVersion</span><span class="token punctuation">:</span> v1
-  <span class="token key atrule">kind</span><span class="token punctuation">:</span> PersistentVolume
-  <span class="token key atrule">metadata</span><span class="token punctuation">:</span>
-    <span class="token key atrule">name</span><span class="token punctuation">:</span> pv<span class="token punctuation">-</span>b
-  <span class="token key atrule">spec</span><span class="token punctuation">:</span>
-    <span class="token key atrule">capacity</span><span class="token punctuation">:</span>
-      <span class="token key atrule">storage</span><span class="token punctuation">:</span> 1Mi
-    <span class="token key atrule">accessModes</span><span class="token punctuation">:</span>
-      <span class="token punctuation">-</span> ReadWriteOnce
-    <span class="token key atrule">persistentVolumeReclaimPolicy</span><span class="token punctuation">:</span> Recycle
-    <span class="token key atrule">gcePersistentDisk</span><span class="token punctuation">:</span>
-      <span class="token key atrule">pdName</span><span class="token punctuation">:</span> pv<span class="token punctuation">-</span>b
-      <span class="token key atrule">fsType</span><span class="token punctuation">:</span> ext4
-<span class="token punctuation">-</span> <span class="token key atrule">apiVersion</span><span class="token punctuation">:</span> v1
-  <span class="token key atrule">kind</span><span class="token punctuation">:</span> PersistentVolume
-  <span class="token key atrule">metadata</span><span class="token punctuation">:</span>
-    <span class="token key atrule">name</span><span class="token punctuation">:</span> pv<span class="token punctuation">-</span>c
-  <span class="token key atrule">spec</span><span class="token punctuation">:</span>
-    <span class="token key atrule">capacity</span><span class="token punctuation">:</span>
-      <span class="token key atrule">storage</span><span class="token punctuation">:</span> 1Mi
-    <span class="token key atrule">accessModes</span><span class="token punctuation">:</span>
-      <span class="token punctuation">-</span> ReadWriteOnce
-    <span class="token key atrule">persistentVolumeReclaimPolicy</span><span class="token punctuation">:</span> Recycle
-    <span class="token key atrule">gcePersistentDisk</span><span class="token punctuation">:</span>
-      <span class="token key atrule">pdName</span><span class="token punctuation">:</span> pv<span class="token punctuation">-</span>c
-      <span class="token key atrule">fsType</span><span class="token punctuation">:</span> ext4
-
-</code></pre></div></li></ul><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><ul class="cherry-list__default" data-lines="1" data-sign="a58465c69b1567cd97b479e7df1001d6list1"><li>创建一个 控制 Service</li></ul><p data-lines="1" data-type="p" data-sign="85fe0c796654ab5c45f58f5547ee7f12">创建一个 headless Service, 可以让 pod 之间彼此发现。 </p><p data-lines="1" data-type="p" data-sign="40bfbc201e73aae3eb61d116e970bfd5">通过这个 Service， 每个 pod 都有 独立的 DNS 记录， 可以通过主机名方便的找到它。 </p><div data-sign="0c7ffe769a0a7ea763d5697720ea0d01" data-type="codeBlock" data-lines="18"><pre class="prism language-yaml" style="position: relative; z-index: 2;"><code class="language-yaml"><span class="token key atrule">apiVersion</span><span class="token punctuation">:</span> v1
-<span class="token key atrule">kind</span><span class="token punctuation">:</span> Service
-<span class="token key atrule">metadata</span><span class="token punctuation">:</span>
-  <span class="token key atrule">name</span><span class="token punctuation">:</span> kubia
-<span class="token key atrule">spec</span><span class="token punctuation">:</span>
-  <span class="token comment"># StatefulSet 的控制 Service 必须是 headless 模式</span>
-  <span class="token key atrule">clusterIP</span><span class="token punctuation">:</span> None
-
-  <span class="token comment"># 所有 带有 app: kubia 标签的pod 都属于这个 service</span>
-  <span class="token key atrule">selector</span><span class="token punctuation">:</span>
-    <span class="token key atrule">app</span><span class="token punctuation">:</span> kubia
-  <span class="token key atrule">ports</span><span class="token punctuation">:</span>
-  <span class="token punctuation">-</span> <span class="token key atrule">name</span><span class="token punctuation">:</span> http
-    <span class="token key atrule">port</span><span class="token punctuation">:</span> <span class="token number">80</span>
+<p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="be9410c559f99cfe6155c59ecf6c89e3">3: 可以通过 URL 查看对应资源的 API， 例如 Job 资源的API，分组在 <code>/apis/batch</code></p><p data-lines="2" data-type="p" data-sign="19f1c433efd3c578ce720ea568bb1af4">例如： </p><p data-lines="2" data-type="p" data-sign="12870ac189fe6a6526aa3efede44b5fa" style=""></p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="2688d63bcbfd71d33064028e7f0b831e">4： 从 pod 内部访问 API 服务器，需要带上 凭证和授权： </p><p data-lines="2" data-type="p" data-sign="b5a969e54e677ef8ff20d346c54d8a02" style="">A</p><blockquote data-lines="2" data-sign="b3470b9e0f881c205a71b74b8696430d_2">后续可通过 ServiceAccount 和 RBAC 解决账户和授权的问题。 </blockquote><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="48d93007e866ef8a66493d567d56013e">5： Pod 与API 服务器的交互如下： </p><ul class="cherry-list__default" data-lines="3" data-sign="be970ed11d96b9b701e5e9045b9c5580list3"><li>应用应该验证 API服务器的证书是否是证书机构所签发， 这个证书是在ca.crt 文件中。</li><li>应用应该将它在 token文件中持有的凭证通过Authorization标头来获得 API服务器的授权。</li><li>当对pod所 在 命 名空间的 API对 象进行CRUD操作时， 应 该使 用namespace文件来传递命名空间信息到 API服务器  </li></ul><blockquote data-lines="2" data-sign="b90bf7ab34bafe3bd3c6cbc1006bad27_2">CRUD代表创建、 读取、 修改和删除操作， 与之对应的HTTP方法分别是POST、 GET、 PATCH/PUT以及DELETE。  </blockquote><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="5c3a88ab0e2efb1d4ae6489cd4a9b33e">可在 pod 中运行一个 sidecar 容器（代理服务器）； </p><ul class="cherry-list__default" data-lines="2" data-sign="35821ff693c83cc85c3f36387a258f4alist2"><li>主容器 通过 端口访问 代理 容器 【同一网络命名空间】</li><li>代理服务器 运行 <code>kubectl-proxy</code> 命令，实现和 API 服务器通信； </li></ul><p data-lines="1" data-type="p" data-sign="9bf84acbfa18cc40608a76f1ed8dab2f" style=""></p><p data-lines="1" data-type="p" data-sign="ededd5543070f383a11a5f7299a40e77">代理容器如下， </p><div data-sign="6b0c6186db0d7207cb11dc505d856546" data-type="codeBlock" data-lines="16"><pre><code>apiVersion: v1
+kind: Pod
+metadata:
+  name: curl-with-ambassador
+spec:
+  containers:
+  - name: main
+    image: curlimages/curl:7.77.0
+    command: ["sleep", "9999999"]
+  - name: ambassador
+    # 代理容器，在该容器中, 可 通过 curl localhost:8001  访问 API 服务器
+    image: luksa/kubectl-proxy:1.6.2
 
 </code></pre>
 
-<blockquote data-lines="2" data-sign="8ddf8f6c07c7904140b596e52c97f395_2">可以通过在 pod  中触发一次 SRV DNS 查询，获取其它 pod 列表</blockquote><blockquote data-lines="16" data-sign="a21398bf26fb55b1cfc7e04558284b69_16">有时不需要或不想要负载均衡，以及单独的 Service IP。 遇到这种情况，可以通过指定 Cluster IP（<code>spec.clusterIP</code>）的值为 <code>"None"</code> 来创建 <code>Headless</code> Service。<br><br>你可以使用无头 Service 与其他服务发现机制进行接口，而不必与 Kubernetes 的实现捆绑在一起。<br><br>对这无头 Service 并 <strong>不会分配 Cluster IP，kube-proxy 不会处理它们， 而且平台也不会为它们进行负载均衡和路由</strong>。 DNS 如何实现自动配置，依赖于 Service 是否定义了选择算符。<br><br>### 带选择算符的服务<br><br>对定义了选择算符的无头服务，Endpoint 控制器在 API 中创建了 Endpoints 记录， 并且修改 DNS 配置返回 A 记录（IP 地址），通过<strong>这个地址直接到达 <code>Service</code> 的后端 Pod</strong> 上。<br><br>### 无选择算符的服务<br><br>对没有定义选择算符的无头服务，Endpoint 控制器不会创建 <code>Endpoints</code> 记录。 然而 DNS 系统会查找和配置，无论是：<br><br>- 对于 <a rel="nofollow" href="https://kubernetes.io/zh/docs/concepts/services-networking/service/#external-name"><code>ExternalName</code></a> 类型的服务，查找其 CNAME 记录<br>- 对所有其他类型的服务，查找与 Service 名称相同的任何 <code>Endpoints</code> 的记录</blockquote><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><ul class="cherry-list__default" data-lines="2" data-sign="128c0c2dc7e57e82be6faebf402d93b3list2"><li>StatefulSet 本身<br><div data-sign="a50f719e5b05bc46c6a59a80bdb44551" data-type="codeBlock" data-lines="41"><pre class="prism language-yaml" style="position: relative; z-index: 2;"><code class="language-yaml"><span class="token key atrule">apiVersion</span><span class="token punctuation">:</span> apps/v1
-<span class="token key atrule">kind</span><span class="token punctuation">:</span> StatefulSet
-<span class="token key atrule">metadata</span><span class="token punctuation">:</span>
-  <span class="token key atrule">name</span><span class="token punctuation">:</span> kubia
-<span class="token key atrule">spec</span><span class="token punctuation">:</span>
-  <span class="token key atrule">serviceName</span><span class="token punctuation">:</span> kubia
+<p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="97ab26b3bdcee71f40bcc135d3efc7d5">由于主容器和sidecar 容器共享网络命名空间， 直接可以访问 代理服务器的 8001 端口。 </p><p data-lines="2" data-type="p" data-sign="a2b9fc276fecd80be52b504cd71b2621" style=""></p><p data-lines="2" data-type="p" data-sign="76e20fdcfbad947f2d41301be4f884b0">6： 也可使用标准的 客户端库与 API 服务器交互。 </p><p data-lines="7" data-type="br" data-sign="br7">&nbsp;</p><h1 data-lines="1" data-sign="090142a7db9f9e95941611a1fff073c7" id="deployment" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#deployment" class="anchor"></a>Deployment</h1><p data-lines="3" data-type="p" data-sign="462628c5fd1a60a5aee763bec5b4aac5" style="">1： Deployment 是基于 ReplicaSet 资源， 声明式的升级应用 【滚动更新】<br></p><blockquote data-lines="2" data-sign="e88d7f950bba13408227bf4d0e726571_2">Deployment 在上层 控制期望的状态，更新时，会创建 新的 ReplicaSet 资源</blockquote><p data-lines="7" data-type="br" data-sign="br7">&nbsp;</p><p data-lines="1" data-type="p" data-sign="9a16958878e6c9318ae89e0165c4d9eb">2： 通常有两种更新方式： </p><ul class="cherry-list__default" data-lines="2" data-sign="81a7ac7802ac72604166cec9ce2f042alist2"><li>直接删除所有现有的 pod, 然后创建新的 pod。	<ul class="cherry-list__default"><li>停机更新，短时间不可用</li></ul></li></ul><p data-lines="1" data-type="p" data-sign="a218fe0f62004ed0c98950cf77da6599">使用 ReplicationController  管理，修改 replicas 副本数即可。 </p><p data-lines="2" data-type="p" data-sign="af3d82e75718d3bcecb60ad7084807b4" style=""></p><p data-lines="5" data-type="br" data-sign="br5">&nbsp;</p><ul class="cherry-list__default" data-lines="2" data-sign="fba548341566b7efa98e6d235ce77824list2"><li>也可以先创建新的 pod, 并等待它们成功运行之后， 再删除旧的 pod。 可以先创建所有新的 pod, 然后一 次性删除所有旧的 pod, 或者按顺序创建新的pod, 然后逐渐删除旧的 pod。  <ul class="cherry-list__default"><li>需要支持两个版本同时对外提供服务</li></ul></li></ul><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="2" data-type="p" data-sign="2c20b5901137f799edb9371742fd4011" style="">第一种方法： 先创建新的，可用后，一次性删除旧的 【蓝绿部署】：<br></p><p data-lines="2" data-type="p" data-sign="92b69fd7ace9f242f3750c5215616a04">第二种方法： 手动执行滚动升级 【旧的副本数在减少，新的副本数在增加。 】： </p><p data-lines="2" data-type="p" data-sign="d2befca5631698d5d81a80c1c6630b9c" style=""></p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="c8dccd96d88560fb43a883fd861137f4">3： 创建一个 Deployment 示例： </p><div data-sign="9d545a36afdb31935e6cde423298c477" data-type="codeBlock" data-lines="26"><pre><code>apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kubia
+spec:
+  # 目标副本数
+  replicas: 3
 
-  <span class="token comment"># 创建2个副本，pod 上带有 标签 app: kubia</span>
-  <span class="token key atrule">replicas</span><span class="token punctuation">:</span> <span class="token number">2</span>
-  <span class="token key atrule">selector</span><span class="token punctuation">:</span>
-    <span class="token key atrule">matchLabels</span><span class="token punctuation">:</span>
-      <span class="token key atrule">app</span><span class="token punctuation">:</span> kubia <span class="token comment"># has to match .spec.template.metadata.labels</span>
-  <span class="token key atrule">template</span><span class="token punctuation">:</span>
-    <span class="token key atrule">metadata</span><span class="token punctuation">:</span>
-      <span class="token key atrule">labels</span><span class="token punctuation">:</span>
-        <span class="token key atrule">app</span><span class="token punctuation">:</span> kubia
-    <span class="token key atrule">spec</span><span class="token punctuation">:</span>
-      <span class="token key atrule">containers</span><span class="token punctuation">:</span>
-      <span class="token punctuation">-</span> <span class="token key atrule">name</span><span class="token punctuation">:</span> kubia
-        <span class="token key atrule">image</span><span class="token punctuation">:</span> luksa/kubia<span class="token punctuation">-</span>pet
-        <span class="token key atrule">ports</span><span class="token punctuation">:</span>
-        <span class="token punctuation">-</span> <span class="token key atrule">name</span><span class="token punctuation">:</span> http
-          <span class="token key atrule">containerPort</span><span class="token punctuation">:</span> <span class="token number">8080</span>
-        <span class="token key atrule">volumeMounts</span><span class="token punctuation">:</span>
-        <span class="token punctuation">-</span> <span class="token key atrule">name</span><span class="token punctuation">:</span> data
-          <span class="token key atrule">mountPath</span><span class="token punctuation">:</span> /var/data
+  # 新的 pod 模板
+  template:
+    metadata:
+      name: kubia
+      labels:
+        app: kubia
+    spec:
+      containers:
+      - image: luksa/kubia:v1
+        name: nodejs
 
-  <span class="token comment"># 创建 pvc 模板， 生成的pvc  data-&lt;主机名&gt;</span>
-  <span class="token key atrule">volumeClaimTemplates</span><span class="token punctuation">:</span>
-  <span class="token punctuation">-</span> <span class="token key atrule">metadata</span><span class="token punctuation">:</span>
-      <span class="token key atrule">name</span><span class="token punctuation">:</span> data
-    <span class="token key atrule">spec</span><span class="token punctuation">:</span>
-      <span class="token key atrule">resources</span><span class="token punctuation">:</span>
-        <span class="token key atrule">requests</span><span class="token punctuation">:</span>
-          <span class="token key atrule">storage</span><span class="token punctuation">:</span> 1Mi
-      <span class="token key atrule">accessModes</span><span class="token punctuation">:</span>
-      <span class="token punctuation">-</span> ReadWriteOnce
-
-</code></pre></div></li></ul><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="178b8d0e6ed7b65b5fc77706cdac2cd9">7： StatefulSet 对集群同时启动两个pod非常敏感，可能存在竞争。 </p><p data-lines="2" data-type="p" data-sign="c17410b770e866b73b26d48ee76e0ea3">依次启动 是比较安全可靠的： 所以后面的 pod 会等待前面的 pod 成为就绪状态后 创建。 </p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="29447a22c61cf8b858c49aa9c44563d3">8： StatefulSet 修改模板文件后，不会自动触发运行的pod更新。 </p><blockquote data-lines="2" data-sign="bfa466bafa9be5f644cc60c29a1cc27d_2">和 ReplicaSet 一样，重启更新。 </blockquote><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="cb71034dd605a074e7c977cd80c06ea6">9： 当 pod 突然失效时（NotReady）, StatefulSet 不会立刻驱逐. 需要等足够多的时间，或者显示的删除 该 pod，才能触发 重新调度。 </p><p data-lines="2" data-type="p" data-sign="9be4ee6d2cb9229164f01f85a29e29d4">简言之， StatefulSet 会避免同时运行两个一样的 pod.</p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><h1 data-lines="1" data-sign="00720a03036b072310c5f4b10d8bdafa" id="kubernetes-%E6%9C%BA%E7%90%86" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#kubernetes-%E6%9C%BA%E7%90%86" class="anchor"></a>kubernetes 机理</h1><h2 data-lines="2" data-sign="1106403a632a805810d8cb7463a8b71b" id="%E6%9E%B6%E6%9E%84" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E6%9E%B6%E6%9E%84" class="anchor"></a>架构</h2><p data-lines="2" data-type="p" data-sign="e930879de8452ca39429f303c8ee00c9">1： k8s 集群分两部分： </p><ul class="cherry-list__default" data-lines="15" data-sign="5bafd0379a8d7e169b1efbef3b1fccf1list15"><li>master node (The k8s Control Plane, 控制面板)： 存储和管理集群的状态<ul class="cherry-list__default"><li>etcd分布式持久化存储</li><li>API服务器</li><li>调度器</li><li>控制器管理器  </li></ul></li><li>work node<ul class="cherry-list__default"><li>Kubelet</li><li>Kubelet服务代理( kube-proxy)</li><li>容器运行时(Docker、rkt或者其他)</li></ul></li><li>附加组件<ul class="cherry-list__default"><li>KubemetesDNS服务器： 通过IP对外暴露 HTTP 服务； </li><li>仪表板</li><li>Ingress控制器： 对客户端 ip 保存，后续多次连接路由到 同一个 pod</li><li>Heapster(容器集群监控）</li><li>容器网络接口插件  </li></ul></li></ul><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="fbc442efab9511f5f1e6d180e7a30ad5">整体组件如下： </p><p data-lines="1" data-type="p" data-sign="29748931c733cfde040e59585f0f74aa" style=""><img alt="" src="./深入理解kubernetes - 游戏知识库 - KM平台_files/cos-file-url(60)" style="position: relative; z-index: 2;" class="amplify"></p><div data-sign="034e32bb0cb590bad5b535ccdf5208c6" data-type="codeBlock" data-lines="4"><pre class="prism language-sh" style="position: relative; z-index: 2;"><code class="language-sh">kubectl <span class="token keyword">get</span> componentstatus ：显示控制面板各个组件的状态
+  # 需要更新的 pod
+  selector:
+    matchLabels:
+      app: kubia
 </code></pre>
 
-<p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="992db06065cd7e54c543e943758eeb12">2： 系统组件只能通过 API 服务器进行通信， 相互之间不同通信。 </p><p data-lines="2" data-type="p" data-sign="1f73e8e0f6c23e67482bfb1972061b34">3： etcd 和 API 服务器可以有多个实例 同时并行工作。 【分布式集群】</p><blockquote data-lines="2" data-sign="f9bd5e60066db030658ce742a357c41f_2">为了保证集群一致性，采用 RAFT 算法。 </blockquote><p data-lines="2" data-type="p" data-sign="0da35a460b0fe69356310158a387e871">但 调度器 和 控制器 在某一个时刻，只能有一个 实例起作用，其它实例处于 待命状态。</p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="62f40028034f1d7007f22ed600e18267">4： kubelet 是唯一一直作为常规系统运行的组件。 </p><p data-lines="2" data-type="p" data-sign="d7c24ba9ec4c9e2a634181a583f3e8cd">5:   <strong>API 服务器</strong>， 可查询、修改集群状态的 CRUD (Create、Read、Update、Delete)，并最终存入 etcd . </p><p data-lines="2" data-type="p" data-sign="e8f337447eda702b6b0e8a4a40f73131">对请求的 Rest 进行校验。 </p><ul class="cherry-list__default" data-lines="3" data-sign="2c57b3103ac23aca387bbf6b3e58e6calist3"><li>Authentication plugin: 认证插件，获取用户、用户组 等信息； </li><li>Authorization plugin：授权插件，是否有权限对指定资源进行 指定的操作； </li><li>Admission Control plugin: 准入插件控制，例如 资源限制 ResourceQuota 等</li></ul><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="5" data-type="p" data-sign="57670d8c62dce876596932f6535295b0">准入控制插件包括<br>• AlwaysPullImages： 重写 pod 的 imagePullPolicy 为 Always, 强制每次部署 pod 时拉取镜像。<br>• ServiceAccount：未明确定义服务账户的使用默认账户。<br>• NamespaceLifecycle：防止在命名空间中创建正在被删除的 pod, 或在不存在的命名空间中创建 pod。<br>• ResourceQuota：保证特定命名空间中的 pod 只能使用该命名空间分配数量的资源， 如CPU和内存。 </p><p data-lines="2" data-type="p" data-sign="6a6dae7c38858ec1410f9a3acd23b5c5"></p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="2" data-type="p" data-sign="128ab7fa03767a20f8645877356bf696">控制器可通过定期的去拉取 API 服务器信息，监听资源的变化。 <br></p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="d128de42141fb3644abc3ed0e98efe62">6： 调度器： 为pod 选择合适的节点</p><ul class="cherry-list__default" data-lines="2" data-sign="cf9cfcfc1ef82acc8811c3aec9770f92list2"><li>最简单的是随机选择一个； </li><li>以更优的方式选择一个， 对所有节点按优先级排序，找出最优节点（若分数一致，则循环分配）</li></ul><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="7bed8c46b8f2486a4b32d2f331bebaa0">筛选哪些节点可用： </p><ul class="cherry-list__default" data-lines="8" data-sign="03a1e6ef420f1aeb500d046b59489270list8"><li>节点是否能满足pod对硬件资源的请求。 </li><li>节点是否耗尽资源（是否报告过内存／硬盘压力参数） ？</li><li>pod是否要求被调度到指定节点（通过名字）， 是否是当前节点？</li><li>节点是否有和pod规格定义里的节点选择器一致的标签（如果定义了的话） ？</li><li>如果pod要求绑定指定的主机端口（第13章中讨论）那么这个节点上的这个端口是否已经 被占用？</li><li>如果pod要求有特定类型的卷， 该节点是否能为此pod加载此卷， 或者说该节点上是否已经有pod在使用该卷了？</li><li>pod是否能够容忍节点的污点，涉及污点和容忍度。 </li><li>pod是否定义了节点、pod的亲缘性以及非亲缘性规则？如果是， 那么调度节点给该pod是否会违反规则？</li></ul><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><blockquote data-lines="1" data-sign="34ee35d1ca3af13994f8fff02c40c207_1">集群中可运行 多个调度器 而非单个， 设置 <code>schedulerName</code>  来调度特定的 pod</blockquote><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="10ca429039e53fda3d991f5ae03ada0d">7: 控制器： 控制集群服务器的状态 朝 API 服务器定义的期望状态 收敛。 </p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="69e526abccd5feb84302f623edc4e897">控制器包括</p><ul class="cherry-list__default" data-lines="10" data-sign="499c4cc9e46af1b3973a20c4f89232e9list10"><li>Replication 管理器 (ReplicationController 资源的管理器）： 监听 pod的数量</li><li>ReplicaSet、 DaemonSet 以及 Job 控制器： 部署和维护 pod</li><li>Deployment 控制器： 控制滚动更新，每个版本，都会创建一个 ReplicaSet</li><li>StatefulSet 控制器: 有状态服务的管理，挂载到相同的 PV，相同的IP和主机名</li><li>Node 控制器：管理Node资源，监控 每个 Node 的健康状态； </li><li>Serice 控制器： 网络管理相关组件，创建或删除 LoadBalancer 类型服务； </li><li>Endpoints 控制器： 从 Service 的pod 选择器中选出指定的pod，并将 IP和端口更新到 Endpoint 资源中； </li><li>Namespace 控制器： 创建 或 删除 Namespace 对象； </li><li>PersistentVolume 控制器： 创建一个 PVC后，由 该控制器找到一个 合适的 PV 绑定。 【存储量大于 PVC 声明的 最小 PV】</li><li>其他</li></ul><blockquote data-lines="2" data-sign="31694151c003c331013aabbd799d376d_2">控制器就是活跃的Kuberetes 组件， 去做具体工作部署资源。  </blockquote><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="7a159a93db3525502686579c927146ae">控制器通过监听 API 资源，作出相应的调整，如 更新、删除已有对象。 </p><p data-lines="2" data-type="p" data-sign="497e7e972dd5f63f91635ecb1db2d8cd">控制器之间不会直接通信， 每个控制器都会连接到 API 服务器。 </p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="de28af9e3e5eab40e2ef3780d5a70d5c">8： kubelet: 监控 API 服务器 是否在当前节点 新分配了 pod，告知 容器运行时(如 Docker) 运行容器。</p><p data-lines="2" data-type="p" data-sign="bd8c34042192819ff50b4b1d45c2d519">9： kube-proxy: 通过 修改 iptables ，将请求重定向到 服务器。 </p><p data-lines="2" data-type="p" data-sign="4452c2344cb239a4c12210095418cca9">userspace 代理模式如下， 对每个进来的连接，代理到一个 pod</p><p data-lines="2" data-type="p" data-sign="8e344efca6c17c7793dc30027b46c6d1"></p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="1b16ff39325f367c069064caa8b6b6a6">现在是 默认的 iptables 模式。 </p><p data-lines="5" data-type="br" data-sign="br5">&nbsp;</p><p data-lines="1" data-type="p" data-sign="6cebd5c622347fbce51f43130b623aa4">10： 控制器之间是相互协作的，通过监听 API服务器来判断 是否要创建 / 删除 资源。</p><p data-lines="2" data-type="p" data-sign="97d100800c228093465e228c580a5414">如下 是创建一个  Deployment 资源的事件链：</p><p data-lines="2" data-type="p" data-sign="60a91d4c2262ef85a4cd05998553e512"></p><p data-lines="2" data-type="p" data-sign="93f9d77c57dcae6e5ea2f6cbe1f2cd29">11： 在每个 pod 中会有一个 基础容器（处于 pending 状态），用于保存 Linux 命名空间，当容器被重启时，需要保持和之前的命名空间一样， 这个 pod 就发挥了作用。 </p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><h3 data-lines="1" data-sign="5b37f74dfcdfce53c5c7b55dd2bcd3e1" id="%E7%BD%91%E7%BB%9C%E9%80%9A%E4%BF%A1" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E7%BD%91%E7%BB%9C%E9%80%9A%E4%BF%A1" class="anchor"></a>网络通信</h3><p data-lines="2" data-type="p" data-sign="a4b4f243504ff9da56d237a4143b3263">1： 同节点的 pod 之间通信。 </p><p data-lines="2" data-type="p" data-sign="188a2a7eb6a960500d298f64c2e66f65">基础容器启动前，会为容器创建一个 虚拟 Ethernet 接口对 （veth pair）：</p><ul class="cherry-list__default" data-lines="2" data-sign="25e86fe1c13e9c7fe8692b54803c17bdlist2"><li>一端在 node 节点的命名空间中： vethXXXX</li><li>一端在容器网络命名空间中： eth0</li></ul><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="2" data-type="p" data-sign="ca69f85d2555df73a40b7bc7c748fdf3">只要连接到 同一 网桥，相互之间就能通信。<br></p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="6413be1b66332d0491c2b644e996390e">2： 不同节点的 pod 之间通信，两个节点之间需要连接网桥</p><p data-lines="2" data-type="p" data-sign="7b15674ece339b1758d113dcc8f0df2b">连接网桥的方式有：</p><ul class="cherry-list__default" data-lines="3" data-sign="bd3f15aa161bc74ab695d8f1cd388638list3"><li>overlay </li><li>underlay 网络</li><li>常规的三层路由</li></ul><blockquote data-lines="2" data-sign="c9a53ac3d58caf76c24a4695769971fe_2">跨节点网桥必须使用 非重叠地址段， 保证不同的 pod 有不同的IP</blockquote><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="d5ab32c89671f7d56ea6376618caa8a4">以下节点需要配置路由 或者 连接到相同网关【中间无路由】，否则会因为 pod IP 是局域私有的，会丢包。 </p><blockquote data-lines="3" data-sign="ed284a33b49becd57643105459483c8a_3">使用 SDN （软件定义网络） 技术，可以忽略底层网络拓扑，所有节点就像连接到同一个网关；<br><br>pod 发出的报文会被封装，到达其它节点，会被解封装； </blockquote><p data-lines="2" data-type="p" data-sign="577dccd16a4612ebc6c4ede3a847a824"></p><p data-lines="5" data-type="br" data-sign="br5">&nbsp;</p><h2 data-lines="1" data-sign="553c474d66235600ad480024ef613978" id="%E6%9C%8D%E5%8A%A1-3" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E6%9C%8D%E5%8A%A1-3" class="anchor"></a>服务</h2><p data-lines="2" data-type="p" data-sign="8cca69dee07658de4eb1fd63c23b1222">1： 和 Service 相关的操作 都是由 每个 节点上的 kube-proxy 进行处理的。 </p><p data-lines="2" data-type="p" data-sign="ba2562f3a9290d8d44db4b5dbd5dcfea">2： 每个 service 都有一个稳定的 IP地址 和端口 对； 【针对多端口 Service有多个 IP：端口对】</p><blockquote data-lines="2" data-sign="f6c72cf57f0784a748756d3ed8cb30ac_2">单独的服务 IP无任何意义，不能 ping</blockquote><p data-lines="5" data-type="br" data-sign="br5">&nbsp;</p><p data-lines="1" data-type="p" data-sign="197d474a7c3c4ca81c5a1db7dd7475df">3： 创建一个 Service，会发生以下事件链： </p><ul class="cherry-list__default" data-lines="4" data-sign="bf8465b6c18809216e8588e65492df47list4"><li>当创建一个服务时， 虚拟IP地址会分配给它</li><li>API 服务器 会通知所有 节点上的 kube-proxy, 有个新的服务创建了， 修改 iptables, 让服务在字节所在的节点可寻址； 【修改目的地址 ，重定向到其中的一个 pod】</li><li>kube - proxy 还会监听 Endpoint 对象的更改<ul class="cherry-list__default"><li>Endpoint 保存了所有 pod 的 ip:端口 对 【每次创建 或 删除 pod，都会影响 Endpoint】</li></ul></li></ul><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="b157518d6602e9dbef7b5c3914ec9eba">下图中 pod A 请求 pod B时， 会随机选择一个 pod（假设 pod B2 选中）， 根据 iptables 规则，目标地址被修改为 pod B2 的 ip:端口</p><p data-lines="2" data-type="p" data-sign="51521c68e3c5bb1bd8cafbe6e69e31ce"></p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><h2 data-lines="1" data-sign="287fa231600da30caac03b02014214b3" id="%E9%AB%98%E5%8F%AF%E7%94%A8%E9%9B%86%E7%BE%A4" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E9%AB%98%E5%8F%AF%E7%94%A8%E9%9B%86%E7%BE%A4" class="anchor"></a>高可用集群</h2><p data-lines="2" data-type="p" data-sign="02cef028887024a0ecd9f426dbdc2153">1： 应用高可用： 分布式集群； </p><p data-lines="2" data-type="p" data-sign="332c55a0b8c52618420792c4ff2fb923">2： 主节点高可用： 部署成集群</p><ul class="cherry-list__default" data-lines="3" data-sign="f287ec56f220e0bf7dd6abd8067374ddlist3"><li>API server 通过负载均衡器选择，同时并行工作； </li><li>控制器和调度器： 领导者选举一个运行； <br></li></ul><p data-lines="6" data-type="br" data-sign="br6">&nbsp;</p><h1 data-lines="1" data-sign="853517bdeb4117999f33dfa8524652c3" id="kubernetes-api-%E6%9C%8D%E5%8A%A1%E5%99%A8%E7%9A%84%E5%AE%89%E5%85%A8%E9%98%B2%E6%8A%A4" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#kubernetes-api-%E6%9C%8D%E5%8A%A1%E5%99%A8%E7%9A%84%E5%AE%89%E5%85%A8%E9%98%B2%E6%8A%A4" class="anchor"></a>kubernetes API 服务器的安全防护</h1><h2 data-lines="2" data-sign="a14853471043b30c1f3286ad130b9b53" id="%E8%AE%A4%E8%AF%81%E6%9C%BA%E5%88%B6" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E8%AE%A4%E8%AF%81%E6%9C%BA%E5%88%B6" class="anchor"></a>认证机制</h2><p data-lines="2" data-type="p" data-sign="7e21dbfd94395522004e3359c7e0bf5e">1： pod 与API 服务器进行通信时，会经过 API 服务器的 <strong>认证插件</strong></p><p data-lines="2" data-type="p" data-sign="3068e3e9bf39e1d1f085077e4e3c2f96">该插件会根据 证书+token 或 HTTP 用户验证 提取 客户端的 用户名、用户ID 和 组信息。</p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="7b49a29ca0d50d9442c0013b934c65c2">2： 连接 API 服务器有两种客户端： </p><ul class="cherry-list__default" data-lines="2" data-sign="a79e97e2ffee1496ae74cf33bc07f2e3list2"><li>真实的用户； </li><li>运行在pod 中的应用； </li></ul><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="da0c8f43a31a0f513e3aa6efe89c95ee">3：系统内置的组 有特殊含义</p><ul class="cherry-list__default" data-lines="5" data-sign="28f044ae9517cf1c829bf47a556efc2clist5"><li><code>system:unauthenticated</code> 组用于所有认证插件都不会认证客户端身份的<br>请求。</li><li><code>system:authenticated</code> 组会自动分配给一个成功通过认证的用户。</li><li><code>system:serviceaccounts</code> 组包含所有在系统中的 ServiceAccount 。</li><li><code>system:serviceaccounts:&lt;namespace&gt;</code>组包含了所有在特定命名空间中的ServiceAccount。</li></ul><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><h3 data-lines="1" data-sign="c6c94b764bac653c91e3f7e113a9ee14" id="serviceaccount" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#serviceaccount" class="anchor"></a>ServiceAccount</h3><p data-lines="2" data-type="p" data-sign="d8eae5a6da684f99791b0e39ccb0f3ed">1: ServiceAccount 也是一种资源(简称 sa), 会为每个命名空间自动创建一个 默认的 ServiceAccount </p><blockquote data-lines="2" data-sign="bb7a10bfbae4edbcf0d80bc4b5c95ba6_2">主要用于 客户端身份认证，省去 手动传 token</blockquote><p data-lines="2" data-type="p" data-sign="10b282e52432e24560f7f14b647e4630">2： pod 只能使用 同一命名空间的 ServiceAccount </p><ul class="cherry-list__default" data-lines="2" data-sign="599bc8b54472b14b0a450c4174929533list2"><li>可单独使用一个 ServiceAccount </li><li>也可和同命名空间的 其它 pod 共用  ServiceAccount </li></ul><p data-lines="1" data-type="p" data-sign="a1de17ab1d47d92bce311860b450353e"></p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="39d91f00146ab2f6997f0bb10a1e3fef">3： 可在 pod 中显示指定使用的 ServiceAccount， 否则使用该命名 空间下 默认的 sa.</p><blockquote data-lines="2" data-sign="171bf86497a2b6d72a42d40e96d1f584_2">添加注解 <code>kubernetes.io/enforce-mountable-secrets= "true"</code>， 可强制 pod 只允许挂载 ServiceAccount 中的秘钥</blockquote><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="55154dd3f83c68876c57dcbd1d816e02">4: ServiceAccount 的镜像拉取秘钥， 用于拉取容器镜像的凭证。 </p><blockquote data-lines="2" data-sign="dc4a583e3cddc43a22e9309585a4bdc9_2">注意：  所有使用 该 ServiceAccount的 pod 都会拥有这个秘钥，而不必每个单独添加。 <br><div data-sign="b356499071581ff0ac722be1404179d6" data-type="codeBlock" data-lines="10"><pre class="prism language-yaml" style="position: relative; z-index: 2;"><code class="language-yaml"><span class="token key atrule">apiVersion</span><span class="token punctuation">:</span> v1
-<span class="token key atrule">kind</span><span class="token punctuation">:</span> ServiceAccount
-<span class="token key atrule">metadata</span><span class="token punctuation">:</span>
-  <span class="token key atrule">name</span><span class="token punctuation">:</span> my<span class="token punctuation">-</span>service<span class="token punctuation">-</span>account
-<span class="token key atrule">imagePullSecrets</span><span class="token punctuation">:</span>
-  <span class="token comment"># 所有使用 该 ServiceAccount的 pod 都会拥有这个秘钥</span>
-<span class="token punctuation">-</span> <span class="token key atrule">name</span><span class="token punctuation">:</span> my<span class="token punctuation">-</span>dockerhub<span class="token punctuation">-</span>secret
-</code></pre></div></blockquote><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="1e8d29f150aefc1b08ce1b7fdcd596de">5: 在pod 中使用 serviceAccount </p><div data-sign="cf58e519c9e0ff8770f7e302620dec57" data-type="codeBlock" data-lines="17"><pre class="prism language-yaml" style="position: relative; z-index: 2;"><code class="language-yaml"><span class="token key atrule">apiVersion</span><span class="token punctuation">:</span> v1
-<span class="token key atrule">kind</span><span class="token punctuation">:</span> Pod
-<span class="token key atrule">metadata</span><span class="token punctuation">:</span>
-  <span class="token key atrule">name</span><span class="token punctuation">:</span> curl<span class="token punctuation">-</span>custom<span class="token punctuation">-</span>sa
-<span class="token key atrule">spec</span><span class="token punctuation">:</span>
-  <span class="token comment"># 若不显示声明，则使用 默认的 serviceAccount</span>
-  <span class="token key atrule">serviceAccountName</span><span class="token punctuation">:</span> foo
-  <span class="token key atrule">containers</span><span class="token punctuation">:</span>
-  <span class="token punctuation">-</span> <span class="token key atrule">name</span><span class="token punctuation">:</span> main
-    <span class="token key atrule">image</span><span class="token punctuation">:</span> tutum/curl
-    <span class="token key atrule">command</span><span class="token punctuation">:</span> <span class="token punctuation">[</span><span class="token string">"sleep"</span><span class="token punctuation">,</span> <span class="token string">"9999999"</span><span class="token punctuation">]</span>
-  <span class="token punctuation">-</span> <span class="token key atrule">name</span><span class="token punctuation">:</span> ambassador
-    <span class="token key atrule">image</span><span class="token punctuation">:</span> luksa/kubectl<span class="token punctuation">-</span>proxy<span class="token punctuation">:</span>1.6.2
-
+<p data-lines="2" data-type="p" data-sign="821dcf838e308e735e4a6242f6d1855a">4: Deployment 提供两种升级策略： </p><ul class="cherry-list__default" data-lines="1" data-sign="3839ababe17df0ebb56ab8570912b5c4list1"><li>1： 滚动更新， RollingUpdate; </li></ul><p data-lines="1" data-type="p" data-sign="1bef83ed0283d7916ddb86f5b6029844">升级过程中 速度可控： <code>minReadySeconds  </code>  可控制滚动更新的速度</p><blockquote data-lines="3" data-sign="3e746cd6c289303fca40717a23c81b71_3">minReadySeconds  要求 pod 至少运行多久才算可用。 在 新pod 可用之前， maxUnavailable 会卡主更新。 <br><br>若在 minReadySeconds  时间内，就绪探针失败， 新版本滚动会停止。 </blockquote><p data-lines="2" data-type="p" data-sign="f40047e274cc26da8780ede224e5b574">pod 未就绪时，新的请求也不会 分发到上面。 </p><p data-lines="2" data-type="p" data-sign="74ee53fb06994935d93d443319b912f0" style=""></p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="8a73cdb1e241d16e90f67b856309d36b">触发更新如下， 直接设置新的镜像版本即可： </p><div data-sign="ed16844bd8594158451adb66b943eb38" data-type="codeBlock" data-lines="4"><pre><code>kubectl set image deployment/replicationcontroller/replicaset &lt;资源名&gt; &lt;container-name&gt;=&lt;ID&gt;/&lt;image&gt;:&lt;tag&gt;: 修改 资源下容器里的 镜像，会修改 pod 模板; 并 触发 Deployment 的 滚动升级
 </code></pre>
 
-<p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><blockquote data-lines="2" data-sign="c6e738aff447a91ed43fcda73b66e85d_2">ServiceAccount 账户 产生的 Token 在 <code>/var/run/secrets/kubernetes.io/serviceaccount/</code>   目录。<br><br>未使用 RBAC授权插件， <strong>==默认的 serviceaccount 和 显示创建的 serviceaccount 都允许 执行任何操作。==</strong> </blockquote><p data-lines="7" data-type="br" data-sign="br7">&nbsp;</p><h2 data-lines="1" data-sign="2fe5c4b68561eb7b99e760f86ab67128" id="rbac" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#rbac" class="anchor"></a>RBAC</h2><p data-lines="2" data-type="p" data-sign="ff6ffbd2151fcd03d900c6c8a6d8c753">1： RBAC： 基于 角色的权限访问控制插件； </p><blockquote data-lines="2" data-sign="b2f3963db00d6c1cb0b646ded55494e4_2">开启 RBAC后，未经授权的 serviceAccount 或 默认的 serviceAccount 禁止查看集群状态。 </blockquote><p data-lines="2" data-type="p" data-sign="f44aae1eb2b487a3593c4d6b55ab494a">2： RBAC 用来设置一个用户、ServiceAccount 或者一组用户，控制该角色在特定资源上 能否执行动作的权限，比如以下动作： </p><p data-lines="2" data-type="p" data-sign="a63a1b4c6907f65420217f33d4a7d992"></p><blockquote data-lines="2" data-sign="cd750597e2845614962a9f404f1c7bdd_2">use 动词用于 PodSecurityPolicy 资源。 </blockquote><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="480c11b4e8c5667cdc8591809fc6c311">3： RBAC 授权规则是通过四种资源来进行配置的， 它们可以分为两个组</p><ul class="cherry-list__default" data-lines="4" data-sign="29a9d683093a74888e1e08e12460ac16list4"><li>Role( 角色）和 ClusterRole (集群角色）， 它们指定了在资源上可以执行哪些动词。<ul class="cherry-list__default"><li><strong>命名空间</strong>  范围内的资源</li></ul></li><li>RoleBinding (角色绑定） 和 ClusterRoleBinding (集群角色绑定）， 它们将上述角色绑定到特定的用户、 组或 ServiceAccounts 上。<ul class="cherry-list__default"><li><strong>集群级别</strong> 的资源</li></ul></li></ul><blockquote data-lines="2" data-sign="8348f7f0152c8793382bff6d91607bd1_2">角色定义了可以做什么操作，而绑定定义了谁可以做这些操作  </blockquote><p data-lines="2" data-type="p" data-sign="8741308f93008db63bc65920372cfd65"></p><p data-lines="5" data-type="br" data-sign="br5">&nbsp;</p><p data-lines="1" data-type="p" data-sign="3a1aacf3595655d82317416ec7c10b2b">需要注意的是，RoleBinding也可以引用 <strong>不在命名空间中的集群角色。</strong> </p><blockquote data-lines="2" data-sign="982beb165813cee2d59ce8130e5f8dbd_2">Role 和 RoleBinding 都在命名空间中， ClusterRole 和 ClusterRoleBinding 不在命名空间中。 </blockquote><p data-lines="2" data-type="p" data-sign="5b32444f891cd9ae9d27e665f3c5d441"></p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="12724401b31280a4ac25e4db48fd9927">4： 启用 RBAC，一旦开启，禁止未授权的 serviceAccount 查看/修改 资源。 </p><blockquote data-lines="2" data-sign="e78d447e33c0375c91bd82ae85ec2056_2"><code>kubectl delete clusterrolebinding permissive-binding</code>: 重新启用 RBAC</blockquote><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="5169ded88d3e0d4b0466ace2c5c9c1ae">5： Role:  哪些操作可以在 哪些资源上执行。  【授权某些资源的 操作权限。 】</p><div data-sign="37a952a29ab7a290d0f9a13a9b9b6002" data-type="codeBlock" data-lines="17"><pre class="prism language-yaml" style="position: relative; z-index: 2;"><code class="language-yaml"><span class="token key atrule">apiVersion</span><span class="token punctuation">:</span> rbac.authorization.k8s.io/v1
-<span class="token key atrule">kind</span><span class="token punctuation">:</span> Role
-<span class="token key atrule">metadata</span><span class="token punctuation">:</span>
-  <span class="token comment"># Role 所在的命名空间，若没指定，默认是当前命名空间</span>
-  <span class="token key atrule">namespace</span><span class="token punctuation">:</span> foo
-  <span class="token key atrule">name</span><span class="token punctuation">:</span> service<span class="token punctuation">-</span>reader
-<span class="token key atrule">rules</span><span class="token punctuation">:</span>
-<span class="token comment"># service 是核心 apiGroup 资源，无 apiGroup 就是 ""</span>
-<span class="token punctuation">-</span> <span class="token key atrule">apiGroups</span><span class="token punctuation">:</span> <span class="token punctuation">[</span><span class="token string">""</span><span class="token punctuation">]</span>
-  <span class="token comment"># 允许执行的 操作</span>
-  <span class="token key atrule">verbs</span><span class="token punctuation">:</span> <span class="token punctuation">[</span><span class="token string">"get"</span><span class="token punctuation">,</span> <span class="token string">"list"</span><span class="token punctuation">]</span>
+<p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><ul class="cherry-list__default" data-lines="1" data-sign="7b5cf511f1d51a1882a0ee973890f514list1"><li>2： 一次性删除所有旧的，然后创建新的, Recreate</li></ul><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="dadfb0c250a932f6472399e861b3fd16">5： Deployment 升级完后，旧的 ReplicaSet 还会保留，方便出错之后 回滚。 </p><p data-lines="2" data-type="p" data-sign="969866c68ac1613db3b0c111f45f8a59" style=""></p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="44167c3a442c1c1d943b8328eefa4dd4">可以回滚到指定的版本，保留的历史版本数 通过 <code>revisionHistoryLimit</code> 属性控制： </p><p data-lines="2" data-type="p" data-sign="031761b200b8a49284b5b0ec55231846" style=""></p><p data-lines="5" data-type="br" data-sign="br5">&nbsp;</p><p data-lines="1" data-type="p" data-sign="b8f580699a14c68fe59b56596f2f4f9a">6： 控制滚动 更新速度的两个参数： </p><ul class="cherry-list__default" data-lines="2" data-sign="bd04b80a4fbc1845a3c1d204f385fd01list2"><li>maxSurge: 某一时刻，最多运行的 pod 数量（包括 新版本下的pod 和旧版本下的pod 数总和）， 控制 每次<strong>新版本</strong> 增加的 pod 数</li><li>maxUnavaliable: 滚动期间，最大不可用 pod 数量，控制必须得保留一定量 <strong>旧版本</strong>的 pod 树； </li></ul><p data-lines="2" data-type="p" data-sign="b546ce42dff57d9fa6a93911cec9ca95" style=""><br>假设 集群目标数量是3， maxSurge 允许最多 pod 数量达到4， 同时 maxUnavailable = 0（任意时刻， 必须至少有3个可用） </p><p data-lines="2" data-type="p" data-sign="4eeaa5d17332fe6cba527d37ea246928">3 个副本数下的更新过程： </p><p data-lines="2" data-type="p" data-sign="2cbfa6c0f239c791aa3943147047e6ad" style=""></p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="99a64928826649225ea5c1f670c214b4">7： 升级过程中，可以暂停滚动升级（发布金丝雀版本进行测试），但在哪个时刻暂停无法控制。 </p><blockquote data-lines="2" data-sign="44a43d27bc85f31da6944db20d5813cb_2">功能验证后，可恢复滚动升级。 </blockquote><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="eb6bcb739c4acd98fa92b0bacf8a257f">8： 可以通过 <code>progressDeadlineSeconds  </code> 属性指定滚动升级必须在 多长时间 <strong>内</strong> 完成，否则视为失败。 </p><p data-lines="11" data-type="br" data-sign="br11">&nbsp;</p><h1 data-lines="1" data-sign="9728fff387ff7c18d8cccde59fffc7ef" id="%E9%83%A8%E7%BD%B2%E6%9C%89%E7%8A%B6%E6%80%81%E5%A4%9A%E5%89%AF%E6%9C%AC" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E9%83%A8%E7%BD%B2%E6%9C%89%E7%8A%B6%E6%80%81%E5%A4%9A%E5%89%AF%E6%9C%AC" class="anchor"></a>部署有状态多副本</h1><p data-lines="2" data-type="p" data-sign="700705596fc4d502f0170dc80c92841f">1：有状态服务通常需要考虑：  </p><ul class="cherry-list__default" data-lines="2" data-sign="3e3861a17354e96025b9671501b0fbdelist2"><li>有状态服务需要有独立的存储：</li><li>不变的主机名和ip 地址</li></ul><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><h2 data-lines="1" data-sign="188c5b41e1e35850fbc14b3849bad2cd" id="statefulset" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#statefulset" class="anchor"></a>StatefulSet</h2><p data-lines="2" data-type="p" data-sign="4d5670d34564b6d9bafc47530eb88e3c">1: StatefulSet 可以保证重启一个 pod 实例，拥有和之前一样的 名称 和 主机名。 </p><p data-lines="2" data-type="p" data-sign="470d950ea05473b7fc6d3df828c64ecb">2：StatefulSet 可以保证每个 pod 都有稳定的名字和状态； </p><ul class="cherry-list__default" data-lines="2" data-sign="9b889a51ccc70c59ccd7d7ccb50793e2list2"><li>RS分配的主机名都是随机的（默认平等）</li><li>StatefulSet 分配主机名是按顺序递增的</li></ul><p data-lines="1" data-type="p" data-sign="0b71b83923f12e2d3127ac7bcc30aa6b" style=""></p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="397b0e6eb94dff450d2537be236bbfd3">3： pod 重启后，并不保证在原来的节点上： </p><blockquote data-lines="2" data-sign="5cf2931e4b0ecd8360b996bfbae2631b_2">但 主机名和 ip 保持不变</blockquote><p data-lines="2" data-type="p" data-sign="0984e1006301d7412eba4d20578aca91" style=""></p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="8916664d0ad6ae84ff32706fb87e9bc2">4： StatefulSet 缩容时，会优先删除  高索引主机名的 实例 （如下，第一次缩容，Pod A-2 最先被删除。 ）</p><p data-lines="2" data-type="p" data-sign="d8469cbae4117b06797d5cd2c31cab0d" style=""></p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="ce8569a1eacd8a92c2260cb9b6f9427a">5： 为每个 pod 声明单独的 PVC，提供独立的存储</p><p data-lines="2" data-type="p" data-sign="ff72702e8eb5deecfb76b02fef22f778" style=""></p><p data-lines="2" data-type="p" data-sign="ea7078226ce8ed3d02de6d3738000b52">缩容时，只会删除 pod， PVC 默认不会删除（除非手动），当下次重新扩容时， 会绑定到之前的 PVC</p><blockquote data-lines="2" data-sign="83f8400f067da93b0ed5d7101f77e924_2">可以保证扩容出来的 pod 还是写相同的文件。 </blockquote><p data-lines="2" data-type="p" data-sign="056175098472d22788512b088370ad16"></p><p data-lines="5" data-type="br" data-sign="br5">&nbsp;</p><p data-lines="1" data-type="p" data-sign="9976e3e02d5b368d1578c5e3ed7b39ac">6: StatefulSet 实例，创建三个对象 </p><ul class="cherry-list__default" data-lines="2" data-sign="42b06529bd5c49660021a149b5a03c21list2"><li>创建 PV <br><div data-sign="dd376cb1465baaadfffbbc251a43e59c" data-type="codeBlock" data-lines="46"><pre><code>kind: List
+apiVersion: v1
+items:
+- apiVersion: v1
+  kind: PersistentVolume
+  metadata:
+    name: pv-a
+  spec:
+    capacity:
+      storage: 1Mi
+    accessModes:
+      - ReadWriteOnce
+    persistentVolumeReclaimPolicy: Recycle
+    gcePersistentDisk:
+      pdName: pv-a
+      fsType: ext4
+- apiVersion: v1
+  kind: PersistentVolume
+  metadata:
+    name: pv-b
+  spec:
+    capacity:
+      storage: 1Mi
+    accessModes:
+      - ReadWriteOnce
+    persistentVolumeReclaimPolicy: Recycle
+    gcePersistentDisk:
+      pdName: pv-b
+      fsType: ext4
+- apiVersion: v1
+  kind: PersistentVolume
+  metadata:
+    name: pv-c
+  spec:
+    capacity:
+      storage: 1Mi
+    accessModes:
+      - ReadWriteOnce
+    persistentVolumeReclaimPolicy: Recycle
+    gcePersistentDisk:
+      pdName: pv-c
+      fsType: ext4
 
-  <span class="token comment"># 该规则和服务相关 (复数)</span>
-  <span class="token key atrule">resources</span><span class="token punctuation">:</span> <span class="token punctuation">[</span><span class="token string">"services"</span><span class="token punctuation">]</span>
-</code></pre>
+</code></pre></div></li></ul><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><ul class="cherry-list__default" data-lines="1" data-sign="a58465c69b1567cd97b479e7df1001d6list1"><li>创建一个 控制 Service</li></ul><p data-lines="1" data-type="p" data-sign="85fe0c796654ab5c45f58f5547ee7f12">创建一个 headless Service, 可以让 pod 之间彼此发现。 </p><p data-lines="1" data-type="p" data-sign="40bfbc201e73aae3eb61d116e970bfd5">通过这个 Service， 每个 pod 都有 独立的 DNS 记录， 可以通过主机名方便的找到它。 </p><div data-sign="0c7ffe769a0a7ea763d5697720ea0d01" data-type="codeBlock" data-lines="18"><pre><code>apiVersion: v1
+kind: Service
+metadata:
+  name: kubia
+spec:
+  # StatefulSet 的控制 Service 必须是 headless 模式
+  clusterIP: None
 
-<p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><blockquote data-lines="1" data-sign="62d3bf508cebea2dfea94d9a4c368eb1_1">在本例中，你允许访 问所有服 务资原，但是也可以通过额外的 <code>resourceNames</code> 字段指定服务实例的名称来限制对服务实例的访问。  </blockquote><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="025bd5bbb072bd0c131d62aa663a47ef">Role 中的声明，表明 能get 和 list 中的 service 资源。 【默认是禁止的】</p><p data-lines="2" data-type="p" data-sign="662769fe6218b84464885def183b6493"></p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="ca806e822262f2ca5067e140568dcbf0">6： rolebinding， 将Role中允许的权限 绑定到指定的账户上。 </p><div data-sign="ac6a7b4999f3d1cf272a0d5e32a1cd2c" data-type="codeBlock" data-lines="4"><pre class="prism language-sh" style="position: relative; z-index: 2;"><code class="language-sh">kubectl create rolebinding <span class="token operator">&lt;</span>rolebinding<span class="token operator">-</span>name<span class="token operator">&gt;</span> <span class="token operator">--</span>role<span class="token operator">=</span><span class="token operator">&lt;</span>role<span class="token operator">-</span>name<span class="token operator">&gt;</span> serviceaccount<span class="token operator">=</span>foo<span class="token operator">:</span>deault <span class="token operator">-</span>n foo<span class="token operator">:</span> 创建 rolebinding 资源，绑定到 foo 命名空间中， <span class="token keyword">default</span>  的 ServiceAccount 账号上
-</code></pre>
-
-<blockquote data-lines="3" data-sign="f7943de53e67552e9f0968a53c1ea418_3">--user ： 绑定到用户<br><br>--group: 绑定 Role 到组</blockquote><p data-lines="2" data-type="p" data-sign="f274a2b165b01ac630170c06ee399216"></p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="4e795f4b6016d5c405d0a9a7de091472">RoleBinding 也能绑定到其它 命名空间 的  serviceAccount。 总之，绑定到哪个账户，就赋予哪个账户权限。 </p><p data-lines="2" data-type="p" data-sign="b2371a979984819429e35f31f692f177">如下，RoleBinding 绑定到 bar 命名空间的 sa账户时，也能查看 services。 </p><p data-lines="2" data-type="p" data-sign="014d4128e8ca8653d6c032816bc2b263"></p><p data-lines="5" data-type="br" data-sign="br5">&nbsp;</p><p data-lines="1" data-type="p" data-sign="f5efffcb5148b516a3bd7e0ae5ace28a">7： ClusterRole 和 ClusterRoleBinding 属于集群级别的资源管理</p><p data-lines="2" data-type="p" data-sign="49dff23538683102aca0343a84c05d22">以下两种情况，需要使用 集群级别的授权： </p><ul class="cherry-list__default" data-lines="3" data-sign="5f1de359d75529203f3749609098f849list3"><li>1： 当允许跨命名空间访问资源时， 每次扩展，都需要为新的命名空间 添加 Role 和 RoleBinding 【命名空间与命名空间之间会相互绑定】</li><li>2： 有些资源不在命名空间中: Node、PersistentVolume、Namespace 等<ul class="cherry-list__default"><li>非资源的 URL路径 (<code>/healthz</code>)</li></ul></li></ul><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><blockquote data-lines="1" data-sign="50eb0d2ffe54e1b1b243a3b64b241ec4_1">默认的 ClusterRole 都以 <code>system:</code> 为前缀</blockquote><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="97b7e58b5ebc1b510ad00059ec1f05a0">注意： sa 账户 可以通过 RoleBinding 绑定 到 ClusterRole 上，但是<strong>无法 访问集群级别的资源</strong>。  </p><blockquote data-lines="2" data-sign="27e9ae3b06a2658da75b385ca1c9cdf1_2">只能访问指定命名空间中的资源。 </blockquote><p data-lines="2" data-type="p" data-sign="35de60269d05be552416ad19c77cd6e4"></p><p data-lines="2" data-type="p" data-sign="fb2f208feb7b9c962e7b561aa338b1b9">只有 通过 ClusterRoleBinding 才能访问集群级别的资源。 </p><p data-lines="2" data-type="p" data-sign="dda55fa9948f37a3e0c6c2aff0c01f5e"></p><p data-lines="2" data-type="p" data-sign="5a0f691b4b6613567b885ac6eec86591">非资源型的 URL  在 ClusterRole 中 使用  的是 URL 路径 而非资源。 </p><p data-lines="2" data-type="p" data-sign="5e31706146faf6a8be96feb3ffa54f3a">通过 ClusterRoleBinding 绑定后，也能访问。 </p><p data-lines="2" data-type="p" data-sign="36e207e35dcf7a2c1b69686339c2909f">以下是一个 ClusterRole 示例。 </p><p data-lines="2" data-type="p" data-sign="ac4fc90113833cfa1e5dbcf9bf998a2b"></p><p data-lines="5" data-type="br" data-sign="br5">&nbsp;</p><p data-lines="1" data-type="p" data-sign="3aeb6469b63034872e43a061b8a09710">8： 使用 ClusterRole 授权访问指定命名空间中的资源。 </p><ul class="cherry-list__default" data-lines="1" data-sign="0a7f4ae5069e53d673957f4d0682e02flist1"><li>ClusterRoleBinding --- 绑定 --- ClusterRole: 可以发查看所有命名空间、集群中的资源； </li></ul><p data-lines="1" data-type="p" data-sign="df50aaa8e17351bdcf5a9ab74a586c30"></p><p data-lines="5" data-type="br" data-sign="br5">&nbsp;</p><ul class="cherry-list__default" data-lines="1" data-sign="547a975c450abf88a31ddd11badd8586list1"><li>RoleBinding --- 绑定 --- ClusterRole:  只能查看 绑定的 RoleBinding  命名空间中的资源</li></ul><p data-lines="1" data-type="p" data-sign="0ffd712e872b0553147818f3e98c29ce"></p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="49a7df4128866e7935c4fc67e78052ad">9： Role 和 Binding的组合，特别 注意 倒数第二条</p><p data-lines="2" data-type="p" data-sign="99a5371d87f66ae43b90cb214d0eddea"></p><p data-lines="6" data-type="br" data-sign="br6">&nbsp;</p><h1 data-lines="1" data-sign="4f0a424302dc00e3002f8057734e1317" id="%E8%8A%82%E7%82%B9%E5%92%8C%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E8%8A%82%E7%82%B9%E5%92%8C%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8" class="anchor"></a>节点和网络安全</h1><p data-lines="2" data-type="p" data-sign="1080e073ecb183c209b7ac2162d1c215">1： pod 可以访问 宿主 node 的资源。 </p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><h2 data-lines="1" data-sign="3a473a2e3b139a73d2cf5e050d3f7713" id="%E4%BD%BF%E7%94%A8%E8%8A%82%E7%82%B9%E7%9A%84linux%E5%91%BD%E5%90%8D%E7%A9%BA%E9%97%B4" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E4%BD%BF%E7%94%A8%E8%8A%82%E7%82%B9%E7%9A%84linux%E5%91%BD%E5%90%8D%E7%A9%BA%E9%97%B4" class="anchor"></a>使用节点的Linux命名空间</h2><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><h3 data-lines="1" data-sign="44bb90f9fadb28a3c4e992dcf232fa6c" id="%E4%BD%BF%E7%94%A8%E8%8A%82%E7%82%B9%E7%9A%84%E7%BD%91%E7%BB%9C%E5%91%BD%E5%90%8D%E7%A9%BA%E9%97%B4%E5%92%8C%E7%AB%AF%E5%8F%A3" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E4%BD%BF%E7%94%A8%E8%8A%82%E7%82%B9%E7%9A%84%E7%BD%91%E7%BB%9C%E5%91%BD%E5%90%8D%E7%A9%BA%E9%97%B4%E5%92%8C%E7%AB%AF%E5%8F%A3" class="anchor"></a>使用节点的网络命名空间和端口</h3><p data-lines="2" data-type="p" data-sign="9d25fec70977a175d646b16bba7cec88">1： 默认 每个 pod 拥有自己的 IP 和 端口空间。 </p><p data-lines="2" data-type="p" data-sign="bc5697ae54e02921c4f99334f3be256a">设置 <code>pod.spec.hostNetwork:true</code> , pod 使用节点的网络接口，而无自己的 IP 地址。 </p><p data-lines="2" data-type="p" data-sign="26532ec377dafdc7abc3be8374f29c9d">端口也会绑定到主节点</p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="be5f398c35157eae20a886ec2cf23d2a">2： 如下， pod B 和 节点公用 ip: 端口空间， </p><p data-lines="2" data-type="p" data-sign="42ea89e9fcec343fcb39a2fb7e402dd5"></p><p data-lines="2" data-type="p" data-sign="3ba7a69d8e0d5c39f9641bec8be1a418">3： 一般 master 节点上 部署的 node 经常会开启  <code>pod.spec.hostNetwork:true</code></p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><h3 data-lines="1" data-sign="bda3380609086a635ff9071a9e58dbb2" id="%E4%BB%85%E7%BB%91%E5%AE%9A%E8%8A%82%E7%82%B9%E7%9A%84%E7%AB%AF%E5%8F%A3" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E4%BB%85%E7%BB%91%E5%AE%9A%E8%8A%82%E7%82%B9%E7%9A%84%E7%AB%AF%E5%8F%A3" class="anchor"></a>仅绑定节点的端口</h3><p data-lines="2" data-type="p" data-sign="a553edaad245accae882fafa839fea1a">1： 仅仅绑定节点的端口，而让 pod 继续有自己的网络命名空间。 </p><p data-lines="2" data-type="p" data-sign="97b23d4d5558919e3c81b187323769b5">2： 设置 <code>pod.spec.hostPort:true</code> </p><p data-lines="2" data-type="p" data-sign="eb90cb265d8cfaba23ba550dbc9100e3">使用 hostPort 和 NodePort 有两点不同： </p><ul class="cherry-list__default" data-lines="6" data-sign="670a81a813191e1835022a9138c66dd9list6"><li>到达节点端口的连接<ul class="cherry-list__default"><li>hostPort: 会直接转发 到 pod 对应的端口上； </li><li>NodePort: 随机选择一个 pod</li></ul></li><li>作用范围<ul class="cherry-list__default"><li>hostPort: 仅有 运行了 hostPort 配置的 pod 才会绑定对应的端口，未运行则不绑定(Node 3)</li><li>NodePort: 集群中的所有节点 都会绑定。 </li></ul></li></ul><p data-lines="1" data-type="p" data-sign="b34a6ada77e30cb4fc56bf4f34d08369"></p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="718fa4d99f6c0a0b7864620e48eb56d3">3： 若采用 hostPort 公用主机端口，则在一个节点上，一个端口只允许绑定一次。 </p><p data-lines="2" data-type="p" data-sign="5dbaddd29e428051d3dfa78fd9b55cb9">若在调度的时候，多个 pod 需要绑定到同一端口， 则控制器会分散到不同的 节点。</p><blockquote data-lines="2" data-sign="209aabd2e59ec1eb106d197b87afb4ec_2">若无足够多的节点，pod 会保持 pending 状态</blockquote><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="47cbca040b79c08a91fdb9e0686b7766">4： 同样的，设置 <code>hostPID</code>:  可共用 Node 的 进程树空间。</p><p data-lines="2" data-type="p" data-sign="6a66942d140bf0113ed090174ba4acf4"><code>hostIPC</code>:  可通过 IPC 进行进程间通信 </p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><h2 data-lines="1" data-sign="7d77408f934b8451cc77ab53f8493f33" id="%E9%85%8D%E7%BD%AE%E8%8A%82%E7%82%B9%E5%AE%89%E5%85%A8%E4%B8%8A%E4%B8%8B%E6%96%87" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E9%85%8D%E7%BD%AE%E8%8A%82%E7%82%B9%E5%AE%89%E5%85%A8%E4%B8%8A%E4%B8%8B%E6%96%87" class="anchor"></a>配置节点安全上下文</h2><p data-lines="2" data-type="p" data-sign="42cc52ea9517db5a591f80d987c3d6fc">1: 配置节点的安全上下文，可通过 <code>securityContext  </code> 设置。 </p><p data-lines="2" data-type="p" data-sign="77eeaadb6976113392f636c9d8239c8a">配置安全上下文可以允许你做很多事 ：</p><ul class="cherry-list__default" data-lines="11" data-sign="1f07cc3be01768497ede930817b753ealist11"><li>指定容器中运行进程的用户（用户 ID ）。</li><li>阻止容器使用 root 用户运行（容器的默认运行用户通常在其镜像中指定，所以可能需要阻止容器 以 root 用户运行〉。</li><li>使用特权模式运行容器，使其对宿主节点的内核具有完全的访问权限 。</li><li>与以上相反，通过添加或禁用内核功能，配置细粒度的内核访问权限。<ul class="cherry-list__default"><li>修改系统时间</li></ul></li><li>设置 SELinux （Security Enhaced Linux ， 安全增强型 Linux ）边项，加强对容器的限制。  <br></li><li>阻止进程写入容器的根文件系统 </li><li>同pod 多容器下，多用户共享存储卷。 <ul class="cherry-list__default"><li>fsGroup 属性， 在创建文件时起作用</li><li>supplementalGroups 属性定义了某个用户所关联的额外的用户组。  </li></ul></li></ul><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><h2 data-lines="1" data-sign="920dc847c62eb04950d7efba3709a9c6" id="podsecuritypolicy" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#podsecuritypolicy" class="anchor"></a>PodSecurityPolicy</h2><p data-lines="2" data-type="p" data-sign="b4244dfc644a404c692fb157f0f10421">1: PodSecurityPolicy 是集群级别的资源， 限制用户 在 pod 中能否使用安全相关的特性。 </p><p data-lines="2" data-type="p" data-sign="6c69db4faac90967764c0d64ef71957a">2： PodSecurityPolicy 可以做的事项： </p><ul class="cherry-list__default" data-lines="9" data-sign="a9ca937c952639fb9d60a43c5d64017alist9"><li>是否允许 pod 使用宿主节点的 PID、 IPC、 网络命名空间</li><li>pod 允许绑定的宿主节点端口</li><li>容器运行时允许使用的用户 ID</li><li>是否允许拥有特权模式容器的 pod</li><li>允许添加哪些内核功能， 默认添加哪些内核功能， 总是禁用哪些内核功能</li><li>允许容器使用哪些 SELinux 选项</li><li>容器是否允许使用可写的根文件系统</li><li>允许容器在哪些文件系统组下运行</li><li>允许 pod 使用哪些类型的存储卷  </li></ul><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><h2 data-lines="1" data-sign="d11a4c355d06d856a686cd662e0c1b61" id="networkpolicy" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#networkpolicy" class="anchor"></a>NetworkPolicy</h2><p data-lines="2" data-type="p" data-sign="a69c74217454be763345fbeb290ff548">1: NetworkPolicy 用于限制 pod 与 pod 之间的通信。 网络 <strong>隔离</strong> 组件。 </p><ul class="cherry-list__default" data-lines="2" data-sign="1ba94d9c251b7cb41977a531c046ce64list2"><li>ingress: 允许访问这些 pod 的源地址；  【入向规则，<strong>能被</strong> 哪些 pod/命名空间下的pod/IP 段 访问】</li><li>egress: 这些 pod 可以访问的 目标地址；  【出向规则， 该 pod <strong>只能与 哪些 pod 通信</strong>】</li></ul><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="55e636c34cc72bd62863f93da55c94a0">2： 可选定 pod 的范围： </p><ul class="cherry-list__default" data-lines="3" data-sign="833929ba95f507e47c2038ea3978b97clist3"><li>标签选择器 选出的 pod； </li><li>一个 namespace 中的所有pod; </li><li>无类别域间路由 (Classes Inter-Domain Routing, CIDR) 指定的 IP 段； </li></ul><p data-lines="5" data-type="br" data-sign="br5">&nbsp;</p><p data-lines="1" data-type="p" data-sign="103845eb5ff826f663e312fd714ffae6">3： 由于 NetworkPolicy  是网络隔离组件， 该命名空间下，pod 无法访问。 </p><div data-sign="7f35730a03f65e92d65eceb76a41b84a" data-type="codeBlock" data-lines="11"><pre class="prism language-yaml" style="position: relative; z-index: 2;"><code class="language-yaml"><span class="token key atrule">apiVersion</span><span class="token punctuation">:</span> networking.k8s.io/v1
-<span class="token key atrule">kind</span><span class="token punctuation">:</span> NetworkPolicy
-<span class="token key atrule">metadata</span><span class="token punctuation">:</span>
-  <span class="token key atrule">name</span><span class="token punctuation">:</span> default<span class="token punctuation">-</span>deny
-<span class="token key atrule">spec</span><span class="token punctuation">:</span>
-  <span class="token comment"># 空的标签选择器 匹配 命名空间内的 所有pod</span>
-  <span class="token key atrule">podSelector</span><span class="token punctuation">:</span>
+  # 所有 带有 app: kubia 标签的pod 都属于这个 service
+  selector:
+    app: kubia
+  ports:
+  - name: http
+    port: 80
 
 </code></pre>
 
-<p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="a06e819b728f9de5e3ca31267a5fe64e">4：即使其他 pod 通过 service 访问，依然会被 NetworkPolicy 隔离。 </p><div data-sign="6d17fbaa6e05ea66acaa8fd836f8bc1a" data-type="codeBlock" data-lines="21"><pre class="prism language-yaml" style="position: relative; z-index: 2;"><code class="language-yaml"><span class="token key atrule">apiVersion</span><span class="token punctuation">:</span> networking.k8s.io/v1
-<span class="token key atrule">kind</span><span class="token punctuation">:</span> NetworkPolicy
-<span class="token key atrule">metadata</span><span class="token punctuation">:</span>
-  <span class="token key atrule">name</span><span class="token punctuation">:</span> postgres<span class="token punctuation">-</span>netpolicy
-<span class="token key atrule">spec</span><span class="token punctuation">:</span>
-  <span class="token key atrule">podSelector</span><span class="token punctuation">:</span>
-    <span class="token comment"># 标签为 app=database 的 pod 设置了访问权限</span>
-    <span class="token key atrule">matchLabels</span><span class="token punctuation">:</span>
-      <span class="token key atrule">app</span><span class="token punctuation">:</span> database
-  <span class="token key atrule">ingress</span><span class="token punctuation">:</span>
-  <span class="token punctuation">-</span> <span class="token key atrule">from</span><span class="token punctuation">:</span>
-    <span class="token comment"># 只对 app=webserver 的 pod 开放了 5432 端口</span>
-    <span class="token punctuation">-</span> <span class="token key atrule">podSelector</span><span class="token punctuation">:</span>
-        <span class="token key atrule">matchLabels</span><span class="token punctuation">:</span>
-          <span class="token key atrule">app</span><span class="token punctuation">:</span> webserver
-    <span class="token key atrule">ports</span><span class="token punctuation">:</span>
-    <span class="token punctuation">-</span> <span class="token key atrule">port</span><span class="token punctuation">:</span> <span class="token number">5432</span>
+<blockquote data-lines="2" data-sign="8ddf8f6c07c7904140b596e52c97f395_2">可以通过在 pod  中触发一次 SRV DNS 查询，获取其它 pod 列表</blockquote><blockquote data-lines="16" data-sign="a21398bf26fb55b1cfc7e04558284b69_16">有时不需要或不想要负载均衡，以及单独的 Service IP。 遇到这种情况，可以通过指定 Cluster IP（<code>spec.clusterIP</code>）的值为 <code>"None"</code> 来创建 <code>Headless</code> Service。<br><br>你可以使用无头 Service 与其他服务发现机制进行接口，而不必与 Kubernetes 的实现捆绑在一起。<br><br>对这无头 Service 并 <strong>不会分配 Cluster IP，kube-proxy 不会处理它们， 而且平台也不会为它们进行负载均衡和路由</strong>。 DNS 如何实现自动配置，依赖于 Service 是否定义了选择算符。<br><br>### 带选择算符的服务<br><br>对定义了选择算符的无头服务，Endpoint 控制器在 API 中创建了 Endpoints 记录， 并且修改 DNS 配置返回 A 记录（IP 地址），通过<strong>这个地址直接到达 <code>Service</code> 的后端 Pod</strong> 上。<br><br>### 无选择算符的服务<br><br>对没有定义选择算符的无头服务，Endpoint 控制器不会创建 <code>Endpoints</code> 记录。 然而 DNS 系统会查找和配置，无论是：<br><br>- 对于 <a rel="nofollow" href="https://kubernetes.io/zh/docs/concepts/services-networking/service/#external-name"><code>ExternalName</code></a> 类型的服务，查找其 CNAME 记录<br>- 对所有其他类型的服务，查找与 Service 名称相同的任何 <code>Endpoints</code> 的记录</blockquote><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><ul class="cherry-list__default" data-lines="2" data-sign="128c0c2dc7e57e82be6faebf402d93b3list2"><li>StatefulSet 本身<br><div data-sign="a50f719e5b05bc46c6a59a80bdb44551" data-type="codeBlock" data-lines="41"><pre><code>apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: kubia
+spec:
+  serviceName: kubia
+
+  # 创建2个副本，pod 上带有 标签 app: kubia
+  replicas: 2
+  selector:
+    matchLabels:
+      app: kubia # has to match .spec.template.metadata.labels
+  template:
+    metadata:
+      labels:
+        app: kubia
+    spec:
+      containers:
+      - name: kubia
+        image: luksa/kubia-pet
+        ports:
+        - name: http
+          containerPort: 8080
+        volumeMounts:
+        - name: data
+          mountPath: /var/data
+
+  # 创建 pvc 模板， 生成的pvc  data-&lt;主机名&gt;
+  volumeClaimTemplates:
+  - metadata:
+      name: data
+    spec:
+      resources:
+        requests:
+          storage: 1Mi
+      accessModes:
+      - ReadWriteOnce
+
+</code></pre></div></li></ul><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="178b8d0e6ed7b65b5fc77706cdac2cd9">7： StatefulSet 对集群同时启动两个pod非常敏感，可能存在竞争。 </p><p data-lines="2" data-type="p" data-sign="c17410b770e866b73b26d48ee76e0ea3">依次启动 是比较安全可靠的： 所以后面的 pod 会等待前面的 pod 成为就绪状态后 创建。 </p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="29447a22c61cf8b858c49aa9c44563d3">8： StatefulSet 修改模板文件后，不会自动触发运行的pod更新。 </p><blockquote data-lines="2" data-sign="bfa466bafa9be5f644cc60c29a1cc27d_2">和 ReplicaSet 一样，重启更新。 </blockquote><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="cb71034dd605a074e7c977cd80c06ea6">9： 当 pod 突然失效时（NotReady）, StatefulSet 不会立刻驱逐. 需要等足够多的时间，或者显示的删除 该 pod，才能触发 重新调度。 </p><p data-lines="2" data-type="p" data-sign="9be4ee6d2cb9229164f01f85a29e29d4">简言之， StatefulSet 会避免同时运行两个一样的 pod.</p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><h1 data-lines="1" data-sign="00720a03036b072310c5f4b10d8bdafa" id="kubernetes-%E6%9C%BA%E7%90%86" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#kubernetes-%E6%9C%BA%E7%90%86" class="anchor"></a>kubernetes 机理</h1><h2 data-lines="2" data-sign="1106403a632a805810d8cb7463a8b71b" id="%E6%9E%B6%E6%9E%84" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E6%9E%B6%E6%9E%84" class="anchor"></a>架构</h2><p data-lines="2" data-type="p" data-sign="e930879de8452ca39429f303c8ee00c9">1： k8s 集群分两部分： </p><ul class="cherry-list__default" data-lines="15" data-sign="5bafd0379a8d7e169b1efbef3b1fccf1list15"><li>master node (The k8s Control Plane, 控制面板)： 存储和管理集群的状态<ul class="cherry-list__default"><li>etcd分布式持久化存储</li><li>API服务器</li><li>调度器</li><li>控制器管理器  </li></ul></li><li>work node<ul class="cherry-list__default"><li>Kubelet</li><li>Kubelet服务代理( kube-proxy)</li><li>容器运行时(Docker、rkt或者其他)</li></ul></li><li>附加组件<ul class="cherry-list__default"><li>KubemetesDNS服务器： 通过IP对外暴露 HTTP 服务； </li><li>仪表板</li><li>Ingress控制器： 对客户端 ip 保存，后续多次连接路由到 同一个 pod</li><li>Heapster(容器集群监控）</li><li>容器网络接口插件  </li></ul></li></ul><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="fbc442efab9511f5f1e6d180e7a30ad5">整体组件如下： </p><p data-lines="1" data-type="p" data-sign="29748931c733cfde040e59585f0f74aa" style=""></p><div data-sign="034e32bb0cb590bad5b535ccdf5208c6" data-type="codeBlock" data-lines="4"><pre><code>kubectl get componentstatus ：显示控制面板各个组件的状态
+</code></pre>
+
+<p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="992db06065cd7e54c543e943758eeb12">2： 系统组件只能通过 API 服务器进行通信， 相互之间不同通信。 </p><p data-lines="2" data-type="p" data-sign="1f73e8e0f6c23e67482bfb1972061b34">3： etcd 和 API 服务器可以有多个实例 同时并行工作。 【分布式集群】</p><blockquote data-lines="2" data-sign="f9bd5e60066db030658ce742a357c41f_2">为了保证集群一致性，采用 RAFT 算法。 </blockquote><p data-lines="2" data-type="p" data-sign="0da35a460b0fe69356310158a387e871">但 调度器 和 控制器 在某一个时刻，只能有一个 实例起作用，其它实例处于 待命状态。</p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="62f40028034f1d7007f22ed600e18267">4： kubelet 是唯一一直作为常规系统运行的组件。 </p><p data-lines="2" data-type="p" data-sign="d7c24ba9ec4c9e2a634181a583f3e8cd">5:   <strong>API 服务器</strong>， 可查询、修改集群状态的 CRUD (Create、Read、Update、Delete)，并最终存入 etcd . </p><p data-lines="2" data-type="p" data-sign="e8f337447eda702b6b0e8a4a40f73131">对请求的 Rest 进行校验。 </p><ul class="cherry-list__default" data-lines="3" data-sign="2c57b3103ac23aca387bbf6b3e58e6calist3"><li>Authentication plugin: 认证插件，获取用户、用户组 等信息； </li><li>Authorization plugin：授权插件，是否有权限对指定资源进行 指定的操作； </li><li>Admission Control plugin: 准入插件控制，例如 资源限制 ResourceQuota 等</li></ul><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="5" data-type="p" data-sign="57670d8c62dce876596932f6535295b0">准入控制插件包括<br>• AlwaysPullImages： 重写 pod 的 imagePullPolicy 为 Always, 强制每次部署 pod 时拉取镜像。<br>• ServiceAccount：未明确定义服务账户的使用默认账户。<br>• NamespaceLifecycle：防止在命名空间中创建正在被删除的 pod, 或在不存在的命名空间中创建 pod。<br>• ResourceQuota：保证特定命名空间中的 pod 只能使用该命名空间分配数量的资源， 如CPU和内存。 </p><p data-lines="2" data-type="p" data-sign="6a6dae7c38858ec1410f9a3acd23b5c5"></p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="2" data-type="p" data-sign="128ab7fa03767a20f8645877356bf696">控制器可通过定期的去拉取 API 服务器信息，监听资源的变化。 <br></p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="d128de42141fb3644abc3ed0e98efe62">6： 调度器： 为pod 选择合适的节点</p><ul class="cherry-list__default" data-lines="2" data-sign="cf9cfcfc1ef82acc8811c3aec9770f92list2"><li>最简单的是随机选择一个； </li><li>以更优的方式选择一个， 对所有节点按优先级排序，找出最优节点（若分数一致，则循环分配）</li></ul><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="7bed8c46b8f2486a4b32d2f331bebaa0">筛选哪些节点可用： </p><ul class="cherry-list__default" data-lines="8" data-sign="03a1e6ef420f1aeb500d046b59489270list8"><li>节点是否能满足pod对硬件资源的请求。 </li><li>节点是否耗尽资源（是否报告过内存／硬盘压力参数） ？</li><li>pod是否要求被调度到指定节点（通过名字）， 是否是当前节点？</li><li>节点是否有和pod规格定义里的节点选择器一致的标签（如果定义了的话） ？</li><li>如果pod要求绑定指定的主机端口（第13章中讨论）那么这个节点上的这个端口是否已经 被占用？</li><li>如果pod要求有特定类型的卷， 该节点是否能为此pod加载此卷， 或者说该节点上是否已经有pod在使用该卷了？</li><li>pod是否能够容忍节点的污点，涉及污点和容忍度。 </li><li>pod是否定义了节点、pod的亲缘性以及非亲缘性规则？如果是， 那么调度节点给该pod是否会违反规则？</li></ul><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><blockquote data-lines="1" data-sign="34ee35d1ca3af13994f8fff02c40c207_1">集群中可运行 多个调度器 而非单个， 设置 <code>schedulerName</code>  来调度特定的 pod</blockquote><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="10ca429039e53fda3d991f5ae03ada0d">7: 控制器： 控制集群服务器的状态 朝 API 服务器定义的期望状态 收敛。 </p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="69e526abccd5feb84302f623edc4e897">控制器包括</p><ul class="cherry-list__default" data-lines="10" data-sign="499c4cc9e46af1b3973a20c4f89232e9list10"><li>Replication 管理器 (ReplicationController 资源的管理器）： 监听 pod的数量</li><li>ReplicaSet、 DaemonSet 以及 Job 控制器： 部署和维护 pod</li><li>Deployment 控制器： 控制滚动更新，每个版本，都会创建一个 ReplicaSet</li><li>StatefulSet 控制器: 有状态服务的管理，挂载到相同的 PV，相同的IP和主机名</li><li>Node 控制器：管理Node资源，监控 每个 Node 的健康状态； </li><li>Serice 控制器： 网络管理相关组件，创建或删除 LoadBalancer 类型服务； </li><li>Endpoints 控制器： 从 Service 的pod 选择器中选出指定的pod，并将 IP和端口更新到 Endpoint 资源中； </li><li>Namespace 控制器： 创建 或 删除 Namespace 对象； </li><li>PersistentVolume 控制器： 创建一个 PVC后，由 该控制器找到一个 合适的 PV 绑定。 【存储量大于 PVC 声明的 最小 PV】</li><li>其他</li></ul><blockquote data-lines="2" data-sign="31694151c003c331013aabbd799d376d_2">控制器就是活跃的Kuberetes 组件， 去做具体工作部署资源。  </blockquote><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="7a159a93db3525502686579c927146ae">控制器通过监听 API 资源，作出相应的调整，如 更新、删除已有对象。 </p><p data-lines="2" data-type="p" data-sign="497e7e972dd5f63f91635ecb1db2d8cd">控制器之间不会直接通信， 每个控制器都会连接到 API 服务器。 </p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="de28af9e3e5eab40e2ef3780d5a70d5c">8： kubelet: 监控 API 服务器 是否在当前节点 新分配了 pod，告知 容器运行时(如 Docker) 运行容器。</p><p data-lines="2" data-type="p" data-sign="bd8c34042192819ff50b4b1d45c2d519">9： kube-proxy: 通过 修改 iptables ，将请求重定向到 服务器。 </p><p data-lines="2" data-type="p" data-sign="4452c2344cb239a4c12210095418cca9">userspace 代理模式如下， 对每个进来的连接，代理到一个 pod</p><p data-lines="2" data-type="p" data-sign="8e344efca6c17c7793dc30027b46c6d1"></p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="1b16ff39325f367c069064caa8b6b6a6">现在是 默认的 iptables 模式。 </p><p data-lines="5" data-type="br" data-sign="br5">&nbsp;</p><p data-lines="1" data-type="p" data-sign="6cebd5c622347fbce51f43130b623aa4">10： 控制器之间是相互协作的，通过监听 API服务器来判断 是否要创建 / 删除 资源。</p><p data-lines="2" data-type="p" data-sign="97d100800c228093465e228c580a5414">如下 是创建一个  Deployment 资源的事件链：</p><p data-lines="2" data-type="p" data-sign="60a91d4c2262ef85a4cd05998553e512"></p><p data-lines="2" data-type="p" data-sign="93f9d77c57dcae6e5ea2f6cbe1f2cd29">11： 在每个 pod 中会有一个 基础容器（处于 pending 状态），用于保存 Linux 命名空间，当容器被重启时，需要保持和之前的命名空间一样， 这个 pod 就发挥了作用。 </p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><h3 data-lines="1" data-sign="5b37f74dfcdfce53c5c7b55dd2bcd3e1" id="%E7%BD%91%E7%BB%9C%E9%80%9A%E4%BF%A1" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E7%BD%91%E7%BB%9C%E9%80%9A%E4%BF%A1" class="anchor"></a>网络通信</h3><p data-lines="2" data-type="p" data-sign="a4b4f243504ff9da56d237a4143b3263">1： 同节点的 pod 之间通信。 </p><p data-lines="2" data-type="p" data-sign="188a2a7eb6a960500d298f64c2e66f65">基础容器启动前，会为容器创建一个 虚拟 Ethernet 接口对 （veth pair）：</p><ul class="cherry-list__default" data-lines="2" data-sign="25e86fe1c13e9c7fe8692b54803c17bdlist2"><li>一端在 node 节点的命名空间中： vethXXXX</li><li>一端在容器网络命名空间中： eth0</li></ul><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="2" data-type="p" data-sign="ca69f85d2555df73a40b7bc7c748fdf3">只要连接到 同一 网桥，相互之间就能通信。<br></p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="6413be1b66332d0491c2b644e996390e">2： 不同节点的 pod 之间通信，两个节点之间需要连接网桥</p><p data-lines="2" data-type="p" data-sign="7b15674ece339b1758d113dcc8f0df2b">连接网桥的方式有：</p><ul class="cherry-list__default" data-lines="3" data-sign="bd3f15aa161bc74ab695d8f1cd388638list3"><li>overlay </li><li>underlay 网络</li><li>常规的三层路由</li></ul><blockquote data-lines="2" data-sign="c9a53ac3d58caf76c24a4695769971fe_2">跨节点网桥必须使用 非重叠地址段， 保证不同的 pod 有不同的IP</blockquote><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="d5ab32c89671f7d56ea6376618caa8a4">以下节点需要配置路由 或者 连接到相同网关【中间无路由】，否则会因为 pod IP 是局域私有的，会丢包。 </p><blockquote data-lines="3" data-sign="ed284a33b49becd57643105459483c8a_3">使用 SDN （软件定义网络） 技术，可以忽略底层网络拓扑，所有节点就像连接到同一个网关；<br><br>pod 发出的报文会被封装，到达其它节点，会被解封装； </blockquote><p data-lines="2" data-type="p" data-sign="577dccd16a4612ebc6c4ede3a847a824"></p><p data-lines="5" data-type="br" data-sign="br5">&nbsp;</p><h2 data-lines="1" data-sign="553c474d66235600ad480024ef613978" id="%E6%9C%8D%E5%8A%A1-3" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E6%9C%8D%E5%8A%A1-3" class="anchor"></a>服务</h2><p data-lines="2" data-type="p" data-sign="8cca69dee07658de4eb1fd63c23b1222">1： 和 Service 相关的操作 都是由 每个 节点上的 kube-proxy 进行处理的。 </p><p data-lines="2" data-type="p" data-sign="ba2562f3a9290d8d44db4b5dbd5dcfea">2： 每个 service 都有一个稳定的 IP地址 和端口 对； 【针对多端口 Service有多个 IP：端口对】</p><blockquote data-lines="2" data-sign="f6c72cf57f0784a748756d3ed8cb30ac_2">单独的服务 IP无任何意义，不能 ping</blockquote><p data-lines="5" data-type="br" data-sign="br5">&nbsp;</p><p data-lines="1" data-type="p" data-sign="197d474a7c3c4ca81c5a1db7dd7475df">3： 创建一个 Service，会发生以下事件链： </p><ul class="cherry-list__default" data-lines="4" data-sign="bf8465b6c18809216e8588e65492df47list4"><li>当创建一个服务时， 虚拟IP地址会分配给它</li><li>API 服务器 会通知所有 节点上的 kube-proxy, 有个新的服务创建了， 修改 iptables, 让服务在字节所在的节点可寻址； 【修改目的地址 ，重定向到其中的一个 pod】</li><li>kube - proxy 还会监听 Endpoint 对象的更改<ul class="cherry-list__default"><li>Endpoint 保存了所有 pod 的 ip:端口 对 【每次创建 或 删除 pod，都会影响 Endpoint】</li></ul></li></ul><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="b157518d6602e9dbef7b5c3914ec9eba">下图中 pod A 请求 pod B时， 会随机选择一个 pod（假设 pod B2 选中）， 根据 iptables 规则，目标地址被修改为 pod B2 的 ip:端口</p><p data-lines="2" data-type="p" data-sign="51521c68e3c5bb1bd8cafbe6e69e31ce"></p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><h2 data-lines="1" data-sign="287fa231600da30caac03b02014214b3" id="%E9%AB%98%E5%8F%AF%E7%94%A8%E9%9B%86%E7%BE%A4" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E9%AB%98%E5%8F%AF%E7%94%A8%E9%9B%86%E7%BE%A4" class="anchor"></a>高可用集群</h2><p data-lines="2" data-type="p" data-sign="02cef028887024a0ecd9f426dbdc2153">1： 应用高可用： 分布式集群； </p><p data-lines="2" data-type="p" data-sign="332c55a0b8c52618420792c4ff2fb923">2： 主节点高可用： 部署成集群</p><ul class="cherry-list__default" data-lines="3" data-sign="f287ec56f220e0bf7dd6abd8067374ddlist3"><li>API server 通过负载均衡器选择，同时并行工作； </li><li>控制器和调度器： 领导者选举一个运行； <br></li></ul><p data-lines="6" data-type="br" data-sign="br6">&nbsp;</p><h1 data-lines="1" data-sign="853517bdeb4117999f33dfa8524652c3" id="kubernetes-api-%E6%9C%8D%E5%8A%A1%E5%99%A8%E7%9A%84%E5%AE%89%E5%85%A8%E9%98%B2%E6%8A%A4" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#kubernetes-api-%E6%9C%8D%E5%8A%A1%E5%99%A8%E7%9A%84%E5%AE%89%E5%85%A8%E9%98%B2%E6%8A%A4" class="anchor"></a>kubernetes API 服务器的安全防护</h1><h2 data-lines="2" data-sign="a14853471043b30c1f3286ad130b9b53" id="%E8%AE%A4%E8%AF%81%E6%9C%BA%E5%88%B6" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E8%AE%A4%E8%AF%81%E6%9C%BA%E5%88%B6" class="anchor"></a>认证机制</h2><p data-lines="2" data-type="p" data-sign="7e21dbfd94395522004e3359c7e0bf5e">1： pod 与API 服务器进行通信时，会经过 API 服务器的 <strong>认证插件</strong></p><p data-lines="2" data-type="p" data-sign="3068e3e9bf39e1d1f085077e4e3c2f96">该插件会根据 证书+token 或 HTTP 用户验证 提取 客户端的 用户名、用户ID 和 组信息。</p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="7b49a29ca0d50d9442c0013b934c65c2">2： 连接 API 服务器有两种客户端： </p><ul class="cherry-list__default" data-lines="2" data-sign="a79e97e2ffee1496ae74cf33bc07f2e3list2"><li>真实的用户； </li><li>运行在pod 中的应用； </li></ul><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="da0c8f43a31a0f513e3aa6efe89c95ee">3：系统内置的组 有特殊含义</p><ul class="cherry-list__default" data-lines="5" data-sign="28f044ae9517cf1c829bf47a556efc2clist5"><li><code>system:unauthenticated</code> 组用于所有认证插件都不会认证客户端身份的<br>请求。</li><li><code>system:authenticated</code> 组会自动分配给一个成功通过认证的用户。</li><li><code>system:serviceaccounts</code> 组包含所有在系统中的 ServiceAccount 。</li><li><code>system:serviceaccounts:&lt;namespace&gt;</code>组包含了所有在特定命名空间中的ServiceAccount。</li></ul><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><h3 data-lines="1" data-sign="c6c94b764bac653c91e3f7e113a9ee14" id="serviceaccount" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#serviceaccount" class="anchor"></a>ServiceAccount</h3><p data-lines="2" data-type="p" data-sign="d8eae5a6da684f99791b0e39ccb0f3ed">1: ServiceAccount 也是一种资源(简称 sa), 会为每个命名空间自动创建一个 默认的 ServiceAccount </p><blockquote data-lines="2" data-sign="bb7a10bfbae4edbcf0d80bc4b5c95ba6_2">主要用于 客户端身份认证，省去 手动传 token</blockquote><p data-lines="2" data-type="p" data-sign="10b282e52432e24560f7f14b647e4630">2： pod 只能使用 同一命名空间的 ServiceAccount </p><ul class="cherry-list__default" data-lines="2" data-sign="599bc8b54472b14b0a450c4174929533list2"><li>可单独使用一个 ServiceAccount </li><li>也可和同命名空间的 其它 pod 共用  ServiceAccount </li></ul><p data-lines="1" data-type="p" data-sign="a1de17ab1d47d92bce311860b450353e"></p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="39d91f00146ab2f6997f0bb10a1e3fef">3： 可在 pod 中显示指定使用的 ServiceAccount， 否则使用该命名 空间下 默认的 sa.</p><blockquote data-lines="2" data-sign="171bf86497a2b6d72a42d40e96d1f584_2">添加注解 <code>kubernetes.io/enforce-mountable-secrets= "true"</code>， 可强制 pod 只允许挂载 ServiceAccount 中的秘钥</blockquote><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="55154dd3f83c68876c57dcbd1d816e02">4: ServiceAccount 的镜像拉取秘钥， 用于拉取容器镜像的凭证。 </p><blockquote data-lines="2" data-sign="dc4a583e3cddc43a22e9309585a4bdc9_2">注意：  所有使用 该 ServiceAccount的 pod 都会拥有这个秘钥，而不必每个单独添加。 <br><div data-sign="b356499071581ff0ac722be1404179d6" data-type="codeBlock" data-lines="10"><pre><code>apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: my-service-account
+imagePullSecrets:
+  # 所有使用 该 ServiceAccount的 pod 都会拥有这个秘钥
+- name: my-dockerhub-secret
+</code></pre></div></blockquote><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="1e8d29f150aefc1b08ce1b7fdcd596de">5: 在pod 中使用 serviceAccount </p><div data-sign="cf58e519c9e0ff8770f7e302620dec57" data-type="codeBlock" data-lines="17"><pre><code>apiVersion: v1
+kind: Pod
+metadata:
+  name: curl-custom-sa
+spec:
+  # 若不显示声明，则使用 默认的 serviceAccount
+  serviceAccountName: foo
+  containers:
+  - name: main
+    image: tutum/curl
+    command: ["sleep", "9999999"]
+  - name: ambassador
+    image: luksa/kubectl-proxy:1.6.2
 
 </code></pre>
 
-<p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="ad44c9edb3d49dc818832e1468fc33d1"></p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="3aad8c3d69eb2f7d147f3e6529896297">5： 在不同的命名空间之间隔离。 </p><div data-sign="ebe7a380dd09deb7d8c302349bbb0d3f" data-type="codeBlock" data-lines="20"><pre class="prism language-yaml" style="position: relative; z-index: 2;"><code class="language-yaml"><span class="token key atrule">apiVersion</span><span class="token punctuation">:</span> networking.k8s.io/v1
-<span class="token key atrule">kind</span><span class="token punctuation">:</span> NetworkPolicy
-<span class="token key atrule">metadata</span><span class="token punctuation">:</span>
-  <span class="token key atrule">name</span><span class="token punctuation">:</span> shoppingcart<span class="token punctuation">-</span>netpolicy
-<span class="token key atrule">spec</span><span class="token punctuation">:</span>
-  <span class="token key atrule">podSelector</span><span class="token punctuation">:</span>
-    <span class="token comment"># 限定 pod 的范围</span>
-    <span class="token key atrule">matchLabels</span><span class="token punctuation">:</span>
-      <span class="token key atrule">app</span><span class="token punctuation">:</span> shopping<span class="token punctuation">-</span>cart
-  <span class="token key atrule">ingress</span><span class="token punctuation">:</span>
-  <span class="token punctuation">-</span> <span class="token key atrule">from</span><span class="token punctuation">:</span>
-    <span class="token comment"># 只对以下命名空间 开放了 80 端口</span>
-    <span class="token punctuation">-</span> <span class="token key atrule">namespaceSelector</span><span class="token punctuation">:</span>
-        <span class="token key atrule">matchLabels</span><span class="token punctuation">:</span>
-          <span class="token key atrule">tenant</span><span class="token punctuation">:</span> manning
-    <span class="token key atrule">ports</span><span class="token punctuation">:</span>
-    <span class="token punctuation">-</span> <span class="token key atrule">port</span><span class="token punctuation">:</span> <span class="token number">80</span>
+<p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><blockquote data-lines="2" data-sign="c6e738aff447a91ed43fcda73b66e85d_2">ServiceAccount 账户 产生的 Token 在 <code>/var/run/secrets/kubernetes.io/serviceaccount/</code>   目录。<br><br>未使用 RBAC授权插件， <strong>==默认的 serviceaccount 和 显示创建的 serviceaccount 都允许 执行任何操作。==</strong> </blockquote><p data-lines="7" data-type="br" data-sign="br7">&nbsp;</p><h2 data-lines="1" data-sign="2fe5c4b68561eb7b99e760f86ab67128" id="rbac" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#rbac" class="anchor"></a>RBAC</h2><p data-lines="2" data-type="p" data-sign="ff6ffbd2151fcd03d900c6c8a6d8c753">1： RBAC： 基于 角色的权限访问控制插件； </p><blockquote data-lines="2" data-sign="b2f3963db00d6c1cb0b646ded55494e4_2">开启 RBAC后，未经授权的 serviceAccount 或 默认的 serviceAccount 禁止查看集群状态。 </blockquote><p data-lines="2" data-type="p" data-sign="f44aae1eb2b487a3593c4d6b55ab494a">2： RBAC 用来设置一个用户、ServiceAccount 或者一组用户，控制该角色在特定资源上 能否执行动作的权限，比如以下动作： </p><p data-lines="2" data-type="p" data-sign="a63a1b4c6907f65420217f33d4a7d992"></p><blockquote data-lines="2" data-sign="cd750597e2845614962a9f404f1c7bdd_2">use 动词用于 PodSecurityPolicy 资源。 </blockquote><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="480c11b4e8c5667cdc8591809fc6c311">3： RBAC 授权规则是通过四种资源来进行配置的， 它们可以分为两个组</p><ul class="cherry-list__default" data-lines="4" data-sign="29a9d683093a74888e1e08e12460ac16list4"><li>Role( 角色）和 ClusterRole (集群角色）， 它们指定了在资源上可以执行哪些动词。<ul class="cherry-list__default"><li><strong>命名空间</strong>  范围内的资源</li></ul></li><li>RoleBinding (角色绑定） 和 ClusterRoleBinding (集群角色绑定）， 它们将上述角色绑定到特定的用户、 组或 ServiceAccounts 上。<ul class="cherry-list__default"><li><strong>集群级别</strong> 的资源</li></ul></li></ul><blockquote data-lines="2" data-sign="8348f7f0152c8793382bff6d91607bd1_2">角色定义了可以做什么操作，而绑定定义了谁可以做这些操作  </blockquote><p data-lines="2" data-type="p" data-sign="8741308f93008db63bc65920372cfd65"></p><p data-lines="5" data-type="br" data-sign="br5">&nbsp;</p><p data-lines="1" data-type="p" data-sign="3a1aacf3595655d82317416ec7c10b2b">需要注意的是，RoleBinding也可以引用 <strong>不在命名空间中的集群角色。</strong> </p><blockquote data-lines="2" data-sign="982beb165813cee2d59ce8130e5f8dbd_2">Role 和 RoleBinding 都在命名空间中， ClusterRole 和 ClusterRoleBinding 不在命名空间中。 </blockquote><p data-lines="2" data-type="p" data-sign="5b32444f891cd9ae9d27e665f3c5d441"></p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="12724401b31280a4ac25e4db48fd9927">4： 启用 RBAC，一旦开启，禁止未授权的 serviceAccount 查看/修改 资源。 </p><blockquote data-lines="2" data-sign="e78d447e33c0375c91bd82ae85ec2056_2"><code>kubectl delete clusterrolebinding permissive-binding</code>: 重新启用 RBAC</blockquote><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="5169ded88d3e0d4b0466ace2c5c9c1ae">5： Role:  哪些操作可以在 哪些资源上执行。  【授权某些资源的 操作权限。 】</p><div data-sign="37a952a29ab7a290d0f9a13a9b9b6002" data-type="codeBlock" data-lines="17"><pre><code>apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  # Role 所在的命名空间，若没指定，默认是当前命名空间
+  namespace: foo
+  name: service-reader
+rules:
+# service 是核心 apiGroup 资源，无 apiGroup 就是 ""
+- apiGroups: [""]
+  # 允许执行的 操作
+  verbs: ["get", "list"]
+
+  # 该规则和服务相关 (复数)
+  resources: ["services"]
 </code></pre>
 
-<p data-lines="2" data-type="p" data-sign="e8c03f8d261cd7689e6a7f4d284b1610"></p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="b3dd496892b806d99f3cbb8c3b5abfb7">6: CIDR 表示法： 设置一个 IP段 </p><div data-sign="384be4639d8324ae8fd54df7a2aceaf9" data-type="codeBlock" data-lines="17"><pre class="prism language-yaml" style="position: relative; z-index: 2;"><code class="language-yaml"><span class="token key atrule">apiVersion</span><span class="token punctuation">:</span> networking.k8s.io/v1
-<span class="token key atrule">kind</span><span class="token punctuation">:</span> NetworkPolicy
-<span class="token key atrule">metadata</span><span class="token punctuation">:</span>
-  <span class="token key atrule">name</span><span class="token punctuation">:</span> ipblock<span class="token punctuation">-</span>netpolicy
-<span class="token key atrule">spec</span><span class="token punctuation">:</span>
-  <span class="token key atrule">podSelector</span><span class="token punctuation">:</span>
-    <span class="token key atrule">matchLabels</span><span class="token punctuation">:</span>
-      <span class="token key atrule">app</span><span class="token punctuation">:</span> shopping<span class="token punctuation">-</span>cart
-  <span class="token key atrule">ingress</span><span class="token punctuation">:</span>
-  <span class="token punctuation">-</span> <span class="token key atrule">from</span><span class="token punctuation">:</span>
-    <span class="token comment"># 限定 只有  192.168.1.1 ~ 192.168.1.255 的 pod 可以访问 </span>
-    <span class="token punctuation">-</span> <span class="token key atrule">ipBlock</span><span class="token punctuation">:</span>
-        <span class="token key atrule">cidr</span><span class="token punctuation">:</span> 192.168.1.0/24
+<p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><blockquote data-lines="1" data-sign="62d3bf508cebea2dfea94d9a4c368eb1_1">在本例中，你允许访 问所有服 务资原，但是也可以通过额外的 <code>resourceNames</code> 字段指定服务实例的名称来限制对服务实例的访问。  </blockquote><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="025bd5bbb072bd0c131d62aa663a47ef">Role 中的声明，表明 能get 和 list 中的 service 资源。 【默认是禁止的】</p><p data-lines="2" data-type="p" data-sign="662769fe6218b84464885def183b6493"></p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="ca806e822262f2ca5067e140568dcbf0">6： rolebinding， 将Role中允许的权限 绑定到指定的账户上。 </p><div data-sign="ac6a7b4999f3d1cf272a0d5e32a1cd2c" data-type="codeBlock" data-lines="4"><pre><code>kubectl create rolebinding &lt;rolebinding-name&gt; --role=&lt;role-name&gt; serviceaccount=foo:deault -n foo: 创建 rolebinding 资源，绑定到 foo 命名空间中， default  的 ServiceAccount 账号上
+</code></pre>
+
+<blockquote data-lines="3" data-sign="f7943de53e67552e9f0968a53c1ea418_3">--user ： 绑定到用户<br><br>--group: 绑定 Role 到组</blockquote><p data-lines="2" data-type="p" data-sign="f274a2b165b01ac630170c06ee399216"></p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="4e795f4b6016d5c405d0a9a7de091472">RoleBinding 也能绑定到其它 命名空间 的  serviceAccount。 总之，绑定到哪个账户，就赋予哪个账户权限。 </p><p data-lines="2" data-type="p" data-sign="b2371a979984819429e35f31f692f177">如下，RoleBinding 绑定到 bar 命名空间的 sa账户时，也能查看 services。 </p><p data-lines="2" data-type="p" data-sign="014d4128e8ca8653d6c032816bc2b263"></p><p data-lines="5" data-type="br" data-sign="br5">&nbsp;</p><p data-lines="1" data-type="p" data-sign="f5efffcb5148b516a3bd7e0ae5ace28a">7： ClusterRole 和 ClusterRoleBinding 属于集群级别的资源管理</p><p data-lines="2" data-type="p" data-sign="49dff23538683102aca0343a84c05d22">以下两种情况，需要使用 集群级别的授权： </p><ul class="cherry-list__default" data-lines="3" data-sign="5f1de359d75529203f3749609098f849list3"><li>1： 当允许跨命名空间访问资源时， 每次扩展，都需要为新的命名空间 添加 Role 和 RoleBinding 【命名空间与命名空间之间会相互绑定】</li><li>2： 有些资源不在命名空间中: Node、PersistentVolume、Namespace 等<ul class="cherry-list__default"><li>非资源的 URL路径 (<code>/healthz</code>)</li></ul></li></ul><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><blockquote data-lines="1" data-sign="50eb0d2ffe54e1b1b243a3b64b241ec4_1">默认的 ClusterRole 都以 <code>system:</code> 为前缀</blockquote><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="97b7e58b5ebc1b510ad00059ec1f05a0">注意： sa 账户 可以通过 RoleBinding 绑定 到 ClusterRole 上，但是<strong>无法 访问集群级别的资源</strong>。  </p><blockquote data-lines="2" data-sign="27e9ae3b06a2658da75b385ca1c9cdf1_2">只能访问指定命名空间中的资源。 </blockquote><p data-lines="2" data-type="p" data-sign="35de60269d05be552416ad19c77cd6e4"></p><p data-lines="2" data-type="p" data-sign="fb2f208feb7b9c962e7b561aa338b1b9">只有 通过 ClusterRoleBinding 才能访问集群级别的资源。 </p><p data-lines="2" data-type="p" data-sign="dda55fa9948f37a3e0c6c2aff0c01f5e"></p><p data-lines="2" data-type="p" data-sign="5a0f691b4b6613567b885ac6eec86591">非资源型的 URL  在 ClusterRole 中 使用  的是 URL 路径 而非资源。 </p><p data-lines="2" data-type="p" data-sign="5e31706146faf6a8be96feb3ffa54f3a">通过 ClusterRoleBinding 绑定后，也能访问。 </p><p data-lines="2" data-type="p" data-sign="36e207e35dcf7a2c1b69686339c2909f">以下是一个 ClusterRole 示例。 </p><p data-lines="2" data-type="p" data-sign="ac4fc90113833cfa1e5dbcf9bf998a2b"></p><p data-lines="5" data-type="br" data-sign="br5">&nbsp;</p><p data-lines="1" data-type="p" data-sign="3aeb6469b63034872e43a061b8a09710">8： 使用 ClusterRole 授权访问指定命名空间中的资源。 </p><ul class="cherry-list__default" data-lines="1" data-sign="0a7f4ae5069e53d673957f4d0682e02flist1"><li>ClusterRoleBinding --- 绑定 --- ClusterRole: 可以发查看所有命名空间、集群中的资源； </li></ul><p data-lines="1" data-type="p" data-sign="df50aaa8e17351bdcf5a9ab74a586c30"></p><p data-lines="5" data-type="br" data-sign="br5">&nbsp;</p><ul class="cherry-list__default" data-lines="1" data-sign="547a975c450abf88a31ddd11badd8586list1"><li>RoleBinding --- 绑定 --- ClusterRole:  只能查看 绑定的 RoleBinding  命名空间中的资源</li></ul><p data-lines="1" data-type="p" data-sign="0ffd712e872b0553147818f3e98c29ce"></p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="49a7df4128866e7935c4fc67e78052ad">9： Role 和 Binding的组合，特别 注意 倒数第二条</p><p data-lines="2" data-type="p" data-sign="99a5371d87f66ae43b90cb214d0eddea"></p><p data-lines="6" data-type="br" data-sign="br6">&nbsp;</p><h1 data-lines="1" data-sign="4f0a424302dc00e3002f8057734e1317" id="%E8%8A%82%E7%82%B9%E5%92%8C%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E8%8A%82%E7%82%B9%E5%92%8C%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8" class="anchor"></a>节点和网络安全</h1><p data-lines="2" data-type="p" data-sign="1080e073ecb183c209b7ac2162d1c215">1： pod 可以访问 宿主 node 的资源。 </p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><h2 data-lines="1" data-sign="3a473a2e3b139a73d2cf5e050d3f7713" id="%E4%BD%BF%E7%94%A8%E8%8A%82%E7%82%B9%E7%9A%84linux%E5%91%BD%E5%90%8D%E7%A9%BA%E9%97%B4" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E4%BD%BF%E7%94%A8%E8%8A%82%E7%82%B9%E7%9A%84linux%E5%91%BD%E5%90%8D%E7%A9%BA%E9%97%B4" class="anchor"></a>使用节点的Linux命名空间</h2><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><h3 data-lines="1" data-sign="44bb90f9fadb28a3c4e992dcf232fa6c" id="%E4%BD%BF%E7%94%A8%E8%8A%82%E7%82%B9%E7%9A%84%E7%BD%91%E7%BB%9C%E5%91%BD%E5%90%8D%E7%A9%BA%E9%97%B4%E5%92%8C%E7%AB%AF%E5%8F%A3" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E4%BD%BF%E7%94%A8%E8%8A%82%E7%82%B9%E7%9A%84%E7%BD%91%E7%BB%9C%E5%91%BD%E5%90%8D%E7%A9%BA%E9%97%B4%E5%92%8C%E7%AB%AF%E5%8F%A3" class="anchor"></a>使用节点的网络命名空间和端口</h3><p data-lines="2" data-type="p" data-sign="9d25fec70977a175d646b16bba7cec88">1： 默认 每个 pod 拥有自己的 IP 和 端口空间。 </p><p data-lines="2" data-type="p" data-sign="bc5697ae54e02921c4f99334f3be256a">设置 <code>pod.spec.hostNetwork:true</code> , pod 使用节点的网络接口，而无自己的 IP 地址。 </p><p data-lines="2" data-type="p" data-sign="26532ec377dafdc7abc3be8374f29c9d">端口也会绑定到主节点</p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="be5f398c35157eae20a886ec2cf23d2a">2： 如下， pod B 和 节点公用 ip: 端口空间， </p><p data-lines="2" data-type="p" data-sign="42ea89e9fcec343fcb39a2fb7e402dd5"></p><p data-lines="2" data-type="p" data-sign="3ba7a69d8e0d5c39f9641bec8be1a418">3： 一般 master 节点上 部署的 node 经常会开启  <code>pod.spec.hostNetwork:true</code></p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><h3 data-lines="1" data-sign="bda3380609086a635ff9071a9e58dbb2" id="%E4%BB%85%E7%BB%91%E5%AE%9A%E8%8A%82%E7%82%B9%E7%9A%84%E7%AB%AF%E5%8F%A3" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E4%BB%85%E7%BB%91%E5%AE%9A%E8%8A%82%E7%82%B9%E7%9A%84%E7%AB%AF%E5%8F%A3" class="anchor"></a>仅绑定节点的端口</h3><p data-lines="2" data-type="p" data-sign="a553edaad245accae882fafa839fea1a">1： 仅仅绑定节点的端口，而让 pod 继续有自己的网络命名空间。 </p><p data-lines="2" data-type="p" data-sign="97b23d4d5558919e3c81b187323769b5">2： 设置 <code>pod.spec.hostPort:true</code> </p><p data-lines="2" data-type="p" data-sign="eb90cb265d8cfaba23ba550dbc9100e3">使用 hostPort 和 NodePort 有两点不同： </p><ul class="cherry-list__default" data-lines="6" data-sign="670a81a813191e1835022a9138c66dd9list6"><li>到达节点端口的连接<ul class="cherry-list__default"><li>hostPort: 会直接转发 到 pod 对应的端口上； </li><li>NodePort: 随机选择一个 pod</li></ul></li><li>作用范围<ul class="cherry-list__default"><li>hostPort: 仅有 运行了 hostPort 配置的 pod 才会绑定对应的端口，未运行则不绑定(Node 3)</li><li>NodePort: 集群中的所有节点 都会绑定。 </li></ul></li></ul><p data-lines="1" data-type="p" data-sign="b34a6ada77e30cb4fc56bf4f34d08369"></p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="718fa4d99f6c0a0b7864620e48eb56d3">3： 若采用 hostPort 公用主机端口，则在一个节点上，一个端口只允许绑定一次。 </p><p data-lines="2" data-type="p" data-sign="5dbaddd29e428051d3dfa78fd9b55cb9">若在调度的时候，多个 pod 需要绑定到同一端口， 则控制器会分散到不同的 节点。</p><blockquote data-lines="2" data-sign="209aabd2e59ec1eb106d197b87afb4ec_2">若无足够多的节点，pod 会保持 pending 状态</blockquote><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="47cbca040b79c08a91fdb9e0686b7766">4： 同样的，设置 <code>hostPID</code>:  可共用 Node 的 进程树空间。</p><p data-lines="2" data-type="p" data-sign="6a66942d140bf0113ed090174ba4acf4"><code>hostIPC</code>:  可通过 IPC 进行进程间通信 </p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><h2 data-lines="1" data-sign="7d77408f934b8451cc77ab53f8493f33" id="%E9%85%8D%E7%BD%AE%E8%8A%82%E7%82%B9%E5%AE%89%E5%85%A8%E4%B8%8A%E4%B8%8B%E6%96%87" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E9%85%8D%E7%BD%AE%E8%8A%82%E7%82%B9%E5%AE%89%E5%85%A8%E4%B8%8A%E4%B8%8B%E6%96%87" class="anchor"></a>配置节点安全上下文</h2><p data-lines="2" data-type="p" data-sign="42cc52ea9517db5a591f80d987c3d6fc">1: 配置节点的安全上下文，可通过 <code>securityContext  </code> 设置。 </p><p data-lines="2" data-type="p" data-sign="77eeaadb6976113392f636c9d8239c8a">配置安全上下文可以允许你做很多事 ：</p><ul class="cherry-list__default" data-lines="11" data-sign="1f07cc3be01768497ede930817b753ealist11"><li>指定容器中运行进程的用户（用户 ID ）。</li><li>阻止容器使用 root 用户运行（容器的默认运行用户通常在其镜像中指定，所以可能需要阻止容器 以 root 用户运行〉。</li><li>使用特权模式运行容器，使其对宿主节点的内核具有完全的访问权限 。</li><li>与以上相反，通过添加或禁用内核功能，配置细粒度的内核访问权限。<ul class="cherry-list__default"><li>修改系统时间</li></ul></li><li>设置 SELinux （Security Enhaced Linux ， 安全增强型 Linux ）边项，加强对容器的限制。  <br></li><li>阻止进程写入容器的根文件系统 </li><li>同pod 多容器下，多用户共享存储卷。 <ul class="cherry-list__default"><li>fsGroup 属性， 在创建文件时起作用</li><li>supplementalGroups 属性定义了某个用户所关联的额外的用户组。  </li></ul></li></ul><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><h2 data-lines="1" data-sign="920dc847c62eb04950d7efba3709a9c6" id="podsecuritypolicy" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#podsecuritypolicy" class="anchor"></a>PodSecurityPolicy</h2><p data-lines="2" data-type="p" data-sign="b4244dfc644a404c692fb157f0f10421">1: PodSecurityPolicy 是集群级别的资源， 限制用户 在 pod 中能否使用安全相关的特性。 </p><p data-lines="2" data-type="p" data-sign="6c69db4faac90967764c0d64ef71957a">2： PodSecurityPolicy 可以做的事项： </p><ul class="cherry-list__default" data-lines="9" data-sign="a9ca937c952639fb9d60a43c5d64017alist9"><li>是否允许 pod 使用宿主节点的 PID、 IPC、 网络命名空间</li><li>pod 允许绑定的宿主节点端口</li><li>容器运行时允许使用的用户 ID</li><li>是否允许拥有特权模式容器的 pod</li><li>允许添加哪些内核功能， 默认添加哪些内核功能， 总是禁用哪些内核功能</li><li>允许容器使用哪些 SELinux 选项</li><li>容器是否允许使用可写的根文件系统</li><li>允许容器在哪些文件系统组下运行</li><li>允许 pod 使用哪些类型的存储卷  </li></ul><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><h2 data-lines="1" data-sign="d11a4c355d06d856a686cd662e0c1b61" id="networkpolicy" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#networkpolicy" class="anchor"></a>NetworkPolicy</h2><p data-lines="2" data-type="p" data-sign="a69c74217454be763345fbeb290ff548">1: NetworkPolicy 用于限制 pod 与 pod 之间的通信。 网络 <strong>隔离</strong> 组件。 </p><ul class="cherry-list__default" data-lines="2" data-sign="1ba94d9c251b7cb41977a531c046ce64list2"><li>ingress: 允许访问这些 pod 的源地址；  【入向规则，<strong>能被</strong> 哪些 pod/命名空间下的pod/IP 段 访问】</li><li>egress: 这些 pod 可以访问的 目标地址；  【出向规则， 该 pod <strong>只能与 哪些 pod 通信</strong>】</li></ul><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="55e636c34cc72bd62863f93da55c94a0">2： 可选定 pod 的范围： </p><ul class="cherry-list__default" data-lines="3" data-sign="833929ba95f507e47c2038ea3978b97clist3"><li>标签选择器 选出的 pod； </li><li>一个 namespace 中的所有pod; </li><li>无类别域间路由 (Classes Inter-Domain Routing, CIDR) 指定的 IP 段； </li></ul><p data-lines="5" data-type="br" data-sign="br5">&nbsp;</p><p data-lines="1" data-type="p" data-sign="103845eb5ff826f663e312fd714ffae6">3： 由于 NetworkPolicy  是网络隔离组件， 该命名空间下，pod 无法访问。 </p><div data-sign="7f35730a03f65e92d65eceb76a41b84a" data-type="codeBlock" data-lines="11"><pre><code>apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny
+spec:
+  # 空的标签选择器 匹配 命名空间内的 所有pod
+  podSelector:
 
 </code></pre>
 
-<p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="438cd653a0d4dbd6cd6883c200b8fe79">7： 出向规则 egress: 指定 pod 只能对外 访问 哪些pod。 </p><div data-sign="6ac750445539c61e915886c4bebcde65" data-type="codeBlock" data-lines="20"><pre class="prism language-yaml" style="position: relative; z-index: 2;"><code class="language-yaml"><span class="token key atrule">apiVersion</span><span class="token punctuation">:</span> networking.k8s.io/v1
-<span class="token key atrule">kind</span><span class="token punctuation">:</span> NetworkPolicy
-<span class="token key atrule">metadata</span><span class="token punctuation">:</span>
-  <span class="token key atrule">name</span><span class="token punctuation">:</span> egress<span class="token punctuation">-</span>net<span class="token punctuation">-</span>policy
-<span class="token key atrule">spec</span><span class="token punctuation">:</span>
-  <span class="token key atrule">podSelector</span><span class="token punctuation">:</span>
-    <span class="token key atrule">matchLabels</span><span class="token punctuation">:</span>
-      <span class="token key atrule">app</span><span class="token punctuation">:</span> webserver
-  <span class="token key atrule">egress</span><span class="token punctuation">:</span>
-  <span class="token punctuation">-</span> <span class="token key atrule">to</span><span class="token punctuation">:</span>
-    <span class="token comment"># webserver 只能访问 带有 app: database 标签的 pod</span>
-    <span class="token punctuation">-</span> <span class="token key atrule">podSelector</span><span class="token punctuation">:</span>
-        <span class="token key atrule">matchLabels</span><span class="token punctuation">:</span>
-          <span class="token key atrule">app</span><span class="token punctuation">:</span> database
-    <span class="token key atrule">ports</span><span class="token punctuation">:</span>
-    <span class="token punctuation">-</span> <span class="token key atrule">port</span><span class="token punctuation">:</span> <span class="token number">5432</span>
+<p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="a06e819b728f9de5e3ca31267a5fe64e">4：即使其他 pod 通过 service 访问，依然会被 NetworkPolicy 隔离。 </p><div data-sign="6d17fbaa6e05ea66acaa8fd836f8bc1a" data-type="codeBlock" data-lines="21"><pre><code>apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: postgres-netpolicy
+spec:
+  podSelector:
+    # 标签为 app=database 的 pod 设置了访问权限
+    matchLabels:
+      app: database
+  ingress:
+  - from:
+    # 只对 app=webserver 的 pod 开放了 5432 端口
+    - podSelector:
+        matchLabels:
+          app: webserver
+    ports:
+    - port: 5432
 
 </code></pre>
 
-<p data-lines="5" data-type="br" data-sign="br5">&nbsp;</p><h1 data-lines="1" data-sign="bf83c74ebdb217042eb3eef2f08254df" id="%E8%B5%84%E6%BA%90%E7%AE%A1%E7%90%86" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E8%B5%84%E6%BA%90%E7%AE%A1%E7%90%86" class="anchor"></a>资源管理</h1><p data-lines="2" data-type="p" data-sign="8628cde9b70cf0557ffe9b7d683f09ee">1： 配置pod 资源的 预期使用量和最大使用量，可保证 pod 公平使用 集群内的资源。 </p><h2 data-lines="2" data-sign="ab1763c134c71798699ac06d933f7bdb" id="%E5%AE%B9%E5%99%A8%E7%94%B3%E8%AF%B7%E8%B5%84%E6%BA%90" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E5%AE%B9%E5%99%A8%E7%94%B3%E8%AF%B7%E8%B5%84%E6%BA%90" class="anchor"></a>容器申请资源</h2><p data-lines="2" data-type="p" data-sign="1ee915e24374a554020528c6b9cd562f">1： <code>requests</code> 中可申请 CPU 和内存使用量。 </p><ul class="cherry-list__default" data-lines="2" data-sign="c8203d413e45788d6de1904b61ab8e57list2"><li>若不申请 CPU，极端情形，会被挂起<br><div data-sign="e1d25e557c522a3552be337368b5dd17" data-type="codeBlock" data-lines="12"><pre class="prism language-yaml" style="position: relative; z-index: 2;"><code class="language-yaml"><span class="token key atrule">containers</span><span class="token punctuation">:</span>
-  <span class="token punctuation">-</span> <span class="token key atrule">image</span><span class="token punctuation">:</span> busybox
-    <span class="token key atrule">command</span><span class="token punctuation">:</span> <span class="token punctuation">[</span><span class="token string">"dd"</span><span class="token punctuation">,</span> <span class="token string">"if=/dev/zero"</span><span class="token punctuation">,</span> <span class="token string">"of=/dev/null"</span><span class="token punctuation">]</span>
-    <span class="token key atrule">name</span><span class="token punctuation">:</span> main
-    <span class="token key atrule">resources</span><span class="token punctuation">:</span>
-      <span class="token key atrule">requests</span><span class="token punctuation">:</span>
-        <span class="token comment"># 200 毫核，单核的 1/5，1200m，则是 1.2 个核【多核CPU】 </span>
-        <span class="token key atrule">cpu</span><span class="token punctuation">:</span> 200m
-        <span class="token key atrule">memory</span><span class="token punctuation">:</span> 10Mi
-</code></pre></div></li></ul><blockquote data-lines="2" data-sign="17bbd4dcc9680544a919d7bbe76420c2_2">top 中 CPU的使用量率 占所有核的百分比</blockquote><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="233171d147b5c99b0fc086549f9edc61">2： 调度器在调度 pod 时，判断 pod 是否能调度到该节点的依据是根据 资源的<strong>申请量</strong>之和，而非资源的实际使用量。 </p><p data-lines="2" data-type="p" data-sign="f5f8ef0d6b50aec9bf7219e5ec267327"></p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="867e40e488b2128bac8ac7ff8a44b0af">3： 调度器利用 pod requests 为其选择最佳节点 有两种策略： </p><ul class="cherry-list__default" data-lines="2" data-sign="b8e95cbdb5be0312a9f3ee472bfff835list2"><li>LeastRequestedPriority: pod 调度到 资源使用量少的节点上 </li><li>MostRequestedPriority:  pod 调度到资源使用量高的节点上 【按节点付费时，可选择】</li></ul><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="61e166b3ad38e0888ccfda9ba6f8b7a5">4： 当没有合适的 节点分配 给待调度的pod  时， pod 状态会一直卡在 Pending 状态。 </p><blockquote data-lines="2" data-sign="3ea4bfc58e728ae2b2a27113b165c29e_2">但此时并未放弃，一旦有pod 删除，调度器将收到通知， 有可能重新 将 pod 部署在上面。 </blockquote><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="3ffb68bf8709c797f7810d86c66dfd1b">5： CPU requests 会影响时间片的分配。 </p><p data-lines="2" data-type="p" data-sign="83771132c434b4443c7ad57d5b1141a6">假设一个节点上运行两个 pod， 一个pod 请求 200 毫核 CPU，另一个是 1000 毫核 CPU，则时间片将按照 1：5 分配。 </p><ul class="cherry-list__default" data-lines="2" data-sign="3bf07dffcb2192083d7f5950093ba868list2"><li>若一个 pod 空闲，另一个pod跑满，则另一个 pod 将占用 全部 CPU； </li><li>当空闲的 pod 重新运转， 另一个pod 的CPU 会立刻压缩到之前的比例 【动态伸缩，提高 CPU 使用率】</li></ul><p data-lines="1" data-type="p" data-sign="9c983c445417573f3c65e779c32436d7"></p><p data-lines="2" data-type="p" data-sign="962a43c2b79e4d8aad766fff8102c96c">6： 允许自定义资源，例如 GPU。 </p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><h2 data-lines="1" data-sign="da673acf88c4f69dba3e32f85cef7d9b" id="%E9%99%90%E5%88%B6%E5%AE%B9%E5%99%A8%E8%B5%84%E6%BA%90" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E9%99%90%E5%88%B6%E5%AE%B9%E5%99%A8%E8%B5%84%E6%BA%90" class="anchor"></a>限制容器资源</h2><p data-lines="2" data-type="p" data-sign="fc366eae94ba2d32198351fd667bf53b">1： 限制容器可以消耗资源的最大量； </p><blockquote data-lines="2" data-sign="03b0f0de75894d4b525c65fdfa0fceac_2">特别是内存，不可压缩资源，会影响后来 pod 的内存分配。 </blockquote><p data-lines="1" data-type="p" data-sign="aac49f1262ab4457ff5e06a0578f0238">2：未设置 requests, 则将指定与资源 limits 相同的值. </p><div data-sign="331e0a18579dee1416690cdf5f2c0afa" data-type="codeBlock" data-lines="11"><pre class="prism language-yaml" style="position: relative; z-index: 2;"><code class="language-yaml"><span class="token key atrule">containers</span><span class="token punctuation">:</span>
-  <span class="token punctuation">-</span> <span class="token key atrule">image</span><span class="token punctuation">:</span> busybox
-    <span class="token key atrule">command</span><span class="token punctuation">:</span> <span class="token punctuation">[</span><span class="token string">"dd"</span><span class="token punctuation">,</span> <span class="token string">"if=/dev/zero"</span><span class="token punctuation">,</span> <span class="token string">"of=/dev/null"</span><span class="token punctuation">]</span>
-    <span class="token key atrule">name</span><span class="token punctuation">:</span> main
-    <span class="token key atrule">resources</span><span class="token punctuation">:</span>
-      <span class="token key atrule">limits</span><span class="token punctuation">:</span>
-        <span class="token key atrule">cpu</span><span class="token punctuation">:</span> <span class="token number">1</span>
-        <span class="token key atrule">memory</span><span class="token punctuation">:</span> 20Mi
+<p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="ad44c9edb3d49dc818832e1468fc33d1"></p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="3aad8c3d69eb2f7d147f3e6529896297">5： 在不同的命名空间之间隔离。 </p><div data-sign="ebe7a380dd09deb7d8c302349bbb0d3f" data-type="codeBlock" data-lines="20"><pre><code>apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: shoppingcart-netpolicy
+spec:
+  podSelector:
+    # 限定 pod 的范围
+    matchLabels:
+      app: shopping-cart
+  ingress:
+  - from:
+    # 只对以下命名空间 开放了 80 端口
+    - namespaceSelector:
+        matchLabels:
+          tenant: manning
+    ports:
+    - port: 80
 </code></pre>
 
-<p data-lines="2" data-type="p" data-sign="942301b9ca474acd9fd800dceaa34168">3: 节点中 所有 pod 的limits 总量允许超过 节点总量 100% </p><p data-lines="2" data-type="p" data-sign="8e575ec434f5be4314eebd1ed1d5f521"></p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="c4ff362d5cc0aef1f2079834b3b6595d">4: 若内存超过物理上限，容器会被 OOM killed</p><p data-lines="2" data-type="p" data-sign="a88ebaa254dfd26c5f20e2b0e0baf1d1">若 Pod 的重启策略 <code>restartPolicy</code> 设置为 Always 或 OnFailuer, 容器会立刻重启。 </p><p data-lines="2" data-type="p" data-sign="49ae991556a0ae17787b8486c401ea92">若 pod 连续重启 <code>CrashLoopBackOff</code>, 下次重启时间呈 指数级避退: 10、20、40、80、160 秒，最终收敛到300s。 一旦达到300s间隔，后续将以 5分钟为间隔 无限重启。 </p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="aac1e7fd29f42d40b5a8d30900d08d69">5： 注意： 在容器内看的内存(<code>free -g</code>)始终是<strong>节点的内存</strong>，而非容器的内存 </p><p data-lines="2" data-type="p" data-sign="a95998d4b93f3e834d52fc547f2e6939">无论有没有配置 CPU limits ， 容器内也会看到<strong>节点所有的CPU</strong>。将 CPU 限额配置为 1，并不会神奇地只为容器暴露一个核。 CPU limits 做的只是限制容器使用的 CPU 时间 。  </p><blockquote data-lines="2" data-sign="66a35d2e12140eb68ac041db43e0715b_2">因此如果一个拥有 i 核 CPU 限额的容器运行在 64 核 CPU 上，只能获得 1/64的全部 CPU 时间 。 而且即使限额设置为 1 核， 容器进程也不会只运行在一个核上，不同时刻，代码还是<strong>会在多个核上</strong>执行 。  </blockquote><p data-lines="2" data-type="p" data-sign="ea087bb694708ab040605c06e4c2d201">一些程序通过查询系统 CPU 核数来决定启动工作线程的数量。 同样在开发环境的笔记本电脑上运行良好，但是部署在拥有更多数量 CPU 的节点上，程序将快速启动大量线程，<strong>所有线程都会争夺（可能极其）有限的 CPU 时间</strong>。同时每个线程通常都需要额外的内存资源，导致应用的内存用量急剧增加 。  </p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><h2 data-lines="1" data-sign="ed91e6a6bc5fb6972bbc8a6930ff41c6" id="pod-qos-%E7%AD%89%E7%BA%A7" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#pod-qos-%E7%AD%89%E7%BA%A7" class="anchor"></a>pod QoS 等级</h2><p data-lines="2" data-type="p" data-sign="a50fda6780e4e533e103ef77fdf55842">1： 当资源limits 超出节点上限时， 可<strong>指定哪些 pod 从优先级更高</strong>，当资源不足时，首先 杀掉的是 低优先级的 pod.</p><p data-lines="2" data-type="p" data-sign="08dbd520bb8b2be34e6fbf70bf52ad38">可给 pod 分配三种 QoS等级： </p><ul class="cherry-list__default" data-lines="9" data-sign="dea355d6f580b9806c33872112d251e2list9"><li>BestEffort （优先级最低）<ul class="cherry-list__default"><li>没有设置任何 requests 和 limits 的pod； </li><li>无任何资源保证；</li><li>最坏情况下，分不到 CPU时间片，同时为其它 pod 释放内存时，第一批被杀死；</li><li>由于无limits，内存充足时，可使用 任意多的 内存； </li></ul></li><li>Burstable<ul class="cherry-list__default"><li>容器的 requests 和 limits 不等</li><li>只定义了 requests 的 pod</li><li>部分容器 requests 和 limits 相等，部分不等</li></ul></li></ul><blockquote data-lines="2" data-sign="7fc324b5fe1f666da5980e8a163fe68e_2">Burstable 获得它们所申请的等额资源，并可以使用额外的资源（不超过 imits ） 。</blockquote><ul class="cherry-list__default" data-lines="5" data-sign="70e2944ab8d3b305479cfe079089602blist5"><li>Guaranteed （优先级最高）  <ul class="cherry-list__default"><li>requests 和 limits 相等的 pod</li><li>CPU 和 内存都要设置 requests 和 limits </li><li><strong>每个</strong>容器都要设置 资源量 【注意是每个都要设置】</li><li>每个容器的每种资源的 requests 和 limits 必须相等</li></ul></li></ul><blockquote data-lines="2" data-sign="cc0d171a659c09b67dcc65b4efc6a729_2">这些 pod 的 容器可以使用 它所申请的等额资源，但是无法消耗更多的资源（因为它们的 limits 和 requests 相等） 。  </blockquote><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="aa211cb6a2b37fe983d146bc20b77a40">若没显示设置 requests, 则默认和 Limits 相同。 所以设置了 limits 的pod，QoS 就是 Guaranteed</p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="6bf5ca2040c59ae6bdf6e05ff72ae4e8">三种等级的分类： </p><p data-lines="2" data-type="p" data-sign="a32bf42fb19619c22ded12690bb34f3f"></p><p data-lines="3" data-type="p" data-sign="3fb2529ab9e1b42c127931bc6830b193">单容器 pod 的 QoS 等级<br></p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="2" data-type="p" data-sign="28b973da04d34299bd57a167343ce1cf">对千<strong>多容器pod</strong>, 如果所有的容器的QoS等级相同， 那么这个等级就是pod的QoS等级。 如果至少有一个容器的QoS等级与其他不同，无论这个容器是什么等级，这个pod的QoS等级都是Burstable等级。  <br></p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="d51e0f02b817acf55b942256a0d42c61">2：内存不足时， BestEffort 等级的 pod 首先被杀掉。 </p><p data-lines="2" data-type="p" data-sign="073653e415c5b5d4ba6270cf133077b3">其次是 Burstable</p><p data-lines="2" data-type="p" data-sign="bb83d928d594d7ee19f74edaa51ec153">最后 是 Guaranteed，只有系统进程需要内存时， 才会被杀掉。 </p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="a1ed70f5b670b2ef0ca18c0ceadf6abf">对于 QoS等级相同的 pod，最先被杀掉的是  <strong>实际内存占内存申请量比例更高的 pod.</strong></p><blockquote data-lines="2" data-sign="4ab95975a80372d9c16191a9094d667b_2">如下图， pod B 虽然 requests 比 pod C 少，但使用 率高达 90%, 所以先杀掉的是 pod B.</blockquote><p data-lines="2" data-type="p" data-sign="2833de05f2300ae22af657c549b41bd1"></p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><h2 data-lines="1" data-sign="8c3f6a7ad2470c66ceec4b21903165f5" id="limitrange" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#limitrange" class="anchor"></a>LimitRange</h2><p data-lines="2" data-type="p" data-sign="93dde2be95bfa117be71d715fe413866">1： LimitRange  给命名空间中的pod设置默认的 requests 和 limits</p><p data-lines="2" data-type="p" data-sign="3e326e7184236ab4f77d31f30cdfe955">LimitRange   资源中的limit 应用于同一 个命名空间中每个独立的pod、 容器，或者其他类型的对象。</p><blockquote data-lines="2" data-sign="d5037b3aedc2a60939ff6f404627a55a_2">当为显示指定 资源 requests 时，设置默认值。 </blockquote><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="7ad35b937850aed1acd0b6e8cbcca754"> 它并不会限制这个命名空间中所有pod可用资源的总量， 总量是通过 ResourceQuota对象指定的， </p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="e92dec27008fb4399052d1cf85fb5a07">2： LimitRange 资源被 LimitRanger 准入插件控制。 </p><p data-lines="1" data-type="p" data-sign="39ffdf0f435c4b321fb88fce21ed8024">LimitRange 示例如下： </p><div data-sign="871ab011a6eecf2be538635dbc73f00b" data-type="codeBlock" data-lines="46"><pre class="prism language-yaml" style="position: relative; z-index: 2;"><code class="language-yaml"><span class="token key atrule">apiVersion</span><span class="token punctuation">:</span> v1
-<span class="token key atrule">kind</span><span class="token punctuation">:</span> LimitRange
-<span class="token key atrule">metadata</span><span class="token punctuation">:</span>
-  <span class="token key atrule">name</span><span class="token punctuation">:</span> example
-<span class="token key atrule">spec</span><span class="token punctuation">:</span>
-  <span class="token key atrule">limits</span><span class="token punctuation">:</span>
-  <span class="token comment"># 整个 pod 的资源限制</span>
-  <span class="token punctuation">-</span> <span class="token key atrule">type</span><span class="token punctuation">:</span> Pod
-    <span class="token key atrule">min</span><span class="token punctuation">:</span>
-      <span class="token key atrule">cpu</span><span class="token punctuation">:</span> 50m
-      <span class="token key atrule">memory</span><span class="token punctuation">:</span> 5Mi
-    <span class="token key atrule">max</span><span class="token punctuation">:</span>
-      <span class="token key atrule">cpu</span><span class="token punctuation">:</span> <span class="token number">1</span>
-      <span class="token key atrule">memory</span><span class="token punctuation">:</span> 1Gi
-
-  <span class="token comment"># 单个容器的资源限制</span>
-  <span class="token punctuation">-</span> <span class="token key atrule">type</span><span class="token punctuation">:</span> Container
-    <span class="token key atrule">defaultRequest</span><span class="token punctuation">:</span>
-      <span class="token key atrule">cpu</span><span class="token punctuation">:</span> 100m
-      <span class="token key atrule">memory</span><span class="token punctuation">:</span> 10Mi
-
-    <span class="token comment"># limits 默认值</span>
-    <span class="token key atrule">default</span><span class="token punctuation">:</span>
-      <span class="token key atrule">cpu</span><span class="token punctuation">:</span> 200m
-      <span class="token key atrule">memory</span><span class="token punctuation">:</span> 100Mi
-    <span class="token key atrule">min</span><span class="token punctuation">:</span>
-      <span class="token key atrule">cpu</span><span class="token punctuation">:</span> 50m
-      <span class="token key atrule">memory</span><span class="token punctuation">:</span> 5Mi
-    <span class="token key atrule">max</span><span class="token punctuation">:</span>
-      <span class="token key atrule">cpu</span><span class="token punctuation">:</span> <span class="token number">1</span>
-      <span class="token key atrule">memory</span><span class="token punctuation">:</span> 1Gi
-    <span class="token comment"># 每种资源 requests / limits 的最大比值</span>
-    <span class="token key atrule">maxLimitRequestRatio</span><span class="token punctuation">:</span>
-      <span class="token key atrule">cpu</span><span class="token punctuation">:</span> <span class="token number">4</span>
-      <span class="token key atrule">memory</span><span class="token punctuation">:</span> <span class="token number">10</span>
-
-  <span class="token comment"># PVC 限制</span>
-  <span class="token punctuation">-</span> <span class="token key atrule">type</span><span class="token punctuation">:</span> PersistentVolumeClaim
-    <span class="token key atrule">min</span><span class="token punctuation">:</span>
-      <span class="token key atrule">storage</span><span class="token punctuation">:</span> 1Gi
-    <span class="token key atrule">max</span><span class="token punctuation">:</span>
-      <span class="token key atrule">storage</span><span class="token punctuation">:</span> 10Gi
+<p data-lines="2" data-type="p" data-sign="e8c03f8d261cd7689e6a7f4d284b1610"></p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="b3dd496892b806d99f3cbb8c3b5abfb7">6: CIDR 表示法： 设置一个 IP段 </p><div data-sign="384be4639d8324ae8fd54df7a2aceaf9" data-type="codeBlock" data-lines="17"><pre><code>apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: ipblock-netpolicy
+spec:
+  podSelector:
+    matchLabels:
+      app: shopping-cart
+  ingress:
+  - from:
+    # 限定 只有  192.168.1.1 ~ 192.168.1.255 的 pod 可以访问
+    - ipBlock:
+        cidr: 192.168.1.0/24
 
 </code></pre>
 
-<p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="ba18a5a93715c328a412a6ab77663675">3： LimitRange中配置的limits<strong>只能应用于单独的pod或容器</strong> 。用户仍然可以创建大量的pod吃掉集群所有可用资源。 </p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><h2 data-lines="1" data-sign="b6fb344f66800a7f73fdcb1800fb7199" id="resourcequota" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#resourcequota" class="anchor"></a>ResourceQuota</h2><p data-lines="2" data-type="p" data-sign="16845b964beee386ed32b9faf8ea51b2">1: 限制命名空间中的 可用资源总量。</p><blockquote data-lines="3" data-sign="f43e7b00037087b95424b125139bf5a7_3">LimitRange 是针对单个的实体<br><br>ResourceQuota 是针对命名空间下的总量</blockquote><p data-lines="2" data-type="p" data-sign="a9ceb909d719df297495b75a6bad4352"></p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="7" data-type="p" data-sign="deb194693ee3e2eb38b3386cb0b199dc">2： 对象个数配额目前可以为以下对象配置 ：<br>• pod<br>• ReplicationController<br>• Secret<br>• ConfigMap<br>• Persistent Volume Claim<br>• Service （通 用） ， 以 及两种特定类型的 Service，比如 LoadBalancer Service (services . loadbalancers ）和 NodePort Service ( services.nodeports)  </p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="240fe6ceb3f6fe339242219b7ba18f6e">3: 可通过 以下四种类型 控制 Quota 作用的范围</p><ul class="cherry-list__default" data-lines="1" data-sign="93f8f22d2973911a9901f2208c821708list1"><li>BestEffort : Quota 是否应用于 BestEffort QoS 等级的 pod</li></ul><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="d9281335c4095bba5a46db18b4018ca0">注意： BestEffort <strong>只能限制 pod 的个数</strong>。 不能限制  CPU/内存的 requests 和 limits</p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="14f93512a68a934a3d8e5d2c54be3226">下面的都能限制：</p><ul class="cherry-list__default" data-lines="4" data-sign="d2767f4866e26f65fd17caad6cc45d3dlist4"><li>NotBestEffort ：  Quota 是否应用于 Burstable 和 Guaranteed   QoS 等级的 pod</li><li>Termination：设置了 activeDeadlineSeconds  的pod （pod 被标记为 Failed 到 真正停止前还能运行的事件）</li><li>NotTerminating： 未 设置 activeDeadlineSeconds  的pod<br><div data-sign="1acf11be196803fc62cfc6b75e5f1aa5" data-type="codeBlock" data-lines="18"><pre class="prism language-yacas" style="position: relative; z-index: 2;"><code class="language-yacas">apiVersion<span class="token operator">:</span> v1
-kind<span class="token operator">:</span> ResourceQuota
-metadata<span class="token operator">:</span>
-  name<span class="token operator">:</span> besteffort<span class="token operator">-</span>notterminating<span class="token operator">-</span>pods
-spec<span class="token operator">:</span>
-  # 这个 Quota 值作用于 拥有 BestEffort QoS<span class="token punctuation">,</span> 以及未设置 最大可存活时间的 pod
-  scopes<span class="token operator">:</span>
-  <span class="token operator">-</span> BestEffort
-  <span class="token operator">-</span> NotTerminating
-
-  # 这种的pod 只允许存在 <span class="token number">4</span> 个
-  hard<span class="token operator">:</span>
-    pods<span class="token operator">:</span> <span class="token number">4</span>
-</code></pre></div></li></ul><p data-lines="5" data-type="br" data-sign="br5">&nbsp;</p><h2 data-lines="1" data-sign="f8d188294516413e8c997a6baf131fce" id="%E7%9B%91%E6%8E%A7-pod-%E8%B5%84%E6%BA%90%E4%BD%BF%E7%94%A8%E9%87%8F" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E7%9B%91%E6%8E%A7-pod-%E8%B5%84%E6%BA%90%E4%BD%BF%E7%94%A8%E9%87%8F" class="anchor"></a>监控 pod 资源使用量</h2><p data-lines="2" data-type="p" data-sign="b302804caf02ccc30ceca23a04ba78fe">1：集群中，每个 Node 的 Kubelet 中 cAdvisor 代理负责收集 本节点数据； </p><p data-lines="2" data-type="p" data-sign="59fc3a4d314bd69de8e0ed13fe556288">最终汇总到 Heapster 上（也运行在一个 pod）</p><p data-lines="2" data-type="p" data-sign="bb8a76e8f809dea005a227625de1ba93"></p><p data-lines="2" data-type="p" data-sign="823c6090ff89c2b44c02557abb03de9b">2: 存储历史监控数据，可用 InfluxDB</p><p data-lines="2" data-type="p" data-sign="f24eeb83471a889238bde4c6ee6bdceb">可视化套件使用 Grafana  </p><p data-lines="9" data-type="br" data-sign="br9">&nbsp;</p><h1 data-lines="1" data-sign="c69d14305ca7884c6f9af61aaca2b6e3" id="%E8%87%AA%E5%8A%A8%E6%A8%AA%E5%90%91%E4%BC%B8%E7%BC%A9" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E8%87%AA%E5%8A%A8%E6%A8%AA%E5%90%91%E4%BC%B8%E7%BC%A9" class="anchor"></a>自动横向伸缩</h1><p data-lines="2" data-type="p" data-sign="1661b13a5fb695df9b7bd34b96e2d627">1： 根据 CPU 使用率或其它度量指标，自动横向扩缩容。</p><ul class="cherry-list__default" data-lines="2" data-sign="f5d01a81ee14c44d7cfcf6f7d212f563list2"><li>pod 的横向扩缩容； </li><li>node 的横向扩缩容； </li></ul><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><h2 data-lines="1" data-sign="ff930a29feaed8547306302213d87c3f" id="pod-%E7%9A%84%E6%A8%AA%E5%90%91%E4%BC%B8%E7%BC%A9" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#pod-%E7%9A%84%E6%A8%AA%E5%90%91%E4%BC%B8%E7%BC%A9" class="anchor"></a>pod 的横向伸缩</h2><p data-lines="2" data-type="p" data-sign="ce86a47919d6e09176ec13e123564ee8">1： 横向pod自动伸缩是指由控制器管理的 <strong>pod副本数量</strong> 的自动伸缩。 它由Horizontal控制器执行， 我们通过创建 一个<strong>HorizontalpodAutoscaler</strong> (HPA)资源来启用和配置Horizontal控制器。 </p><p data-lines="2" data-type="p" data-sign="2b8ee65abf30b98aa094f08e8ad085f8">该控制器<strong>周期性检查pod度量</strong>， 计算满足HPA资源所配置的目标数值所需的副本数量， 进而调整目标资源（如Deployment、ReplicaSet、 ReplicationController、 StateflSet等）的replicas字段。  </p><blockquote data-lines="2" data-sign="7a41f7d2ff8373993b40b48fefe9b851_2">AutoScale 能避免 抖动情况下的 自动扩缩容。 </blockquote><p data-lines="2" data-type="p" data-sign="ba52efecd38eaf95fc84ff55edc24a49">2: Pod 的度量数据 通过 kubelet 上的 cAdvisor agent 采集，并汇总到 Heapster. </p><p data-lines="3" data-type="p" data-sign="067d71105eb0c4547b0e23b321901913">流程如下： <br></p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="84f0863d606c452873774d2977dfc05c">3： HPA 获得 度量值后（可以有多个度量），取每个度量下 计算的副本数 <strong>最大值</strong>作为 最终 pod 数量</p><p data-lines="2" data-type="p" data-sign="b56bdf9ded55d0ce6843ec748d9e457f">度量的目标值 是一个平均值。 </p><p data-lines="1" data-type="p" data-sign="4cfa496bb3327b214734587a4a31d2e7">例如，同时按照 CPU使用率和QPS 指标计算。 </p><div data-sign="f997c07ba35f0fa21861beb1a92e1be5" data-type="codeBlock" data-lines="5"><pre class="prism language-shell" style="position: relative; z-index: 2;"><code class="language-shell">计算公式：
-目标 Replicas <span class="token operator">=</span> <span class="token punctuation">(</span>所有Pod 度量值总和<span class="token punctuation">)</span> <span class="token operator">/</span> 目标度量值 # 向上取整
-</code></pre>
-
-<p data-lines="2" data-type="br" data-sign="br2">&nbsp;</p><p data-lines="1" data-type="p" data-sign="c20cc2710399f03a9485c782352df1de"></p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="c0d8ab8412593d95ba7a62a3b954e93d">4: HPA 控制器 通过 Scale 子资源 修改 部署(Deployment、ReplicaSet、ReplicationController、StatefulSet) 的 <code>replicas</code> 字段，由部署相关的 控制器 实现 pod 的增减。 </p><p data-lines="2" data-type="p" data-sign="f4ff537b8086d6b6b7c6443408492f09"></p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="01ae08cfa1defd3fbca5a9052320e110">5: 拿 CPU 使用率举例， 已经使用了 60% 的 CPU 是相对于 pod 请求量的 CPU 【并非节点 CPU的 60% 或者 资源上限Quota的 60%】</p><blockquote data-lines="2" data-sign="11afc339d9d465fcbf4ccaa175ba7aed_2">pod 请求量的基准可在 pod 模板的 requests 或者 LimitRange 间接设置</blockquote><ul class="cherry-list__default" data-lines="2" data-sign="f603b29042b2f8f39e2c9a9f4b1b4347list2"><li>容器的 CPU 使用率是它实际的 CPU 使用除以它的 CPU 请求 。   </li><li>请求量是 <strong>==最低标准， 相当于有下限，没上限。==</strong> </li></ul><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="19f1c433efd3c578ce720ea568bb1af4">例如： </p><div data-sign="1a95936d4f6101bf835a8faab32eefed" data-type="codeBlock" data-lines="23"><pre class="prism language-yaml" style="position: relative; z-index: 2;"><code class="language-yaml"><span class="token key atrule">apiVersion</span><span class="token punctuation">:</span> extensions/v1beta1
-<span class="token key atrule">kind</span><span class="token punctuation">:</span> Deployment
-<span class="token key atrule">metadata</span><span class="token punctuation">:</span>
-  <span class="token key atrule">name</span><span class="token punctuation">:</span> kubia
-<span class="token key atrule">spec</span><span class="token punctuation">:</span>
-  <span class="token key atrule">replicas</span><span class="token punctuation">:</span> <span class="token number">3</span>
-  <span class="token key atrule">template</span><span class="token punctuation">:</span>
-    <span class="token key atrule">metadata</span><span class="token punctuation">:</span>
-      <span class="token key atrule">name</span><span class="token punctuation">:</span> kubia
-      <span class="token key atrule">labels</span><span class="token punctuation">:</span>
-        <span class="token key atrule">app</span><span class="token punctuation">:</span> kubia
-    <span class="token key atrule">spec</span><span class="token punctuation">:</span>
-      <span class="token key atrule">containers</span><span class="token punctuation">:</span>
-      <span class="token punctuation">-</span> <span class="token key atrule">image</span><span class="token punctuation">:</span> luksa/kubia<span class="token punctuation">:</span>v1
-        <span class="token key atrule">name</span><span class="token punctuation">:</span> nodejs
-        <span class="token key atrule">resources</span><span class="token punctuation">:</span>
-          <span class="token key atrule">requests</span><span class="token punctuation">:</span>
-            <span class="token comment"># 100 毫核，1/10 的CPU</span>
-            <span class="token key atrule">cpu</span><span class="token punctuation">:</span> 100m
+<p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="438cd653a0d4dbd6cd6883c200b8fe79">7： 出向规则 egress: 指定 pod 只能对外 访问 哪些pod。 </p><div data-sign="6ac750445539c61e915886c4bebcde65" data-type="codeBlock" data-lines="20"><pre><code>apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: egress-net-policy
+spec:
+  podSelector:
+    matchLabels:
+      app: webserver
+  egress:
+  - to:
+    # webserver 只能访问 带有 app: database 标签的 pod
+    - podSelector:
+        matchLabels:
+          app: database
+    ports:
+    - port: 5432
 
 </code></pre>
 
-<p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="322b6f64c096e4ccc02ce671c65fed4a">6: 创建一个 HPA 对象，并指向 该 Deployment。 </p><div data-sign="5ec2d67b2c8c9c9a508da26ab2bf90ce" data-type="codeBlock" data-lines="4"><pre class="prism language-shell" style="position: relative; z-index: 2;"><code class="language-shell">kubactl autoscale deployment <span class="token operator">&lt;</span>deployment<span class="token operator">-</span>name<span class="token operator">&gt;</span> <span class="token operator">--</span>cpu<span class="token operator">-</span>percent<span class="token operator">=</span><span class="token number">30</span> <span class="token operator">-</span>min<span class="token operator">=</span><span class="token number">1</span> <span class="token operator">--</span>max<span class="token operator">=</span><span class="token number">5</span><span class="token operator">:</span> 对指定 deployment 自动伸缩pod，使<span class="token constant">CPU</span>使用量达到 <span class="token number">30</span><span class="token operator">%</span><span class="token punctuation">,</span> 最少<span class="token number">1</span>个 pod，最多<span class="token number">5</span>个
+<p data-lines="5" data-type="br" data-sign="br5">&nbsp;</p><h1 data-lines="1" data-sign="bf83c74ebdb217042eb3eef2f08254df" id="%E8%B5%84%E6%BA%90%E7%AE%A1%E7%90%86" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E8%B5%84%E6%BA%90%E7%AE%A1%E7%90%86" class="anchor"></a>资源管理</h1><p data-lines="2" data-type="p" data-sign="8628cde9b70cf0557ffe9b7d683f09ee">1： 配置pod 资源的 预期使用量和最大使用量，可保证 pod 公平使用 集群内的资源。 </p><h2 data-lines="2" data-sign="ab1763c134c71798699ac06d933f7bdb" id="%E5%AE%B9%E5%99%A8%E7%94%B3%E8%AF%B7%E8%B5%84%E6%BA%90" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E5%AE%B9%E5%99%A8%E7%94%B3%E8%AF%B7%E8%B5%84%E6%BA%90" class="anchor"></a>容器申请资源</h2><p data-lines="2" data-type="p" data-sign="1ee915e24374a554020528c6b9cd562f">1： <code>requests</code> 中可申请 CPU 和内存使用量。 </p><ul class="cherry-list__default" data-lines="2" data-sign="c8203d413e45788d6de1904b61ab8e57list2"><li>若不申请 CPU，极端情形，会被挂起<br><div data-sign="e1d25e557c522a3552be337368b5dd17" data-type="codeBlock" data-lines="12"><pre><code>containers:
+  - image: busybox
+    command: ["dd", "if=/dev/zero", "of=/dev/null"]
+    name: main
+    resources:
+      requests:
+        # 200 毫核，单核的 1/5，1200m，则是 1.2 个核【多核CPU】
+        cpu: 200m
+        memory: 10Mi
+</code></pre></div></li></ul><blockquote data-lines="2" data-sign="17bbd4dcc9680544a919d7bbe76420c2_2">top 中 CPU的使用量率 占所有核的百分比</blockquote><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="233171d147b5c99b0fc086549f9edc61">2： 调度器在调度 pod 时，判断 pod 是否能调度到该节点的依据是根据 资源的<strong>申请量</strong>之和，而非资源的实际使用量。 </p><p data-lines="2" data-type="p" data-sign="f5f8ef0d6b50aec9bf7219e5ec267327"></p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="867e40e488b2128bac8ac7ff8a44b0af">3： 调度器利用 pod requests 为其选择最佳节点 有两种策略： </p><ul class="cherry-list__default" data-lines="2" data-sign="b8e95cbdb5be0312a9f3ee472bfff835list2"><li>LeastRequestedPriority: pod 调度到 资源使用量少的节点上 </li><li>MostRequestedPriority:  pod 调度到资源使用量高的节点上 【按节点付费时，可选择】</li></ul><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="61e166b3ad38e0888ccfda9ba6f8b7a5">4： 当没有合适的 节点分配 给待调度的pod  时， pod 状态会一直卡在 Pending 状态。 </p><blockquote data-lines="2" data-sign="3ea4bfc58e728ae2b2a27113b165c29e_2">但此时并未放弃，一旦有pod 删除，调度器将收到通知， 有可能重新 将 pod 部署在上面。 </blockquote><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="3ffb68bf8709c797f7810d86c66dfd1b">5： CPU requests 会影响时间片的分配。 </p><p data-lines="2" data-type="p" data-sign="83771132c434b4443c7ad57d5b1141a6">假设一个节点上运行两个 pod， 一个pod 请求 200 毫核 CPU，另一个是 1000 毫核 CPU，则时间片将按照 1：5 分配。 </p><ul class="cherry-list__default" data-lines="2" data-sign="3bf07dffcb2192083d7f5950093ba868list2"><li>若一个 pod 空闲，另一个pod跑满，则另一个 pod 将占用 全部 CPU； </li><li>当空闲的 pod 重新运转， 另一个pod 的CPU 会立刻压缩到之前的比例 【动态伸缩，提高 CPU 使用率】</li></ul><p data-lines="1" data-type="p" data-sign="9c983c445417573f3c65e779c32436d7"></p><p data-lines="2" data-type="p" data-sign="962a43c2b79e4d8aad766fff8102c96c">6： 允许自定义资源，例如 GPU。 </p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><h2 data-lines="1" data-sign="da673acf88c4f69dba3e32f85cef7d9b" id="%E9%99%90%E5%88%B6%E5%AE%B9%E5%99%A8%E8%B5%84%E6%BA%90" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E9%99%90%E5%88%B6%E5%AE%B9%E5%99%A8%E8%B5%84%E6%BA%90" class="anchor"></a>限制容器资源</h2><p data-lines="2" data-type="p" data-sign="fc366eae94ba2d32198351fd667bf53b">1： 限制容器可以消耗资源的最大量； </p><blockquote data-lines="2" data-sign="03b0f0de75894d4b525c65fdfa0fceac_2">特别是内存，不可压缩资源，会影响后来 pod 的内存分配。 </blockquote><p data-lines="1" data-type="p" data-sign="aac49f1262ab4457ff5e06a0578f0238">2：未设置 requests, 则将指定与资源 limits 相同的值. </p><div data-sign="331e0a18579dee1416690cdf5f2c0afa" data-type="codeBlock" data-lines="11"><pre><code>containers:
+  - image: busybox
+    command: ["dd", "if=/dev/zero", "of=/dev/null"]
+    name: main
+    resources:
+      limits:
+        cpu: 1
+        memory: 20Mi
 </code></pre>
 
-<p data-lines="2" data-type="p" data-sign="eb346968e95a38ce63b82f8475157eaf">使用 yaml 文件定义：</p><p data-lines="2" data-type="p" data-sign="d72c58b457deea875ae5882bd6603e92"></p><p data-lines="5" data-type="br" data-sign="br5">&nbsp;</p><blockquote data-lines="1" data-sign="802a3063a1d0c07579f7db27f164d3c1_1">注意： HPA的目标是 Deployment， 在副本数量 replicas 更新后， Deployment 会给每个应用版本 创建一个 新的 ReplicaSet.</blockquote><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="022d7cb568bb726fedf81082c06af394">7：基于内存的自动伸缩比基于CPU的 更复杂， 因为无法强制 Pod 释放内存，除非杀死并重启应用。 </p><blockquote data-lines="2" data-sign="661ff8829704b95c6e72be01e6866733_2">k8s 1.8 开始支持基于内存的自动伸缩</blockquote><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="0712c4117f8c7891a1747757b2ce16a3">8： HPA 不支持 <code>minReplicas:0</code>, 即不允许缩容到0个副本， 总得保持一个 空载(idling)。 </p><p data-lines="5" data-type="br" data-sign="br5">&nbsp;</p><h3 data-lines="1" data-sign="0eef9d10eef84c55edb4c97feedb2d26" id="%E6%89%A9%E7%BC%A9%E5%AE%B9%E9%80%9F%E5%BA%A6" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E6%89%A9%E7%BC%A9%E5%AE%B9%E9%80%9F%E5%BA%A6" class="anchor"></a>扩缩容速度</h3><p data-lines="2" data-type="p" data-sign="662f2bde274bafab52b30b1b40ed7b98">1： HPA 单次扩容操作，至多使副本数翻倍， 如果 副本数只有 1或2，则最多扩容到4个副本。 </p><p data-lines="2" data-type="p" data-sign="cf7ddb9e5896d68e27d646c33bd8cc73">两次扩容之间也有时间限制，只有 当 3分钟 内没有任何伸缩操作，才会继续触发扩容。 </p><p data-lines="2" data-type="p" data-sign="8774011c334fc9a3620fb87a4a42577c">缩容频率更低，需要5分钟。 </p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><h3 data-lines="1" data-sign="7bd0cb05df0b61333bf63f0668b46b82" id="resource-%E5%BA%A6%E9%87%8F%E7%B1%BB%E5%9E%8B" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#resource-%E5%BA%A6%E9%87%8F%E7%B1%BB%E5%9E%8B" class="anchor"></a>Resource 度量类型</h3><p data-lines="2" data-type="p" data-sign="4f16d9791458baa4fb03d610bc04dab7">1： 基于 <strong>Pod</strong> 的度量类型，例如 pod 的 QPS， 运行在 Pod 中消息队列的消息数量。 </p><p data-lines="2" data-type="p" data-sign="e63c8c0385ad3050a2b71c50aca062f7"></p><blockquote data-lines="2" data-sign="42b01ec1aaa30cb4e3387a2765b0e672_2">注意，此时会 从 <strong>所有</strong> Pod 中取度量值后，看平均值 与 目标 度量对比。 </blockquote><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="166b752df31c4b62581c67bec36cba01">2： 基于 Object 的度量类型， 间接基于另一个集群对象，例如 Ingress 来伸缩 pod</p><p data-lines="2" data-type="p" data-sign="152dcb8d9444e292c525f40dc350129d"></p><blockquote data-lines="2" data-sign="795c9144d24eca123f2b568de277aa5a_2">注意， HPA 只会从这个 特定的 对象中 获取<strong>单个的</strong>度量数据。【并非 基于 Pod的从所有 对象中获取】</blockquote><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="8f3ea04a1e6ba2103a7c07179794756e">3： 一个好的度量类型，应该是 增加副本数时，可以使度量平均值 下降。 例如 CPU、QPS</p><blockquote data-lines="2" data-sign="d7ae156d08e23e0324473afd479a384e_2">内存占用 并非好的度量类型。 </blockquote><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><h3 data-lines="1" data-sign="089a78b3ee1f5f0528dd1f748bb6777a" id="%E8%87%AA%E5%8A%A8%E9%85%8D%E7%BD%AE%E8%B5%84%E6%BA%90%E8%AF%B7%E6%B1%82" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E8%87%AA%E5%8A%A8%E9%85%8D%E7%BD%AE%E8%B5%84%E6%BA%90%E8%AF%B7%E6%B1%82" class="anchor"></a>自动配置资源请求</h3><p data-lines="2" data-type="p" data-sign="ecaaf660ed85e5c15e702138b62dd1b1">1： 如果新创建的pod的容器没有明确设置CPU与内存请求， 该特性即会代为设置。 </p><p data-lines="2" data-type="p" data-sign="2c318ac20ac1558cac6ef9396c0185a7">这一特性由一 个叫作<strong>lnitialResources</strong>的准入控制(AdmissionControl)插件提供 。 当 一个没有资源请求的pod被 创建时， 该插件 会<strong>根据pod 容器的历史资源使用数据</strong>（随容器镜像、tag而变）来设置资源请求。</p><blockquote data-lines="2" data-sign="8fb382072d21171aee2cd1bb95d29c30_2">如果一个容器总是内存不足， 下次创建一 个包含该容器镜像的pod的时候， 它的内存 资源请求就会被自动调高了  </blockquote><p data-lines="5" data-type="br" data-sign="br5">&nbsp;</p><h2 data-lines="1" data-sign="ef99eb9016ddd9d622ae2bba714d674a" id="%E9%9B%86%E7%BE%A4%E8%8A%82%E7%82%B9%E7%9A%84%E6%A8%AA%E5%90%91%E4%BC%B8%E7%BC%A9" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E9%9B%86%E7%BE%A4%E8%8A%82%E7%82%B9%E7%9A%84%E6%A8%AA%E5%90%91%E4%BC%B8%E7%BC%A9" class="anchor"></a>集群节点的横向伸缩</h2><p data-lines="2" data-type="p" data-sign="09014598c857349fef51350d27688be0">1： 集群节点的横向伸缩， 解决所有节点都满了，放不下Pod。 </p><p data-lines="2" data-type="p" data-sign="610f5d19a83fc71445d2173b41702fd1">2： 当在云服务厂商上运行集群时， Cluster Autoscaler 负责请求/释放 节点。 </p><ul class="cherry-list__default" data-lines="4" data-sign="a5cd97df2a4e2db23465f91bd7776ae6list4"><li>节点资源不足， 申请节点 ； <ul class="cherry-list__default"><li>会先检查新节点有没有可能容纳这个 pod，若无法容纳，则不用启动该node</li><li>当有不同规格的节点类型时，会挑选一个最合适的节点（最差是随机选择一个）</li></ul></li><li>节点长时间使用率底下，下线节点； </li></ul><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="3b23333fe529808722f9a019a8a510ff">下图显示，当没有节点分配 pod时，Cluster Autoscaler 会申请一个新的节点。 </p><p data-lines="2" data-type="p" data-sign="bd2819655189ae41742f85eb30b5f02c"></p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="2300d4f881bb400b18695d880eed2065">3： 归还节点： Cluster Autoscale 通过监控所有节点请求的 CPU与 内存实现。 </p><blockquote data-lines="2" data-sign="059edd78e1b2c63cab66fade05f9f01f_2">若某个node 上，所有 pod 请求的 CPU、内存均达不到 50%， 该节点认定为不再需要。 </blockquote><p data-lines="2" data-type="p" data-sign="f7dc75eae79c76dfa1bb3a4f3cff073e">以下几种情形，节点不会被归还： 【如果回收，会导致服务中断】</p><ul class="cherry-list__default" data-lines="3" data-sign="dcb3169bd8a18b95a082f5cb96dd6480list3"><li>1： 有系统 pod 在运行（DameonSet 部署的服务）；</li><li>2： 非托管 pod</li><li>3： 本地存储的pod</li></ul><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="69a1727353f0bfe9a39ba556b004410d">只有当节点上运行的所有pod 能被重新调度到其它节点时， Cluster Autoscale 才会触发缩容。</p><p data-lines="2" data-type="p" data-sign="3057f22544d56e4d6ff9582f9cf94318">缩容时，该节点 首先会被标记为不可调度 【拒绝pod重新调度回来】，然后 该节点上的pod 会疏散到其它节点。 </p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="bb8a5e4e6a517014cc8c4002abc72ae3">4： 节点下线时，可以通过 <code>podDisruptionBudget</code> 资源的指定 下线等操作时需要保待的最少 pod数量【逐步迁移】，避免服务受影响。 </p><div data-sign="d6d5b0f61558035b9ccf8bc51f57f423" data-type="codeBlock" data-lines="5"><pre class="prism language-shell" style="position: relative; z-index: 2;"><code class="language-shell"># 标签为 app<span class="token operator">=</span>kubia 的 pod，至少要保证<span class="token number">3</span>个在运行。
-kubectl create pd kubia<span class="token operator">-</span>pdb <span class="token operator">--</span>selector<span class="token operator">=</span>app<span class="token operator">=</span>kubia <span class="token operator">--</span>min<span class="token operator">-</span>available<span class="token operator">=</span><span class="token number">3</span>
+<p data-lines="2" data-type="p" data-sign="942301b9ca474acd9fd800dceaa34168">3: 节点中 所有 pod 的limits 总量允许超过 节点总量 100% </p><p data-lines="2" data-type="p" data-sign="8e575ec434f5be4314eebd1ed1d5f521"></p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="c4ff362d5cc0aef1f2079834b3b6595d">4: 若内存超过物理上限，容器会被 OOM killed</p><p data-lines="2" data-type="p" data-sign="a88ebaa254dfd26c5f20e2b0e0baf1d1">若 Pod 的重启策略 <code>restartPolicy</code> 设置为 Always 或 OnFailuer, 容器会立刻重启。 </p><p data-lines="2" data-type="p" data-sign="49ae991556a0ae17787b8486c401ea92">若 pod 连续重启 <code>CrashLoopBackOff</code>, 下次重启时间呈 指数级避退: 10、20、40、80、160 秒，最终收敛到300s。 一旦达到300s间隔，后续将以 5分钟为间隔 无限重启。 </p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="aac1e7fd29f42d40b5a8d30900d08d69">5： 注意： 在容器内看的内存(<code>free -g</code>)始终是<strong>节点的内存</strong>，而非容器的内存 </p><p data-lines="2" data-type="p" data-sign="a95998d4b93f3e834d52fc547f2e6939">无论有没有配置 CPU limits ， 容器内也会看到<strong>节点所有的CPU</strong>。将 CPU 限额配置为 1，并不会神奇地只为容器暴露一个核。 CPU limits 做的只是限制容器使用的 CPU 时间 。  </p><blockquote data-lines="2" data-sign="66a35d2e12140eb68ac041db43e0715b_2">因此如果一个拥有 i 核 CPU 限额的容器运行在 64 核 CPU 上，只能获得 1/64的全部 CPU 时间 。 而且即使限额设置为 1 核， 容器进程也不会只运行在一个核上，不同时刻，代码还是<strong>会在多个核上</strong>执行 。  </blockquote><p data-lines="2" data-type="p" data-sign="ea087bb694708ab040605c06e4c2d201">一些程序通过查询系统 CPU 核数来决定启动工作线程的数量。 同样在开发环境的笔记本电脑上运行良好，但是部署在拥有更多数量 CPU 的节点上，程序将快速启动大量线程，<strong>所有线程都会争夺（可能极其）有限的 CPU 时间</strong>。同时每个线程通常都需要额外的内存资源，导致应用的内存用量急剧增加 。  </p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><h2 data-lines="1" data-sign="ed91e6a6bc5fb6972bbc8a6930ff41c6" id="pod-qos-%E7%AD%89%E7%BA%A7" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#pod-qos-%E7%AD%89%E7%BA%A7" class="anchor"></a>pod QoS 等级</h2><p data-lines="2" data-type="p" data-sign="a50fda6780e4e533e103ef77fdf55842">1： 当资源limits 超出节点上限时， 可<strong>指定哪些 pod 从优先级更高</strong>，当资源不足时，首先 杀掉的是 低优先级的 pod.</p><p data-lines="2" data-type="p" data-sign="08dbd520bb8b2be34e6fbf70bf52ad38">可给 pod 分配三种 QoS等级： </p><ul class="cherry-list__default" data-lines="9" data-sign="dea355d6f580b9806c33872112d251e2list9"><li>BestEffort （优先级最低）<ul class="cherry-list__default"><li>没有设置任何 requests 和 limits 的pod； </li><li>无任何资源保证；</li><li>最坏情况下，分不到 CPU时间片，同时为其它 pod 释放内存时，第一批被杀死；</li><li>由于无limits，内存充足时，可使用 任意多的 内存； </li></ul></li><li>Burstable<ul class="cherry-list__default"><li>容器的 requests 和 limits 不等</li><li>只定义了 requests 的 pod</li><li>部分容器 requests 和 limits 相等，部分不等</li></ul></li></ul><blockquote data-lines="2" data-sign="7fc324b5fe1f666da5980e8a163fe68e_2">Burstable 获得它们所申请的等额资源，并可以使用额外的资源（不超过 imits ） 。</blockquote><ul class="cherry-list__default" data-lines="5" data-sign="70e2944ab8d3b305479cfe079089602blist5"><li>Guaranteed （优先级最高）  <ul class="cherry-list__default"><li>requests 和 limits 相等的 pod</li><li>CPU 和 内存都要设置 requests 和 limits </li><li><strong>每个</strong>容器都要设置 资源量 【注意是每个都要设置】</li><li>每个容器的每种资源的 requests 和 limits 必须相等</li></ul></li></ul><blockquote data-lines="2" data-sign="cc0d171a659c09b67dcc65b4efc6a729_2">这些 pod 的 容器可以使用 它所申请的等额资源，但是无法消耗更多的资源（因为它们的 limits 和 requests 相等） 。  </blockquote><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="aa211cb6a2b37fe983d146bc20b77a40">若没显示设置 requests, 则默认和 Limits 相同。 所以设置了 limits 的pod，QoS 就是 Guaranteed</p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="6bf5ca2040c59ae6bdf6e05ff72ae4e8">三种等级的分类： </p><p data-lines="2" data-type="p" data-sign="a32bf42fb19619c22ded12690bb34f3f"></p><p data-lines="3" data-type="p" data-sign="3fb2529ab9e1b42c127931bc6830b193">单容器 pod 的 QoS 等级<br></p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="2" data-type="p" data-sign="28b973da04d34299bd57a167343ce1cf">对千<strong>多容器pod</strong>, 如果所有的容器的QoS等级相同， 那么这个等级就是pod的QoS等级。 如果至少有一个容器的QoS等级与其他不同，无论这个容器是什么等级，这个pod的QoS等级都是Burstable等级。  <br></p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="d51e0f02b817acf55b942256a0d42c61">2：内存不足时， BestEffort 等级的 pod 首先被杀掉。 </p><p data-lines="2" data-type="p" data-sign="073653e415c5b5d4ba6270cf133077b3">其次是 Burstable</p><p data-lines="2" data-type="p" data-sign="bb83d928d594d7ee19f74edaa51ec153">最后 是 Guaranteed，只有系统进程需要内存时， 才会被杀掉。 </p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="a1ed70f5b670b2ef0ca18c0ceadf6abf">对于 QoS等级相同的 pod，最先被杀掉的是  <strong>实际内存占内存申请量比例更高的 pod.</strong></p><blockquote data-lines="2" data-sign="4ab95975a80372d9c16191a9094d667b_2">如下图， pod B 虽然 requests 比 pod C 少，但使用 率高达 90%, 所以先杀掉的是 pod B.</blockquote><p data-lines="2" data-type="p" data-sign="2833de05f2300ae22af657c549b41bd1"></p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><h2 data-lines="1" data-sign="8c3f6a7ad2470c66ceec4b21903165f5" id="limitrange" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#limitrange" class="anchor"></a>LimitRange</h2><p data-lines="2" data-type="p" data-sign="93dde2be95bfa117be71d715fe413866">1： LimitRange  给命名空间中的pod设置默认的 requests 和 limits</p><p data-lines="2" data-type="p" data-sign="3e326e7184236ab4f77d31f30cdfe955">LimitRange   资源中的limit 应用于同一 个命名空间中每个独立的pod、 容器，或者其他类型的对象。</p><blockquote data-lines="2" data-sign="d5037b3aedc2a60939ff6f404627a55a_2">当为显示指定 资源 requests 时，设置默认值。 </blockquote><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="7ad35b937850aed1acd0b6e8cbcca754"> 它并不会限制这个命名空间中所有pod可用资源的总量， 总量是通过 ResourceQuota对象指定的， </p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="e92dec27008fb4399052d1cf85fb5a07">2： LimitRange 资源被 LimitRanger 准入插件控制。 </p><p data-lines="1" data-type="p" data-sign="39ffdf0f435c4b321fb88fce21ed8024">LimitRange 示例如下： </p><div data-sign="871ab011a6eecf2be538635dbc73f00b" data-type="codeBlock" data-lines="46"><pre><code>apiVersion: v1
+kind: LimitRange
+metadata:
+  name: example
+spec:
+  limits:
+  # 整个 pod 的资源限制
+  - type: Pod
+    min:
+      cpu: 50m
+      memory: 5Mi
+    max:
+      cpu: 1
+      memory: 1Gi
+
+  # 单个容器的资源限制
+  - type: Container
+    defaultRequest:
+      cpu: 100m
+      memory: 10Mi
+
+    # limits 默认值
+    default:
+      cpu: 200m
+      memory: 100Mi
+    min:
+      cpu: 50m
+      memory: 5Mi
+    max:
+      cpu: 1
+      memory: 1Gi
+    # 每种资源 requests / limits 的最大比值
+    maxLimitRequestRatio:
+      cpu: 4
+      memory: 10
+
+  # PVC 限制
+  - type: PersistentVolumeClaim
+    min:
+      storage: 1Gi
+    max:
+      storage: 10Gi
+
 </code></pre>
 
-<p data-lines="15" data-type="br" data-sign="br15">&nbsp;</p><h1 data-lines="1" data-sign="613012d939c22074a3a33f2f9621ddc8" id="%E9%AB%98%E7%BA%A7%E8%B0%83%E5%BA%A6" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E9%AB%98%E7%BA%A7%E8%B0%83%E5%BA%A6" class="anchor"></a>高级调度</h1><h2 data-lines="2" data-sign="5bed6329b5da8304cb3a0c1ae21a198b" id="%E6%B1%A1%E7%82%B9%E5%92%8C%E5%AE%B9%E5%BF%8D%E5%BA%A6" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E6%B1%A1%E7%82%B9%E5%92%8C%E5%AE%B9%E5%BF%8D%E5%BA%A6" class="anchor"></a>污点和容忍度</h2><p data-lines="2" data-type="p" data-sign="25140ecbc2710025101ed5a297d64491">1： Pod 可通过 <code>nodeSelector</code> 和 节点亲缘性 选择在 哪些节点上部署； </p><p data-lines="2" data-type="p" data-sign="9a59e69a94da91a7d527143720b857c0">2： 从 node 侧，也能 限制 哪些 pod 可以部署在上面； </p><p data-lines="2" data-type="p" data-sign="27275bf01d68d1afaaf318556e75e5fb"> **污点（Taints）：<em></em> 节点添加污点，拒绝 pod 在该节点上部署； </p><blockquote data-lines="2" data-sign="6381ffe9aa84687b892fd3d030f675d5_2">污点在 master-node 上用的比较多，可以限制普通 pod 部署，只有系统 pod 才能部署在上面。 </blockquote><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="3c503c48dc00e94f80110d6606698ae7">除非 pod 能容忍(Toleration) 这个污点, 否则不能部署在该 node. </p><blockquote data-lines="2" data-sign="901928a38923db908ac89adfa833d5d5_2">某些硬件只能运行特殊的pod， 可采用这种形式</blockquote><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="491005ac8df47f2248238f7f7388620e">3: 通过 kubeadm 部署的集群上的 主节点， 查看其 污点： </p><p data-lines="1" data-type="p" data-sign="4fee3625b5a63954c72c329e73b9d8aa">污点的格式</p><div data-sign="87bb1b36805482b6c98e8b5656258e64" data-type="codeBlock" data-lines="7"><pre class="prism language-shell" style="position: relative; z-index: 2;"><code class="language-shell"><span class="token operator">&lt;</span>key<span class="token operator">&gt;=</span><span class="token operator">&lt;</span>value<span class="token operator">&gt;</span><span class="token operator">:</span><span class="token operator">&lt;</span>effect<span class="token operator">&gt;</span>
+<p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="ba18a5a93715c328a412a6ab77663675">3： LimitRange中配置的limits<strong>只能应用于单独的pod或容器</strong> 。用户仍然可以创建大量的pod吃掉集群所有可用资源。 </p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><h2 data-lines="1" data-sign="b6fb344f66800a7f73fdcb1800fb7199" id="resourcequota" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#resourcequota" class="anchor"></a>ResourceQuota</h2><p data-lines="2" data-type="p" data-sign="16845b964beee386ed32b9faf8ea51b2">1: 限制命名空间中的 可用资源总量。</p><blockquote data-lines="3" data-sign="f43e7b00037087b95424b125139bf5a7_3">LimitRange 是针对单个的实体<br><br>ResourceQuota 是针对命名空间下的总量</blockquote><p data-lines="2" data-type="p" data-sign="a9ceb909d719df297495b75a6bad4352"></p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="7" data-type="p" data-sign="deb194693ee3e2eb38b3386cb0b199dc">2： 对象个数配额目前可以为以下对象配置 ：<br>• pod<br>• ReplicationController<br>• Secret<br>• ConfigMap<br>• Persistent Volume Claim<br>• Service （通 用） ， 以 及两种特定类型的 Service，比如 LoadBalancer Service (services . loadbalancers ）和 NodePort Service ( services.nodeports)  </p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="240fe6ceb3f6fe339242219b7ba18f6e">3: 可通过 以下四种类型 控制 Quota 作用的范围</p><ul class="cherry-list__default" data-lines="1" data-sign="93f8f22d2973911a9901f2208c821708list1"><li>BestEffort : Quota 是否应用于 BestEffort QoS 等级的 pod</li></ul><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="d9281335c4095bba5a46db18b4018ca0">注意： BestEffort <strong>只能限制 pod 的个数</strong>。 不能限制  CPU/内存的 requests 和 limits</p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="14f93512a68a934a3d8e5d2c54be3226">下面的都能限制：</p><ul class="cherry-list__default" data-lines="4" data-sign="d2767f4866e26f65fd17caad6cc45d3dlist4"><li>NotBestEffort ：  Quota 是否应用于 Burstable 和 Guaranteed   QoS 等级的 pod</li><li>Termination：设置了 activeDeadlineSeconds  的pod （pod 被标记为 Failed 到 真正停止前还能运行的事件）</li><li>NotTerminating： 未 设置 activeDeadlineSeconds  的pod<br><div data-sign="1acf11be196803fc62cfc6b75e5f1aa5" data-type="codeBlock" data-lines="18"><pre><code>apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: besteffort-notterminating-pods
+spec:
+  # 这个 Quota 值作用于 拥有 BestEffort QoS, 以及未设置 最大可存活时间的 pod
+  scopes:
+  - BestEffort
+  - NotTerminating
+
+  # 这种的pod 只允许存在 4 个
+  hard:
+    pods: 4
+</code></pre></div></li></ul><p data-lines="5" data-type="br" data-sign="br5">&nbsp;</p><h2 data-lines="1" data-sign="f8d188294516413e8c997a6baf131fce" id="%E7%9B%91%E6%8E%A7-pod-%E8%B5%84%E6%BA%90%E4%BD%BF%E7%94%A8%E9%87%8F" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E7%9B%91%E6%8E%A7-pod-%E8%B5%84%E6%BA%90%E4%BD%BF%E7%94%A8%E9%87%8F" class="anchor"></a>监控 pod 资源使用量</h2><p data-lines="2" data-type="p" data-sign="b302804caf02ccc30ceca23a04ba78fe">1：集群中，每个 Node 的 Kubelet 中 cAdvisor 代理负责收集 本节点数据； </p><p data-lines="2" data-type="p" data-sign="59fc3a4d314bd69de8e0ed13fe556288">最终汇总到 Heapster 上（也运行在一个 pod）</p><p data-lines="2" data-type="p" data-sign="bb8a76e8f809dea005a227625de1ba93"></p><p data-lines="2" data-type="p" data-sign="823c6090ff89c2b44c02557abb03de9b">2: 存储历史监控数据，可用 InfluxDB</p><p data-lines="2" data-type="p" data-sign="f24eeb83471a889238bde4c6ee6bdceb">可视化套件使用 Grafana  </p><p data-lines="9" data-type="br" data-sign="br9">&nbsp;</p><h1 data-lines="1" data-sign="c69d14305ca7884c6f9af61aaca2b6e3" id="%E8%87%AA%E5%8A%A8%E6%A8%AA%E5%90%91%E4%BC%B8%E7%BC%A9" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E8%87%AA%E5%8A%A8%E6%A8%AA%E5%90%91%E4%BC%B8%E7%BC%A9" class="anchor"></a>自动横向伸缩</h1><p data-lines="2" data-type="p" data-sign="1661b13a5fb695df9b7bd34b96e2d627">1： 根据 CPU 使用率或其它度量指标，自动横向扩缩容。</p><ul class="cherry-list__default" data-lines="2" data-sign="f5d01a81ee14c44d7cfcf6f7d212f563list2"><li>pod 的横向扩缩容； </li><li>node 的横向扩缩容； </li></ul><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><h2 data-lines="1" data-sign="ff930a29feaed8547306302213d87c3f" id="pod-%E7%9A%84%E6%A8%AA%E5%90%91%E4%BC%B8%E7%BC%A9" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#pod-%E7%9A%84%E6%A8%AA%E5%90%91%E4%BC%B8%E7%BC%A9" class="anchor"></a>pod 的横向伸缩</h2><p data-lines="2" data-type="p" data-sign="ce86a47919d6e09176ec13e123564ee8">1： 横向pod自动伸缩是指由控制器管理的 <strong>pod副本数量</strong> 的自动伸缩。 它由Horizontal控制器执行， 我们通过创建 一个<strong>HorizontalpodAutoscaler</strong> (HPA)资源来启用和配置Horizontal控制器。 </p><p data-lines="2" data-type="p" data-sign="2b8ee65abf30b98aa094f08e8ad085f8">该控制器<strong>周期性检查pod度量</strong>， 计算满足HPA资源所配置的目标数值所需的副本数量， 进而调整目标资源（如Deployment、ReplicaSet、 ReplicationController、 StateflSet等）的replicas字段。  </p><blockquote data-lines="2" data-sign="7a41f7d2ff8373993b40b48fefe9b851_2">AutoScale 能避免 抖动情况下的 自动扩缩容。 </blockquote><p data-lines="2" data-type="p" data-sign="ba52efecd38eaf95fc84ff55edc24a49">2: Pod 的度量数据 通过 kubelet 上的 cAdvisor agent 采集，并汇总到 Heapster. </p><p data-lines="3" data-type="p" data-sign="067d71105eb0c4547b0e23b321901913">流程如下： <br></p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="84f0863d606c452873774d2977dfc05c">3： HPA 获得 度量值后（可以有多个度量），取每个度量下 计算的副本数 <strong>最大值</strong>作为 最终 pod 数量</p><p data-lines="2" data-type="p" data-sign="b56bdf9ded55d0ce6843ec748d9e457f">度量的目标值 是一个平均值。 </p><p data-lines="1" data-type="p" data-sign="4cfa496bb3327b214734587a4a31d2e7">例如，同时按照 CPU使用率和QPS 指标计算。 </p><div data-sign="f997c07ba35f0fa21861beb1a92e1be5" data-type="codeBlock" data-lines="5"><pre><code>计算公式：
+目标 Replicas = (所有Pod 度量值总和) / 目标度量值 # 向上取整
+</code></pre>
+
+<p data-lines="2" data-type="br" data-sign="br2">&nbsp;</p><p data-lines="1" data-type="p" data-sign="c20cc2710399f03a9485c782352df1de"></p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="c0d8ab8412593d95ba7a62a3b954e93d">4: HPA 控制器 通过 Scale 子资源 修改 部署(Deployment、ReplicaSet、ReplicationController、StatefulSet) 的 <code>replicas</code> 字段，由部署相关的 控制器 实现 pod 的增减。 </p><p data-lines="2" data-type="p" data-sign="f4ff537b8086d6b6b7c6443408492f09"></p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="01ae08cfa1defd3fbca5a9052320e110">5: 拿 CPU 使用率举例， 已经使用了 60% 的 CPU 是相对于 pod 请求量的 CPU 【并非节点 CPU的 60% 或者 资源上限Quota的 60%】</p><blockquote data-lines="2" data-sign="11afc339d9d465fcbf4ccaa175ba7aed_2">pod 请求量的基准可在 pod 模板的 requests 或者 LimitRange 间接设置</blockquote><ul class="cherry-list__default" data-lines="2" data-sign="f603b29042b2f8f39e2c9a9f4b1b4347list2"><li>容器的 CPU 使用率是它实际的 CPU 使用除以它的 CPU 请求 。   </li><li>请求量是 <strong>==最低标准， 相当于有下限，没上限。==</strong> </li></ul><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="19f1c433efd3c578ce720ea568bb1af4">例如： </p><div data-sign="1a95936d4f6101bf835a8faab32eefed" data-type="codeBlock" data-lines="23"><pre><code>apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: kubia
+spec:
+  replicas: 3
+  template:
+    metadata:
+      name: kubia
+      labels:
+        app: kubia
+    spec:
+      containers:
+      - image: luksa/kubia:v1
+        name: nodejs
+        resources:
+          requests:
+            # 100 毫核，1/10 的CPU
+            cpu: 100m
+
+</code></pre>
+
+<p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="322b6f64c096e4ccc02ce671c65fed4a">6: 创建一个 HPA 对象，并指向 该 Deployment。 </p><div data-sign="5ec2d67b2c8c9c9a508da26ab2bf90ce" data-type="codeBlock" data-lines="4"><pre><code>kubactl autoscale deployment &lt;deployment-name&gt; --cpu-percent=30 -min=1 --max=5: 对指定 deployment 自动伸缩pod，使CPU使用量达到 30%, 最少1个 pod，最多5个
+</code></pre>
+
+<p data-lines="2" data-type="p" data-sign="eb346968e95a38ce63b82f8475157eaf">使用 yaml 文件定义：</p><p data-lines="2" data-type="p" data-sign="d72c58b457deea875ae5882bd6603e92"></p><p data-lines="5" data-type="br" data-sign="br5">&nbsp;</p><blockquote data-lines="1" data-sign="802a3063a1d0c07579f7db27f164d3c1_1">注意： HPA的目标是 Deployment， 在副本数量 replicas 更新后， Deployment 会给每个应用版本 创建一个 新的 ReplicaSet.</blockquote><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="022d7cb568bb726fedf81082c06af394">7：基于内存的自动伸缩比基于CPU的 更复杂， 因为无法强制 Pod 释放内存，除非杀死并重启应用。 </p><blockquote data-lines="2" data-sign="661ff8829704b95c6e72be01e6866733_2">k8s 1.8 开始支持基于内存的自动伸缩</blockquote><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="0712c4117f8c7891a1747757b2ce16a3">8： HPA 不支持 <code>minReplicas:0</code>, 即不允许缩容到0个副本， 总得保持一个 空载(idling)。 </p><p data-lines="5" data-type="br" data-sign="br5">&nbsp;</p><h3 data-lines="1" data-sign="0eef9d10eef84c55edb4c97feedb2d26" id="%E6%89%A9%E7%BC%A9%E5%AE%B9%E9%80%9F%E5%BA%A6" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E6%89%A9%E7%BC%A9%E5%AE%B9%E9%80%9F%E5%BA%A6" class="anchor"></a>扩缩容速度</h3><p data-lines="2" data-type="p" data-sign="662f2bde274bafab52b30b1b40ed7b98">1： HPA 单次扩容操作，至多使副本数翻倍， 如果 副本数只有 1或2，则最多扩容到4个副本。 </p><p data-lines="2" data-type="p" data-sign="cf7ddb9e5896d68e27d646c33bd8cc73">两次扩容之间也有时间限制，只有 当 3分钟 内没有任何伸缩操作，才会继续触发扩容。 </p><p data-lines="2" data-type="p" data-sign="8774011c334fc9a3620fb87a4a42577c">缩容频率更低，需要5分钟。 </p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><h3 data-lines="1" data-sign="7bd0cb05df0b61333bf63f0668b46b82" id="resource-%E5%BA%A6%E9%87%8F%E7%B1%BB%E5%9E%8B" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#resource-%E5%BA%A6%E9%87%8F%E7%B1%BB%E5%9E%8B" class="anchor"></a>Resource 度量类型</h3><p data-lines="2" data-type="p" data-sign="4f16d9791458baa4fb03d610bc04dab7">1： 基于 <strong>Pod</strong> 的度量类型，例如 pod 的 QPS， 运行在 Pod 中消息队列的消息数量。 </p><p data-lines="2" data-type="p" data-sign="e63c8c0385ad3050a2b71c50aca062f7"></p><blockquote data-lines="2" data-sign="42b01ec1aaa30cb4e3387a2765b0e672_2">注意，此时会 从 <strong>所有</strong> Pod 中取度量值后，看平均值 与 目标 度量对比。 </blockquote><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="166b752df31c4b62581c67bec36cba01">2： 基于 Object 的度量类型， 间接基于另一个集群对象，例如 Ingress 来伸缩 pod</p><p data-lines="2" data-type="p" data-sign="152dcb8d9444e292c525f40dc350129d"></p><blockquote data-lines="2" data-sign="795c9144d24eca123f2b568de277aa5a_2">注意， HPA 只会从这个 特定的 对象中 获取<strong>单个的</strong>度量数据。【并非 基于 Pod的从所有 对象中获取】</blockquote><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="8f3ea04a1e6ba2103a7c07179794756e">3： 一个好的度量类型，应该是 增加副本数时，可以使度量平均值 下降。 例如 CPU、QPS</p><blockquote data-lines="2" data-sign="d7ae156d08e23e0324473afd479a384e_2">内存占用 并非好的度量类型。 </blockquote><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><h3 data-lines="1" data-sign="089a78b3ee1f5f0528dd1f748bb6777a" id="%E8%87%AA%E5%8A%A8%E9%85%8D%E7%BD%AE%E8%B5%84%E6%BA%90%E8%AF%B7%E6%B1%82" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E8%87%AA%E5%8A%A8%E9%85%8D%E7%BD%AE%E8%B5%84%E6%BA%90%E8%AF%B7%E6%B1%82" class="anchor"></a>自动配置资源请求</h3><p data-lines="2" data-type="p" data-sign="ecaaf660ed85e5c15e702138b62dd1b1">1： 如果新创建的pod的容器没有明确设置CPU与内存请求， 该特性即会代为设置。 </p><p data-lines="2" data-type="p" data-sign="2c318ac20ac1558cac6ef9396c0185a7">这一特性由一 个叫作<strong>lnitialResources</strong>的准入控制(AdmissionControl)插件提供 。 当 一个没有资源请求的pod被 创建时， 该插件 会<strong>根据pod 容器的历史资源使用数据</strong>（随容器镜像、tag而变）来设置资源请求。</p><blockquote data-lines="2" data-sign="8fb382072d21171aee2cd1bb95d29c30_2">如果一个容器总是内存不足， 下次创建一 个包含该容器镜像的pod的时候， 它的内存 资源请求就会被自动调高了  </blockquote><p data-lines="5" data-type="br" data-sign="br5">&nbsp;</p><h2 data-lines="1" data-sign="ef99eb9016ddd9d622ae2bba714d674a" id="%E9%9B%86%E7%BE%A4%E8%8A%82%E7%82%B9%E7%9A%84%E6%A8%AA%E5%90%91%E4%BC%B8%E7%BC%A9" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E9%9B%86%E7%BE%A4%E8%8A%82%E7%82%B9%E7%9A%84%E6%A8%AA%E5%90%91%E4%BC%B8%E7%BC%A9" class="anchor"></a>集群节点的横向伸缩</h2><p data-lines="2" data-type="p" data-sign="09014598c857349fef51350d27688be0">1： 集群节点的横向伸缩， 解决所有节点都满了，放不下Pod。 </p><p data-lines="2" data-type="p" data-sign="610f5d19a83fc71445d2173b41702fd1">2： 当在云服务厂商上运行集群时， Cluster Autoscaler 负责请求/释放 节点。 </p><ul class="cherry-list__default" data-lines="4" data-sign="a5cd97df2a4e2db23465f91bd7776ae6list4"><li>节点资源不足， 申请节点 ； <ul class="cherry-list__default"><li>会先检查新节点有没有可能容纳这个 pod，若无法容纳，则不用启动该node</li><li>当有不同规格的节点类型时，会挑选一个最合适的节点（最差是随机选择一个）</li></ul></li><li>节点长时间使用率底下，下线节点； </li></ul><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="3b23333fe529808722f9a019a8a510ff">下图显示，当没有节点分配 pod时，Cluster Autoscaler 会申请一个新的节点。 </p><p data-lines="2" data-type="p" data-sign="bd2819655189ae41742f85eb30b5f02c"></p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="2300d4f881bb400b18695d880eed2065">3： 归还节点： Cluster Autoscale 通过监控所有节点请求的 CPU与 内存实现。 </p><blockquote data-lines="2" data-sign="059edd78e1b2c63cab66fade05f9f01f_2">若某个node 上，所有 pod 请求的 CPU、内存均达不到 50%， 该节点认定为不再需要。 </blockquote><p data-lines="2" data-type="p" data-sign="f7dc75eae79c76dfa1bb3a4f3cff073e">以下几种情形，节点不会被归还： 【如果回收，会导致服务中断】</p><ul class="cherry-list__default" data-lines="3" data-sign="dcb3169bd8a18b95a082f5cb96dd6480list3"><li>1： 有系统 pod 在运行（DameonSet 部署的服务）；</li><li>2： 非托管 pod</li><li>3： 本地存储的pod</li></ul><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="69a1727353f0bfe9a39ba556b004410d">只有当节点上运行的所有pod 能被重新调度到其它节点时， Cluster Autoscale 才会触发缩容。</p><p data-lines="2" data-type="p" data-sign="3057f22544d56e4d6ff9582f9cf94318">缩容时，该节点 首先会被标记为不可调度 【拒绝pod重新调度回来】，然后 该节点上的pod 会疏散到其它节点。 </p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="bb8a5e4e6a517014cc8c4002abc72ae3">4： 节点下线时，可以通过 <code>podDisruptionBudget</code> 资源的指定 下线等操作时需要保待的最少 pod数量【逐步迁移】，避免服务受影响。 </p><div data-sign="d6d5b0f61558035b9ccf8bc51f57f423" data-type="codeBlock" data-lines="5"><pre><code># 标签为 app=kubia 的 pod，至少要保证3个在运行。
+kubectl create pd kubia-pdb --selector=app=kubia --min-available=3
+</code></pre>
+
+<p data-lines="15" data-type="br" data-sign="br15">&nbsp;</p><h1 data-lines="1" data-sign="613012d939c22074a3a33f2f9621ddc8" id="%E9%AB%98%E7%BA%A7%E8%B0%83%E5%BA%A6" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E9%AB%98%E7%BA%A7%E8%B0%83%E5%BA%A6" class="anchor"></a>高级调度</h1><h2 data-lines="2" data-sign="5bed6329b5da8304cb3a0c1ae21a198b" id="%E6%B1%A1%E7%82%B9%E5%92%8C%E5%AE%B9%E5%BF%8D%E5%BA%A6" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E6%B1%A1%E7%82%B9%E5%92%8C%E5%AE%B9%E5%BF%8D%E5%BA%A6" class="anchor"></a>污点和容忍度</h2><p data-lines="2" data-type="p" data-sign="25140ecbc2710025101ed5a297d64491">1： Pod 可通过 <code>nodeSelector</code> 和 节点亲缘性 选择在 哪些节点上部署； </p><p data-lines="2" data-type="p" data-sign="9a59e69a94da91a7d527143720b857c0">2： 从 node 侧，也能 限制 哪些 pod 可以部署在上面； </p><p data-lines="2" data-type="p" data-sign="27275bf01d68d1afaaf318556e75e5fb"> **污点（Taints）：<em></em> 节点添加污点，拒绝 pod 在该节点上部署； </p><blockquote data-lines="2" data-sign="6381ffe9aa84687b892fd3d030f675d5_2">污点在 master-node 上用的比较多，可以限制普通 pod 部署，只有系统 pod 才能部署在上面。 </blockquote><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="3c503c48dc00e94f80110d6606698ae7">除非 pod 能容忍(Toleration) 这个污点, 否则不能部署在该 node. </p><blockquote data-lines="2" data-sign="901928a38923db908ac89adfa833d5d5_2">某些硬件只能运行特殊的pod， 可采用这种形式</blockquote><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="491005ac8df47f2248238f7f7388620e">3: 通过 kubeadm 部署的集群上的 主节点， 查看其 污点： </p><p data-lines="1" data-type="p" data-sign="4fee3625b5a63954c72c329e73b9d8aa">污点的格式</p><div data-sign="87bb1b36805482b6c98e8b5656258e64" data-type="codeBlock" data-lines="7"><pre><code>&lt;key&gt;=&lt;value&gt;:&lt;effect&gt;
 
 # 若value 为空
-<span class="token operator">&lt;</span>key<span class="token operator">&gt;</span><span class="token operator">:</span><span class="token operator">&lt;</span>effect<span class="token operator">&gt;</span>
+&lt;key&gt;:&lt;effect&gt;
 </code></pre>
 
-<p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="b0857e600c2fd84c3ad5b1d2d1f0e63f">每个污点的效果(effect) 包含三种：</p><ul class="cherry-list__default" data-lines="3" data-sign="7bea6009df95df14b2fda5ed571c05e8list3"><li>NoSchedule 表示如果 pod 没有容忍这些污点， pod 则不能被<strong>调度</strong>到包含 这些污点的节点上。</li><li>PreferNoSchedule 是 NoSchedule 的一个宽松的版本， 表示<strong>尽量阻</strong>止pod 被调度到这个节点上， 但是如果没有其他节点可以调度， pod 依然会被调度到这个节点上。</li><li>NoExecute 不同于 NoSchedule 以及 PreferNoSchedule, 后两者只在调度期间起作用， 而 NoExecute 也会<strong>影响正在节点上</strong>运行着的 pod。 如果在一个节点上添加了 NoExecute 污点， 那些在该节点上运行着的 pod, 如果没有容忍这个 NoExecute 污点， 将会从这个节点去除。  </li></ul><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="ada22bde83e360a56f4e0733585545ef">4： 查看已有的污点： </p><p data-lines="2" data-type="p" data-sign="d32785614f0f6e200ee1161fb8179f42"></p><p data-lines="5" data-type="br" data-sign="br5">&nbsp;</p><p data-lines="1" data-type="p" data-sign="2bd094825b291238f5155d83d0ff5d48">如下，</p><ul class="cherry-list__default" data-lines="2" data-sign="d6dfa8180609ffa5a4bff8abf4b28f05list2"><li>System pod 可以同时部署在 主节点和普通节点； </li><li>但未添加容忍度(默认) 的pod 只能部署在 普通节点； </li></ul><p data-lines="1" data-type="p" data-sign="e487db05238e1c860474130ba98cb7ee"></p><p data-lines="1" data-type="p" data-sign="77f40f27972729d2e9208b223ba37764">5： 节点上添加自定义污点： </p><div data-sign="a57b83a949fb7b90eaa5eb81b37a0ecd" data-type="codeBlock" data-lines="4"><pre class="prism language-sh" style="position: relative; z-index: 2;"><code class="language-sh">kubectl taint node node1<span class="token punctuation">.</span>k8s node<span class="token operator">-</span>type<span class="token operator">=</span>production<span class="token operator">:</span>NoSchedule<span class="token operator">:</span> 在节点上添加 key <span class="token operator">=</span> node<span class="token operator">-</span>type<span class="token punctuation">,</span> value <span class="token operator">=</span> production 的污点
+<p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="b0857e600c2fd84c3ad5b1d2d1f0e63f">每个污点的效果(effect) 包含三种：</p><ul class="cherry-list__default" data-lines="3" data-sign="7bea6009df95df14b2fda5ed571c05e8list3"><li>NoSchedule 表示如果 pod 没有容忍这些污点， pod 则不能被<strong>调度</strong>到包含 这些污点的节点上。</li><li>PreferNoSchedule 是 NoSchedule 的一个宽松的版本， 表示<strong>尽量阻</strong>止pod 被调度到这个节点上， 但是如果没有其他节点可以调度， pod 依然会被调度到这个节点上。</li><li>NoExecute 不同于 NoSchedule 以及 PreferNoSchedule, 后两者只在调度期间起作用， 而 NoExecute 也会<strong>影响正在节点上</strong>运行着的 pod。 如果在一个节点上添加了 NoExecute 污点， 那些在该节点上运行着的 pod, 如果没有容忍这个 NoExecute 污点， 将会从这个节点去除。  </li></ul><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="ada22bde83e360a56f4e0733585545ef">4： 查看已有的污点： </p><p data-lines="2" data-type="p" data-sign="d32785614f0f6e200ee1161fb8179f42"></p><p data-lines="5" data-type="br" data-sign="br5">&nbsp;</p><p data-lines="1" data-type="p" data-sign="2bd094825b291238f5155d83d0ff5d48">如下，</p><ul class="cherry-list__default" data-lines="2" data-sign="d6dfa8180609ffa5a4bff8abf4b28f05list2"><li>System pod 可以同时部署在 主节点和普通节点； </li><li>但未添加容忍度(默认) 的pod 只能部署在 普通节点； </li></ul><p data-lines="1" data-type="p" data-sign="e487db05238e1c860474130ba98cb7ee"></p><p data-lines="1" data-type="p" data-sign="77f40f27972729d2e9208b223ba37764">5： 节点上添加自定义污点： </p><div data-sign="a57b83a949fb7b90eaa5eb81b37a0ecd" data-type="codeBlock" data-lines="4"><pre><code>kubectl taint node node1.k8s node-type=production:NoSchedule: 在节点上添加 key = node-type, value = production 的污点
 </code></pre>
 
-<p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="5ff841225b7948434c2a97cf228571ac">6： 给 pod 添加容忍度示例： </p><div data-sign="ec1558e985e263cf47ab5e96dbc88af8" data-type="codeBlock" data-lines="28"><pre class="prism language-yaml" style="position: relative; z-index: 2;"><code class="language-yaml"><span class="token key atrule">apiVersion</span><span class="token punctuation">:</span> extensions/v1beta1
-<span class="token key atrule">kind</span><span class="token punctuation">:</span> Deployment
-<span class="token key atrule">metadata</span><span class="token punctuation">:</span>
-  <span class="token key atrule">name</span><span class="token punctuation">:</span> prod
-<span class="token key atrule">spec</span><span class="token punctuation">:</span>
-  <span class="token key atrule">replicas</span><span class="token punctuation">:</span> <span class="token number">5</span>
-  <span class="token key atrule">template</span><span class="token punctuation">:</span>
-    <span class="token key atrule">metadata</span><span class="token punctuation">:</span>
-      <span class="token key atrule">labels</span><span class="token punctuation">:</span>
-        <span class="token key atrule">app</span><span class="token punctuation">:</span> prod
-    <span class="token key atrule">spec</span><span class="token punctuation">:</span>
-      <span class="token key atrule">containers</span><span class="token punctuation">:</span>
-      <span class="token punctuation">-</span> <span class="token key atrule">args</span><span class="token punctuation">:</span>
-        <span class="token punctuation">-</span> sleep
-        <span class="token punctuation">-</span> <span class="token string">"99999"</span>
-        <span class="token key atrule">image</span><span class="token punctuation">:</span> busybox
-        <span class="token key atrule">name</span><span class="token punctuation">:</span> main
-      <span class="token key atrule">tolerations</span><span class="token punctuation">:</span>
-        <span class="token comment"># 和 paint 配对使用</span>
-      <span class="token punctuation">-</span> <span class="token key atrule">key</span><span class="token punctuation">:</span> node<span class="token punctuation">-</span>type
-        <span class="token comment"># 使用 Equal 或 Exists</span>
-        <span class="token key atrule">operator</span><span class="token punctuation">:</span> Equal
-        <span class="token key atrule">value</span><span class="token punctuation">:</span> production
-        <span class="token key atrule">effect</span><span class="token punctuation">:</span> NoSchedule
-
-</code></pre>
-
-<p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="85f554e23bf62bf7a9149de2bf651d63">7: 配置 node 不可用后，pod 最长等待时间： </p><blockquote data-lines="2" data-sign="048c9b34c80e35824c16047fa1d76b4d_2">可用于网络抖动的情形，若 超时后，pod 将被调度到其它 node.</blockquote><p data-lines="2" data-type="p" data-sign="3b0b3049761c0b9a1e37d150823d90b4"></p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><h2 data-lines="1" data-sign="f7a11d907bdb264918115c586fe98a64" id="%E8%8A%82%E7%82%B9%E4%BA%B2%E7%BC%98%E6%80%A7" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E8%8A%82%E7%82%B9%E4%BA%B2%E7%BC%98%E6%80%A7" class="anchor"></a>节点亲缘性</h2><p data-lines="2" data-type="p" data-sign="bfc29efb0d1dc7e5c89442ea07ca5a96">1：亲缘性(node affinity): 允许你通知 Kubemetes将 pod 只调度到<strong>某个几点子集</strong>上面。  </p><p data-lines="2" data-type="p" data-sign="dc0d7d0d48d8721a6a52b36634654514">通过给 <strong>节点</strong> 打标签，然后 在pod 中使用 <code>pod.spec.affinity.nodeaffinity</code> 强制选择(require) 或者 推荐选择(prefer) 节点。 </p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="00dc7aac0f4ca844a0211edf4c04e9df">一个典型的 gke 标准节点，常常会打以下三种标签： </p><ul class="cherry-list__default" data-lines="5" data-sign="0a939638073081a24154b61882ba41f9list5"><li><code>failure-domain.beta.kubernetes.io/region</code> 表示该节点所在的地<br>理地域 。</li><li><code>failure-domain.beta.kubernetes.io/zone</code> 表示该节点所在的可用<br>性区域（ availability zone ） 。</li><li><code>kubernetes.io/hostname</code> 很显然是该节点的主机名 。  </li></ul><blockquote data-lines="2" data-sign="2eb9881e516147a6385d3fb8db8ab081_2">已知的，租户常常会选择 机型、区、地理位置来确保服务的可用和高可用，通过打标签，相当于划分了 机群。</blockquote><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="11c9075b8bd6cdbd861e361ae9a5f0bf">2： 节点亲缘性 比 <code>nodeSelector</code> 表达能力更强</p><ul class="cherry-list__default" data-lines="5" data-sign="9b77ebc302a192115bc6e237354135e1list5"><li><code>requiredDuringScheduling...</code>: 调度的时候，强制要求。 若找不到合适的 node, 则 pod 无法部署</li><li><code>preferredDuringScheduling...</code>: 调度的时候，推荐<ul class="cherry-list__default"><li>通常和 权重 weight 搭配使用，用于控制优先级； </li></ul></li><li><code>...IgnoredDuringExecution</code>: 忽略已经在node 上运行的 pod，否则会把不符合条件的 pod 踢出<br><div data-sign="504ff14389d775e37f957f2853fdfcac" data-type="codeBlock" data-lines="29"><pre class="prism language-yaml" style="position: relative; z-index: 2;"><code class="language-yaml"><span class="token key atrule">apiVersion</span><span class="token punctuation">:</span> extensions/v1beta1
-<span class="token key atrule">kind</span><span class="token punctuation">:</span> Deployment
-<span class="token key atrule">metadata</span><span class="token punctuation">:</span>
-  <span class="token key atrule">name</span><span class="token punctuation">:</span> frontend
-<span class="token key atrule">spec</span><span class="token punctuation">:</span>
-  <span class="token key atrule">replicas</span><span class="token punctuation">:</span> <span class="token number">5</span>
-  <span class="token key atrule">template</span><span class="token punctuation">:</span>
-    <span class="token key atrule">metadata</span><span class="token punctuation">:</span>
-      <span class="token key atrule">labels</span><span class="token punctuation">:</span>
-        <span class="token key atrule">app</span><span class="token punctuation">:</span> frontend
-    <span class="token key atrule">spec</span><span class="token punctuation">:</span>
-      <span class="token key atrule">affinity</span><span class="token punctuation">:</span>
-        <span class="token key atrule">podAffinity</span><span class="token punctuation">:</span>
-          <span class="token comment"># 强制要求，忽略已经执行的pod</span>
-          <span class="token key atrule">requiredDuringSchedulingIgnoredDuringExecution</span><span class="token punctuation">:</span>
-          <span class="token comment"># 选择节点的范围</span>
-          <span class="token punctuation">-</span> <span class="token key atrule">topologyKey</span><span class="token punctuation">:</span> rack
-            <span class="token key atrule">labelSelector</span><span class="token punctuation">:</span>
-              <span class="token key atrule">matchLabels</span><span class="token punctuation">:</span>
-                <span class="token key atrule">app</span><span class="token punctuation">:</span> backend
-      <span class="token key atrule">containers</span><span class="token punctuation">:</span>
-      <span class="token punctuation">-</span> <span class="token key atrule">name</span><span class="token punctuation">:</span> main
-        <span class="token key atrule">image</span><span class="token punctuation">:</span> busybox
-        <span class="token key atrule">args</span><span class="token punctuation">:</span>
-        <span class="token punctuation">-</span> sleep
-        <span class="token punctuation">-</span> <span class="token string">"99999"</span>
-</code></pre></div></li></ul><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="5a9a53ef66fd3bf4b163390836f4086f">3： 节点亲缘性为 requried 的 ,只会在符合条件的 node 中部署：</p><p data-lines="2" data-type="p" data-sign="9ec25fc0d306ab551992e67331f28569"></p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="b408417d6ab004a9fad379f2393672b2">4：亲缘性为  preferred ， 会优先选择 都符合的，其次是 一个符合的（按 weight 排列），最后是都不符合的 【一般会有一个 pod 部署在上面】</p><blockquote data-lines="2" data-sign="1c8d224f4f79218ae310dab1c963b45f_2">因为调度器还会使用其他优先级函数： <code>Selector SpreadPriority</code> 函数. 确保了属于同一个ReplicaSet或者<br>Serice 的pod, 将分散部署在不同节点上，以<strong>避免单个节点失效</strong>导致这个服务也宅机。</blockquote><p data-lines="1" data-type="p" data-sign="e4953420f98ceffe954b28789584a685"></p><div data-sign="87967c4483293c73a1294fe797f55d17" data-type="codeBlock" data-lines="27"><pre class="prism language-yaml" style="position: relative; z-index: 2;"><code class="language-yaml"><span class="token key atrule">spec</span><span class="token punctuation">:</span>
-      <span class="token key atrule">affinity</span><span class="token punctuation">:</span>
-        <span class="token key atrule">nodeAffinity</span><span class="token punctuation">:</span>
-          <span class="token key atrule">preferredDuringSchedulingIgnoredDuringExecution</span><span class="token punctuation">:</span>
-          <span class="token comment"># 配置第一个权重</span>
-          <span class="token punctuation">-</span> <span class="token key atrule">weight</span><span class="token punctuation">:</span> <span class="token number">80</span>
-            <span class="token key atrule">preference</span><span class="token punctuation">:</span>
-              <span class="token key atrule">matchExpressions</span><span class="token punctuation">:</span>
-              <span class="token punctuation">-</span> <span class="token key atrule">key</span><span class="token punctuation">:</span> availability<span class="token punctuation">-</span>zone
-                <span class="token key atrule">operator</span><span class="token punctuation">:</span> In
-                <span class="token key atrule">values</span><span class="token punctuation">:</span>
-                <span class="token punctuation">-</span> zone1
-          <span class="token comment"># 配置第2个的权重</span>
-          <span class="token punctuation">-</span> <span class="token key atrule">weight</span><span class="token punctuation">:</span> <span class="token number">20</span>
-            <span class="token key atrule">preference</span><span class="token punctuation">:</span>
-              <span class="token key atrule">matchExpressions</span><span class="token punctuation">:</span>
-              <span class="token punctuation">-</span> <span class="token key atrule">key</span><span class="token punctuation">:</span> share<span class="token punctuation">-</span>type
-                <span class="token key atrule">operator</span><span class="token punctuation">:</span> In
-                <span class="token key atrule">values</span><span class="token punctuation">:</span>
-                <span class="token punctuation">-</span> dedicated
-</code></pre>
-
-<p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><h2 data-lines="1" data-sign="d2315c97e33fa3e4c2de4d9b33f0530c" id="pod-%E9%97%B4%E4%BA%B2%E7%BC%98%E6%80%A7" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#pod-%E9%97%B4%E4%BA%B2%E7%BC%98%E6%80%A7" class="anchor"></a>pod 间亲缘性</h2><p data-lines="2" data-type="p" data-sign="3f2c66f953f75db19aa8fffa0c6ef868">1: pod 间亲缘性 可以控制 多个 pod 部署在同一节点、同一机架、同一数据中心。 </p><blockquote data-lines="2" data-sign="bb0bd028843ed58d3dc2c7c84217466e_2">通常是 联系比较紧密的 pod 需要部署在一块，降低延时等。 <br><div data-sign="25936a3f20ce70815b170788c2dec934" data-type="codeBlock" data-lines="21"><pre class="prism language-yaml" style="position: relative; z-index: 2;"><code class="language-yaml"><span class="token key atrule">kind</span><span class="token punctuation">:</span> Deployment
-<span class="token comment"># ....</span>
-<span class="token key atrule">spec</span><span class="token punctuation">:</span>
-  <span class="token key atrule">replicas</span><span class="token punctuation">:</span> <span class="token number">5</span>
-  <span class="token key atrule">template</span><span class="token punctuation">:</span>
-    <span class="token comment">#....</span>
-    <span class="token key atrule">spec</span><span class="token punctuation">:</span>
-      <span class="token key atrule">affinity</span><span class="token punctuation">:</span>
-        <span class="token key atrule">podAffinity</span><span class="token punctuation">:</span>
-          <span class="token comment"># 强制限定 </span>
-          <span class="token key atrule">requiredDuringSchedulingIgnoredDuringExecution</span><span class="token punctuation">:</span>
-          <span class="token comment"># 节点选择的范围， 含有 label-key=kubernetes.io/hostname 的节点集合</span>
-          <span class="token punctuation">-</span> <span class="token key atrule">topologyKey</span><span class="token punctuation">:</span> kubernetes.io/hostname
-
-          	<span class="token comment"># 依赖的 pod 的标签</span>
-            <span class="token key atrule">labelSelector</span><span class="token punctuation">:</span>
-              <span class="token key atrule">matchLabels</span><span class="token punctuation">:</span>
-                <span class="token key atrule">app</span><span class="token punctuation">:</span> backend
-</code></pre></div></blockquote><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="69be097537a937f08774b380da345150">2： 若被依赖的 pod 被删除了， 重新调度时， 还是会调用到原来的节点（调度器根据被依赖度，有一套反向打分机制）</p><p data-lines="7" data-type="br" data-sign="br7">&nbsp;</p><h2 data-lines="1" data-sign="a568b5723809cd535bb2caea3a7dfe70" id="pod-%E9%97%B4%E9%9D%9E%E4%BA%B2%E7%BC%98%E6%80%A7" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#pod-%E9%97%B4%E9%9D%9E%E4%BA%B2%E7%BC%98%E6%80%A7" class="anchor"></a>pod 间非亲缘性</h2><p data-lines="1" data-type="p" data-sign="e4e0899d67c473c173b5e9fabf2a6507">1： 有些pod 部署在一起会影响彼此的性能，需要分开部署</p><div data-sign="5ac77ce878e41d20eb10e50a7c3b22e3" data-type="codeBlock" data-lines="14"><pre class="prism language-yaml" style="position: relative; z-index: 2;"><code class="language-yaml"><span class="token key atrule">spec</span><span class="token punctuation">:</span>
-      <span class="token key atrule">affinity</span><span class="token punctuation">:</span>
-        <span class="token comment"># 非亲缘性</span>
-        <span class="token key atrule">podAntiAffinity</span><span class="token punctuation">:</span>
-          <span class="token key atrule">requiredDuringSchedulingIgnoredDuringExecution</span><span class="token punctuation">:</span>
-          <span class="token comment"># 在指定的节点集中，决定 pod 不能被调度的范围</span>
-          <span class="token punctuation">-</span> <span class="token key atrule">topologyKey</span><span class="token punctuation">:</span> kubernetes.io/hostname
-            <span class="token comment"># pod 标签</span>
-            <span class="token key atrule">labelSelector</span><span class="token punctuation">:</span>
-              <span class="token key atrule">matchLabels</span><span class="token punctuation">:</span>
-                <span class="token key atrule">app</span><span class="token punctuation">:</span> frontend
-</code></pre>
-
-<blockquote data-lines="2" data-sign="d7bedd0147226431f1e3fd1abf6a2166_2">preferredDuringSchedulingIgnoredDuringExecution: 可指定软性要求</blockquote><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><h1 data-lines="1" data-sign="a3e9bc8c24505c34435e9f5dfc314887" id="%E5%BC%80%E5%8F%91%E5%BA%94%E7%94%A8" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E5%BC%80%E5%8F%91%E5%BA%94%E7%94%A8" class="anchor"></a>开发应用</h1><p data-lines="2" data-type="p" data-sign="742dc105209f0dc483ed650a9a07a401">1： 典型应用中使用的 k8s 组件如下</p><ul class="cherry-list__default" data-lines="29" data-sign="85de248a061b8d606f829b4a7a09b07clist29"><li>Manifest<ul class="cherry-list__default"><li>Deployment、StatefulSet 对象</li><li>Jobs<ul class="cherry-list__default"><li>CronJobs</li><li>DaemonSet: 集群管理员 在每个 pod 上运行的系统服务</li><li>HorizontalpodAutoscaler: 水平 pod 扩容器</li></ul></li><li>pod 模板<ul class="cherry-list__default"><li>引用两种 Secret<ul class="cherry-list__default"><li>拉取私有镜像</li><li>pod 中的运行进程 访问其他pod 或 k8s API 服务器</li></ul></li></ul></li><li>每个容器包含 存活探针 和 就绪探针</li></ul></li><li>集群外访问服务<ul class="cherry-list__default"><li>LoadBalancer</li><li>NodePort</li><li>Ingress 资源</li></ul></li><li>存储<ul class="cherry-list__default"><li>ConfigMap: 初始化环境变量<ul class="cherry-list__default"><li>pod 中以 configmap 卷挂载 </li></ul></li><li>emptyDir 卷</li><li>gitRepo 卷</li><li>PVC 卷</li><li>StorageClass 资源</li></ul></li><li>资源管理<ul class="cherry-list__default"><li>LimitRange</li><li>ResourceQuota</li></ul></li><li>运行时创建的对象<ul class="cherry-list__default"><li>端点控制器(Endpoint controller) 创建的 Endpoint 对象；</li><li>Deployment Controller 创建的 ReplicaSet 对象</li><li>ReplicaSet 创建的 pod 对象</li></ul></li></ul><p data-lines="1" data-type="p" data-sign="fd3036e51d510ac4b7a3da50ff6420d6"></p><p data-lines="5" data-type="br" data-sign="br5">&nbsp;</p><h2 data-lines="1" data-sign="b9c9b7df2be2ae39d307fafcbd484230" id="pod-%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#pod-%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F" class="anchor"></a>pod 生命周期</h2><p data-lines="2" data-type="p" data-sign="509f4a04dcefd8f241ae6d150a547824">1： 一个pod 可以比作只运行单个应用的虚拟机。 </p><blockquote data-lines="3" data-sign="48337f549d9d39b9ed9e623baa09b33d_3">pod 随时会重启，主机名和ip会变化（除非使用 StatefulSet）<br><br>容器重启，会有新的写入层，磁盘数据会丢失。应该使用 pod 级的存储卷，和 pod 同生命周期</blockquote><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="4ffce33384373cce05012b42b72f945c">2： 容器重启， 并不会影响 ReplicaSet 重新调度pod， RS只关注pod 的数量是否符合预期。 </p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="3304dbcac286c68c8fa341e29a0e0445">3： 以固定顺序启动pod</p><ul class="cherry-list__default" data-lines="3" data-sign="0f15df8ab80f6baa40a3c3fd63a41db1list3"><li>一个pod 可有任意数量的 initContainer 容器</li><li>init 容器结束后，才会启动主容器</li><li>有依赖启动顺序的应用，最好是添加 Readliness 探针，特别是 Deployment，避免在滚动升级时，出现错误版本</li></ul><p data-lines="5" data-type="br" data-sign="br5">&nbsp;</p><p data-lines="1" data-type="p" data-sign="003323d5f046d5da71fb784b2d3af3e8">4： 生命周期的钩子</p><ul class="cherry-list__default" data-lines="2" data-sign="50ce93aa7fa40bd9c4f0b22e9a5a03f3list2"><li>Post-start: 启动后钩子，容器启动后， 和主进程并行执行； 【钩子运行失败或返回非零错误码，会杀死主容器】</li><li>Pre-Stop: 停止前钩子， 容器停止前执行；执行后给容器发送 SIGTERM  【不管执行成功与否，都会使容器终止】</li></ul><blockquote data-lines="2" data-sign="4358bd0f93ca1b3bd9110e299f8f0afb_2">容器崩溃不会执行</blockquote><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="373850fa4273062709c9c0910dd23aef">5： Pod 的关闭</p><p data-lines="2" data-type="p" data-sign="f567c07503a8fbbc61a36d152d0bb860">Pod 的关闭是通过 API 服务器 删除 pod 对象来触发的。 </p><p data-lines="2" data-type="p" data-sign="b3c911c6a25468a1768ff5e2ae267a59">6: Kubelet 关闭 pod 时，会给每个容器一定的时间期限进行优雅的终止，这个时间叫做 <strong>终止宽限期</strong>（Termination Grace Period）。 </p><blockquote data-lines="2" data-sign="bfcd272d221f5a62ba7e034893eac600_2">pod 的 <code>spec.terminationGracePeriod</code> 参数，默认30</blockquote><ul class="cherry-list__default" data-lines="4" data-sign="7917c14d1102a2f96d5c0fc832e8fd6elist4"><li>\1. 执行停止前钩子（如果配置了的话）， 然后等待它执行完毕</li><li>\2. 向容器的主进程发送SIGTERM信号</li><li>\3. 等待容器优雅地关闭或者等待终止宽限期超时</li><li>\4. 如果容器主进程没有优雅地关闭， 使用SIGKILL信号强制终止进程  </li></ul><p data-lines="1" data-type="p" data-sign="d6238fe89cc61dc28adde10e0fc8808b"></p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="d10552c117971e52efedd15b16a190bc">7： 若是有状态的 Pod 关闭，关闭前，需要将数据迁移到 其它 存活的pod。</p><p data-lines="2" data-type="p" data-sign="a52ede07efb3ed8bac294181e1869644">不建议在收到关闭信号的时候，触发数据迁移：</p><ul class="cherry-list__default" data-lines="2" data-sign="ec6460eb7248a185ca8bea3b6719a50alist2"><li>容器终止不一定代表整个 Pod 终止了 （会有其它容器）</li><li>无法保证 迁移流程在进程被杀死前执行完毕； （宽限期不够 或 关闭过程中 pod 发生故障）</li></ul><p data-lines="1" data-type="p" data-sign="9f3f8207b16705d35599a84c9c56ea03">若 pod 重启是不会触发迁移流程的。 </p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="ddc6e9254c30ae5736fca327318e90dd">推荐做法： </p><ul class="cherry-list__default" data-lines="4" data-sign="485d3ae21eb36842fe772067378b6806list4"><li>应用终止前， 创建 Job 资源，运行一个单独的 pod 迁移数据； 【前提是创建 Job 不会出故障】</li><li>创建一个 CronJob, 周期性的 检测是否有孤立数据<br></li><li>若使用 StatefulSet, 缩容，会使 PVC 处于孤立状态，数据搁浅。 【若扩容永远不发生的时候】， 可在终止前拉起一个数据迁移的 pod</li></ul><p data-lines="1" data-type="p" data-sign="a49715ebd583f02c3ea12e83ce54914d"></p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><h2 data-lines="1" data-sign="0eafdd23c90ca16a1b2f620e2c38750e" id="%E5%A6%A5%E5%96%84%E5%A4%84%E7%90%86client-%E8%AF%B7%E6%B1%82" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E5%A6%A5%E5%96%84%E5%A4%84%E7%90%86client-%E8%AF%B7%E6%B1%82" class="anchor"></a>妥善处理client 请求</h2><p data-lines="2" data-type="p" data-sign="88fcc7c8ce7de7f304cb8994963f7cfd">1： pod 需要设置就绪探针， 确保服务可用，才将pod 加入可对外服务的集合中。 </p><blockquote data-lines="2" data-sign="f4c4f48dfe4a32eb41f1d2c40c9f07f2_2">若不设置就绪探针，则默认 pod 启动后，服务立马可用。</blockquote><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="38e5c88e3210eef8cf2614c8eabc9c72">2： k8s API 在收到 关闭 Pod 时，要做两件事： </p><ul class="cherry-list__default" data-lines="2" data-sign="aae52c5a8116bc7be1a9589c147efaf9list2"><li>修改 etcd 的状态，</li><li>删除通知给观察者 Kubelet 和 端点控制器(Endpoint Controller)</li></ul><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="cc5cec69ab77af868acd0fb33058d44a">如下图所示，这里的问题是 容器停止的事件 和 kube-proxy 修改 iptables 的前后是不确定的。 </p><p data-lines="2" data-type="p" data-sign="4129f5df00ee378c54bbfc28a84824fa"></p><p data-lines="2" data-type="p" data-sign="968ab10c94c7251db6428358ec1e1195">删除 pod 的时序如下： </p><p data-lines="2" data-type="p" data-sign="99f9bfbe77c926fbd92ef8849fabbc5c"></p><p data-lines="2" data-type="p" data-sign="772c99460bae39574cd53ca55f483bc0">分两种情形： </p><ul class="cherry-list__default" data-lines="2" data-sign="16544f4c943153f2ce02c009d39276b4list2"><li>1： 容器先停止， iptables 后被修改，这时候 API服务器会接着分配请求 【不合理】</li><li>2： iptables 先修改，容器后停止 【合理】</li></ul><p data-lines="1" data-type="p" data-sign="99eaf5ec4f5b3d2ad7aa7455d2cd081e">对于第一种情形，一般是 将容器 延后停止，尽量满足第二种情形。 停止时间需要取一个合理的值， 若时间太长，会导致容器无法正常关闭，太短可能无法处理 request。 </p><p data-lines="2" data-type="p" data-sign="3ddd4f72a8b68daf3a4981c833e17fd4"></p><p data-lines="5" data-type="br" data-sign="br5">&nbsp;</p><h2 data-lines="1" data-sign="cfd0acd60b34b143f320d9a78a4c4cf1" id="%E5%BA%94%E7%94%A8%E5%9C%A8k8s%E4%B8%AD%E5%90%88%E7%90%86%E7%AE%A1%E7%90%86" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E5%BA%94%E7%94%A8%E5%9C%A8k8s%E4%B8%AD%E5%90%88%E7%90%86%E7%AE%A1%E7%90%86" class="anchor"></a>应用在k8s中合理管理</h2><p data-lines="2" data-type="p" data-sign="5e89053e5a6e425c7d9535c9aa71a9c2">1： 打包镜像时： 包含最小工具集即可，避免更新版本时间过长。 </p><p data-lines="2" data-type="p" data-sign="b08b15e7aded6336589c05fd56c13080">2： 合理给镜像打标签</p><ul class="cherry-list__default" data-lines="3" data-sign="05be4d82802edc1238f1b1f54139b1bblist3"><li>若一直是 latest 镜像，则imagePullPolicy 需要设置为 Always，会有两个问题<ul class="cherry-list__default"><li>1： 无法回退到旧镜像； </li><li>2： 每次创建新 pod，都要去检查 镜像是否被修改了； </li></ul></li></ul><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="008c3d42ea55b03c414baa5b3a3d4429">3： 使用多维度标签</p><p data-lines="9" data-type="p" data-sign="af26a89a9c095758f2f018f4b29e2f9a">标签可以包含如下的内容<br>·资源所属的应用（或者微服务） 的名称<br>·应用层级（前端、后端，等等）<br>·运行环境（开发、测试、预发布、生产，等等）<br>· 版本号<br>·发布类型（稳定版 、 金丝雀、蓝绿开发中的绿色或者蓝色，等等）<br>·租户 （如果你在每个租户中运行不同的 pod 而不是使用命名空间）<br>．分片（带分片的系统）  </p><blockquote data-lines="2" data-sign="fef746b5859578e5fd6e9e061082336f_2">分组管理资源</blockquote><p data-lines="5" data-type="br" data-sign="br5">&nbsp;</p><p data-lines="1" data-type="p" data-sign="a6b7d9b28c04f08c1cdc5a3e951debae">4： 添加注解</p><ul class="cherry-list__default" data-lines="2" data-sign="ad225ed3341b760566e3e60c468cd4d0list2"><li>包含作者； </li><li>应用必须的依赖； </li></ul><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="c5e72cadb89d0ae9e5db4312338fa161">5： 更完善的进程终止信息</p><ul class="cherry-list__default" data-lines="5" data-sign="c86197f9fc5af0119638ff657742fb93list5"><li>将终止消息 写入 <code>/dev/termination-log</code> 【可通过  <code>terminationMessagePath</code> 修改 】 , 当 <code>kubectl describe pod</code> 可看到终止日志<ul class="cherry-list__default"><li>若未设置，容器终止的最后几行日志会当做终止消息</li></ul></li><li>将日志打印标准中断， <code>kubectl logs</code> 可见<br></li><li>或者写到pod 中 【挂载pod级别的卷】， 通过 <code>kubectl cp</code> 可拷贝出来； </li></ul><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="b1dfa5d92634c862343d12c18b984532">6： 集中式日志记录， 由 ElasticSearch、Logstash 和 Kibana 组成的 ELK栈。 【可通过 Helm 部署】</p><ul class="cherry-list__default" data-lines="2" data-sign="2f5abd9c7171eca3e82f1cb0aaac7d01list2"><li>FluentD  通过 DaemonSet 部署 Pod  收集日志</li><li>Kibana 可视化 ElasticSearch 的web工具， 也是单独作为 Pod 运行</li></ul><p data-lines="1" data-type="p" data-sign="79bc63d11fec6e1e6129d7d87780a1dd"></p><p data-lines="2" data-type="br" data-sign="br2">&nbsp;</p><h1 data-lines="1" data-sign="127f5c8208aea3037e6336c3177b054a" id="k8s%E5%BA%94%E7%94%A8%E6%89%A9%E5%B1%95" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#k8s%E5%BA%94%E7%94%A8%E6%89%A9%E5%B1%95" class="anchor"></a>k8s应用扩展</h1><h2 data-lines="2" data-sign="019ce25577912a0188db110e30d18cf1" id="%E8%87%AA%E5%AE%9A%E4%B9%89api%E5%AF%B9%E8%B1%A1" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E8%87%AA%E5%AE%9A%E4%B9%89api%E5%AF%B9%E8%B1%A1" class="anchor"></a>自定义API对象</h2><p data-lines="2" data-type="p" data-sign="597dd673e5f3d7cc06fd122aa875a52e">1： 开发者需要向 k8s API 提交 CustomResourceDefinitions (CRD) 对象，即可提交 Json 或 YAML 清单的方式创建新的资源类型。</p><p data-lines="2" data-type="p" data-sign="17959b2a258f67743f05392452477802">2： 例如创建一个 静态网站，自动拉取 Git， 创建 pod，并通过 Service 对外公开。 </p><p data-lines="2" data-type="p" data-sign="9556c941447bf19f9626ebec36590889"></p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="6ad7fe471ec69a38611e88bc3a119835">3： 先创建 CRD 对象，让 k8s API 服务器识别该类型。 </p><div data-sign="43560b3010fdf7524273846add7ce77b" data-type="codeBlock" data-lines="23"><pre class="prism language-yaml" style="position: relative; z-index: 2;"><code class="language-yaml"><span class="token key atrule">apiVersion</span><span class="token punctuation">:</span> apiextensions.k8s.io/v1beta1
-<span class="token key atrule">kind</span><span class="token punctuation">:</span> CustomResourceDefinition
-<span class="token key atrule">metadata</span><span class="token punctuation">:</span>
-  <span class="token comment"># 资源名称</span>
-  <span class="token key atrule">name</span><span class="token punctuation">:</span> websites.extensions.example.com
-<span class="token key atrule">spec</span><span class="token punctuation">:</span>
-  <span class="token comment"># Website 这种资源属于哪种命名空间</span>
-  <span class="token key atrule">scope</span><span class="token punctuation">:</span> Namespaced
-
-  <span class="token comment"># 定义API 集群和所属版本</span>
-  <span class="token key atrule">group</span><span class="token punctuation">:</span> extensions.example.com
-  <span class="token key atrule">version</span><span class="token punctuation">:</span> v1
-  <span class="token key atrule">names</span><span class="token punctuation">:</span>
-    <span class="token comment"># 缩短资源的名称</span>
-    <span class="token key atrule">kind</span><span class="token punctuation">:</span> Website
-    <span class="token key atrule">singular</span><span class="token punctuation">:</span> website
-    <span class="token comment">#  最后 url 的链接</span>
-    <span class="token comment">#  http://localhost:8001/apis/extensions.example.com/v1/websites?watch=true</span>
-    <span class="token key atrule">plural</span><span class="token punctuation">:</span> websites
+<p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="5ff841225b7948434c2a97cf228571ac">6： 给 pod 添加容忍度示例： </p><div data-sign="ec1558e985e263cf47ab5e96dbc88af8" data-type="codeBlock" data-lines="28"><pre><code>apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: prod
+spec:
+  replicas: 5
+  template:
+    metadata:
+      labels:
+        app: prod
+    spec:
+      containers:
+      - args:
+        - sleep
+        - "99999"
+        image: busybox
+        name: main
+      tolerations:
+        # 和 paint 配对使用
+      - key: node-type
+        # 使用 Equal 或 Exists
+        operator: Equal
+        value: production
+        effect: NoSchedule
 
 </code></pre>
 
-<p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="0e242a4e86c98fa544129254779f3cb1">4： 提交自定义资源请求： </p><div data-sign="c172cbe814886e3991b2adc183746bf1" data-type="codeBlock" data-lines="8"><pre class="prism language-yaml" style="position: relative; z-index: 2;"><code class="language-yaml"><span class="token key atrule">kind</span><span class="token punctuation">:</span> Website
-<span class="token key atrule">metadata</span><span class="token punctuation">:</span>
-  <span class="token key atrule">name</span><span class="token punctuation">:</span> kubia
-<span class="token key atrule">spec</span><span class="token punctuation">:</span>
-  <span class="token key atrule">gitRepo</span><span class="token punctuation">:</span> https<span class="token punctuation">:</span>//github.com/luksa/kubia<span class="token punctuation">-</span>website<span class="token punctuation">-</span>example.git
+<p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="85f554e23bf62bf7a9149de2bf651d63">7: 配置 node 不可用后，pod 最长等待时间： </p><blockquote data-lines="2" data-sign="048c9b34c80e35824c16047fa1d76b4d_2">可用于网络抖动的情形，若 超时后，pod 将被调度到其它 node.</blockquote><p data-lines="2" data-type="p" data-sign="3b0b3049761c0b9a1e37d150823d90b4"></p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><h2 data-lines="1" data-sign="f7a11d907bdb264918115c586fe98a64" id="%E8%8A%82%E7%82%B9%E4%BA%B2%E7%BC%98%E6%80%A7" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E8%8A%82%E7%82%B9%E4%BA%B2%E7%BC%98%E6%80%A7" class="anchor"></a>节点亲缘性</h2><p data-lines="2" data-type="p" data-sign="bfc29efb0d1dc7e5c89442ea07ca5a96">1：亲缘性(node affinity): 允许你通知 Kubemetes将 pod 只调度到<strong>某个几点子集</strong>上面。  </p><p data-lines="2" data-type="p" data-sign="dc0d7d0d48d8721a6a52b36634654514">通过给 <strong>节点</strong> 打标签，然后 在pod 中使用 <code>pod.spec.affinity.nodeaffinity</code> 强制选择(require) 或者 推荐选择(prefer) 节点。 </p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="00dc7aac0f4ca844a0211edf4c04e9df">一个典型的 gke 标准节点，常常会打以下三种标签： </p><ul class="cherry-list__default" data-lines="5" data-sign="0a939638073081a24154b61882ba41f9list5"><li><code>failure-domain.beta.kubernetes.io/region</code> 表示该节点所在的地<br>理地域 。</li><li><code>failure-domain.beta.kubernetes.io/zone</code> 表示该节点所在的可用<br>性区域（ availability zone ） 。</li><li><code>kubernetes.io/hostname</code> 很显然是该节点的主机名 。  </li></ul><blockquote data-lines="2" data-sign="2eb9881e516147a6385d3fb8db8ab081_2">已知的，租户常常会选择 机型、区、地理位置来确保服务的可用和高可用，通过打标签，相当于划分了 机群。</blockquote><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="11c9075b8bd6cdbd861e361ae9a5f0bf">2： 节点亲缘性 比 <code>nodeSelector</code> 表达能力更强</p><ul class="cherry-list__default" data-lines="5" data-sign="9b77ebc302a192115bc6e237354135e1list5"><li><code>requiredDuringScheduling...</code>: 调度的时候，强制要求。 若找不到合适的 node, 则 pod 无法部署</li><li><code>preferredDuringScheduling...</code>: 调度的时候，推荐<ul class="cherry-list__default"><li>通常和 权重 weight 搭配使用，用于控制优先级； </li></ul></li><li><code>...IgnoredDuringExecution</code>: 忽略已经在node 上运行的 pod，否则会把不符合条件的 pod 踢出<br><div data-sign="504ff14389d775e37f957f2853fdfcac" data-type="codeBlock" data-lines="29"><pre><code>apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: frontend
+spec:
+  replicas: 5
+  template:
+    metadata:
+      labels:
+        app: frontend
+    spec:
+      affinity:
+        podAffinity:
+          # 强制要求，忽略已经执行的pod
+          requiredDuringSchedulingIgnoredDuringExecution:
+          # 选择节点的范围
+          - topologyKey: rack
+            labelSelector:
+              matchLabels:
+                app: backend
+      containers:
+      - name: main
+        image: busybox
+        args:
+        - sleep
+        - "99999"
+</code></pre></div></li></ul><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="5a9a53ef66fd3bf4b163390836f4086f">3： 节点亲缘性为 requried 的 ,只会在符合条件的 node 中部署：</p><p data-lines="2" data-type="p" data-sign="9ec25fc0d306ab551992e67331f28569"></p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="b408417d6ab004a9fad379f2393672b2">4：亲缘性为  preferred ， 会优先选择 都符合的，其次是 一个符合的（按 weight 排列），最后是都不符合的 【一般会有一个 pod 部署在上面】</p><blockquote data-lines="2" data-sign="1c8d224f4f79218ae310dab1c963b45f_2">因为调度器还会使用其他优先级函数： <code>Selector SpreadPriority</code> 函数. 确保了属于同一个ReplicaSet或者<br>Serice 的pod, 将分散部署在不同节点上，以<strong>避免单个节点失效</strong>导致这个服务也宅机。</blockquote><p data-lines="1" data-type="p" data-sign="e4953420f98ceffe954b28789584a685"></p><div data-sign="87967c4483293c73a1294fe797f55d17" data-type="codeBlock" data-lines="27"><pre><code>spec:
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          # 配置第一个权重
+          - weight: 80
+            preference:
+              matchExpressions:
+              - key: availability-zone
+                operator: In
+                values:
+                - zone1
+          # 配置第2个的权重
+          - weight: 20
+            preference:
+              matchExpressions:
+              - key: share-type
+                operator: In
+                values:
+                - dedicated
 </code></pre>
 
-<p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="711e7409673cb12c80dbad3706b0c5be">5: create 上述两种资源后，可用 <code>kubectl get</code> 查看资源实例</p><div data-sign="55a636ec1b149316d0bc8d44c985a458" data-type="codeBlock" data-lines="4"><pre class="prism language-" style="position: relative; z-index: 2;"><code class="language-">kubectl <span class="token keyword">get</span> websites
+<p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><h2 data-lines="1" data-sign="d2315c97e33fa3e4c2de4d9b33f0530c" id="pod-%E9%97%B4%E4%BA%B2%E7%BC%98%E6%80%A7" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#pod-%E9%97%B4%E4%BA%B2%E7%BC%98%E6%80%A7" class="anchor"></a>pod 间亲缘性</h2><p data-lines="2" data-type="p" data-sign="3f2c66f953f75db19aa8fffa0c6ef868">1: pod 间亲缘性 可以控制 多个 pod 部署在同一节点、同一机架、同一数据中心。 </p><blockquote data-lines="2" data-sign="bb0bd028843ed58d3dc2c7c84217466e_2">通常是 联系比较紧密的 pod 需要部署在一块，降低延时等。 <br><div data-sign="25936a3f20ce70815b170788c2dec934" data-type="codeBlock" data-lines="21"><pre><code>kind: Deployment
+# ....
+spec:
+  replicas: 5
+  template:
+    #....
+    spec:
+      affinity:
+        podAffinity:
+          # 强制限定
+          requiredDuringSchedulingIgnoredDuringExecution:
+          # 节点选择的范围， 含有 label-key=kubernetes.io/hostname 的节点集合
+          - topologyKey: kubernetes.io/hostname
+
+          	# 依赖的 pod 的标签
+            labelSelector:
+              matchLabels:
+                app: backend
+</code></pre></div></blockquote><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="69be097537a937f08774b380da345150">2： 若被依赖的 pod 被删除了， 重新调度时， 还是会调用到原来的节点（调度器根据被依赖度，有一套反向打分机制）</p><p data-lines="7" data-type="br" data-sign="br7">&nbsp;</p><h2 data-lines="1" data-sign="a568b5723809cd535bb2caea3a7dfe70" id="pod-%E9%97%B4%E9%9D%9E%E4%BA%B2%E7%BC%98%E6%80%A7" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#pod-%E9%97%B4%E9%9D%9E%E4%BA%B2%E7%BC%98%E6%80%A7" class="anchor"></a>pod 间非亲缘性</h2><p data-lines="1" data-type="p" data-sign="e4e0899d67c473c173b5e9fabf2a6507">1： 有些pod 部署在一起会影响彼此的性能，需要分开部署</p><div data-sign="5ac77ce878e41d20eb10e50a7c3b22e3" data-type="codeBlock" data-lines="14"><pre><code>spec:
+      affinity:
+        # 非亲缘性
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          # 在指定的节点集中，决定 pod 不能被调度的范围
+          - topologyKey: kubernetes.io/hostname
+            # pod 标签
+            labelSelector:
+              matchLabels:
+                app: frontend
 </code></pre>
 
-<p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="160731b8a93de86724136f7ef9fa7937">6: 自定义控制器，通过 HTTP 监听 API服务器 Add/Delete 接口，创建 Deployment 资源和 Service资源。 </p><p data-lines="2" data-type="p" data-sign="c96cffdd315784cc807524dc3a957bb4"></p><p data-lines="1" data-type="p" data-sign="852c56397c0156ed9d8738f6c2d2b2d5">7: 控制器部署成一个 pod</p><div data-sign="bcead58193a77e1f0abe2691533f53e3" data-type="codeBlock" data-lines="21"><pre class="prism language-yaml" style="position: relative; z-index: 2;"><code class="language-yaml"><span class="token key atrule">apiVersion</span><span class="token punctuation">:</span> apps/v1beta1
-<span class="token key atrule">kind</span><span class="token punctuation">:</span> Deployment
-<span class="token key atrule">metadata</span><span class="token punctuation">:</span>
-  <span class="token key atrule">name</span><span class="token punctuation">:</span> website<span class="token punctuation">-</span>controller
-<span class="token key atrule">spec</span><span class="token punctuation">:</span>
-  <span class="token key atrule">replicas</span><span class="token punctuation">:</span> <span class="token number">1</span>
-  <span class="token key atrule">template</span><span class="token punctuation">:</span>
-    <span class="token key atrule">metadata</span><span class="token punctuation">:</span>
-      <span class="token key atrule">name</span><span class="token punctuation">:</span> website<span class="token punctuation">-</span>controller
-      <span class="token key atrule">labels</span><span class="token punctuation">:</span>
-        <span class="token key atrule">app</span><span class="token punctuation">:</span> website<span class="token punctuation">-</span>controller
-    <span class="token key atrule">spec</span><span class="token punctuation">:</span>
-      <span class="token key atrule">serviceAccountName</span><span class="token punctuation">:</span> website<span class="token punctuation">-</span>controller
-      <span class="token key atrule">containers</span><span class="token punctuation">:</span>
-      <span class="token punctuation">-</span> <span class="token key atrule">name</span><span class="token punctuation">:</span> main
-        <span class="token key atrule">image</span><span class="token punctuation">:</span> luksa/website<span class="token punctuation">-</span>controller
-      <span class="token punctuation">-</span> <span class="token key atrule">name</span><span class="token punctuation">:</span> proxy
-        <span class="token key atrule">image</span><span class="token punctuation">:</span> luksa/kubectl<span class="token punctuation">-</span>proxy<span class="token punctuation">:</span>1.6.2
-</code></pre>
+<blockquote data-lines="2" data-sign="d7bedd0147226431f1e3fd1abf6a2166_2">preferredDuringSchedulingIgnoredDuringExecution: 可指定软性要求</blockquote><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><h1 data-lines="1" data-sign="a3e9bc8c24505c34435e9f5dfc314887" id="%E5%BC%80%E5%8F%91%E5%BA%94%E7%94%A8" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E5%BC%80%E5%8F%91%E5%BA%94%E7%94%A8" class="anchor"></a>开发应用</h1><p data-lines="2" data-type="p" data-sign="742dc105209f0dc483ed650a9a07a401">1： 典型应用中使用的 k8s 组件如下</p><ul class="cherry-list__default" data-lines="29" data-sign="85de248a061b8d606f829b4a7a09b07clist29"><li>Manifest<ul class="cherry-list__default"><li>Deployment、StatefulSet 对象</li><li>Jobs<ul class="cherry-list__default"><li>CronJobs</li><li>DaemonSet: 集群管理员 在每个 pod 上运行的系统服务</li><li>HorizontalpodAutoscaler: 水平 pod 扩容器</li></ul></li><li>pod 模板<ul class="cherry-list__default"><li>引用两种 Secret<ul class="cherry-list__default"><li>拉取私有镜像</li><li>pod 中的运行进程 访问其他pod 或 k8s API 服务器</li></ul></li></ul></li><li>每个容器包含 存活探针 和 就绪探针</li></ul></li><li>集群外访问服务<ul class="cherry-list__default"><li>LoadBalancer</li><li>NodePort</li><li>Ingress 资源</li></ul></li><li>存储<ul class="cherry-list__default"><li>ConfigMap: 初始化环境变量<ul class="cherry-list__default"><li>pod 中以 configmap 卷挂载 </li></ul></li><li>emptyDir 卷</li><li>gitRepo 卷</li><li>PVC 卷</li><li>StorageClass 资源</li></ul></li><li>资源管理<ul class="cherry-list__default"><li>LimitRange</li><li>ResourceQuota</li></ul></li><li>运行时创建的对象<ul class="cherry-list__default"><li>端点控制器(Endpoint controller) 创建的 Endpoint 对象；</li><li>Deployment Controller 创建的 ReplicaSet 对象</li><li>ReplicaSet 创建的 pod 对象</li></ul></li></ul><p data-lines="1" data-type="p" data-sign="fd3036e51d510ac4b7a3da50ff6420d6"></p><p data-lines="5" data-type="br" data-sign="br5">&nbsp;</p><h2 data-lines="1" data-sign="b9c9b7df2be2ae39d307fafcbd484230" id="pod-%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#pod-%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F" class="anchor"></a>pod 生命周期</h2><p data-lines="2" data-type="p" data-sign="509f4a04dcefd8f241ae6d150a547824">1： 一个pod 可以比作只运行单个应用的虚拟机。 </p><blockquote data-lines="3" data-sign="48337f549d9d39b9ed9e623baa09b33d_3">pod 随时会重启，主机名和ip会变化（除非使用 StatefulSet）<br><br>容器重启，会有新的写入层，磁盘数据会丢失。应该使用 pod 级的存储卷，和 pod 同生命周期</blockquote><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="4ffce33384373cce05012b42b72f945c">2： 容器重启， 并不会影响 ReplicaSet 重新调度pod， RS只关注pod 的数量是否符合预期。 </p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="3304dbcac286c68c8fa341e29a0e0445">3： 以固定顺序启动pod</p><ul class="cherry-list__default" data-lines="3" data-sign="0f15df8ab80f6baa40a3c3fd63a41db1list3"><li>一个pod 可有任意数量的 initContainer 容器</li><li>init 容器结束后，才会启动主容器</li><li>有依赖启动顺序的应用，最好是添加 Readliness 探针，特别是 Deployment，避免在滚动升级时，出现错误版本</li></ul><p data-lines="5" data-type="br" data-sign="br5">&nbsp;</p><p data-lines="1" data-type="p" data-sign="003323d5f046d5da71fb784b2d3af3e8">4： 生命周期的钩子</p><ul class="cherry-list__default" data-lines="2" data-sign="50ce93aa7fa40bd9c4f0b22e9a5a03f3list2"><li>Post-start: 启动后钩子，容器启动后， 和主进程并行执行； 【钩子运行失败或返回非零错误码，会杀死主容器】</li><li>Pre-Stop: 停止前钩子， 容器停止前执行；执行后给容器发送 SIGTERM  【不管执行成功与否，都会使容器终止】</li></ul><blockquote data-lines="2" data-sign="4358bd0f93ca1b3bd9110e299f8f0afb_2">容器崩溃不会执行</blockquote><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="373850fa4273062709c9c0910dd23aef">5： Pod 的关闭</p><p data-lines="2" data-type="p" data-sign="f567c07503a8fbbc61a36d152d0bb860">Pod 的关闭是通过 API 服务器 删除 pod 对象来触发的。 </p><p data-lines="2" data-type="p" data-sign="b3c911c6a25468a1768ff5e2ae267a59">6: Kubelet 关闭 pod 时，会给每个容器一定的时间期限进行优雅的终止，这个时间叫做 <strong>终止宽限期</strong>（Termination Grace Period）。 </p><blockquote data-lines="2" data-sign="bfcd272d221f5a62ba7e034893eac600_2">pod 的 <code>spec.terminationGracePeriod</code> 参数，默认30</blockquote><ul class="cherry-list__default" data-lines="4" data-sign="7917c14d1102a2f96d5c0fc832e8fd6elist4"><li>\1. 执行停止前钩子（如果配置了的话）， 然后等待它执行完毕</li><li>\2. 向容器的主进程发送SIGTERM信号</li><li>\3. 等待容器优雅地关闭或者等待终止宽限期超时</li><li>\4. 如果容器主进程没有优雅地关闭， 使用SIGKILL信号强制终止进程  </li></ul><p data-lines="1" data-type="p" data-sign="d6238fe89cc61dc28adde10e0fc8808b"></p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="d10552c117971e52efedd15b16a190bc">7： 若是有状态的 Pod 关闭，关闭前，需要将数据迁移到 其它 存活的pod。</p><p data-lines="2" data-type="p" data-sign="a52ede07efb3ed8bac294181e1869644">不建议在收到关闭信号的时候，触发数据迁移：</p><ul class="cherry-list__default" data-lines="2" data-sign="ec6460eb7248a185ca8bea3b6719a50alist2"><li>容器终止不一定代表整个 Pod 终止了 （会有其它容器）</li><li>无法保证 迁移流程在进程被杀死前执行完毕； （宽限期不够 或 关闭过程中 pod 发生故障）</li></ul><p data-lines="1" data-type="p" data-sign="9f3f8207b16705d35599a84c9c56ea03">若 pod 重启是不会触发迁移流程的。 </p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="ddc6e9254c30ae5736fca327318e90dd">推荐做法： </p><ul class="cherry-list__default" data-lines="4" data-sign="485d3ae21eb36842fe772067378b6806list4"><li>应用终止前， 创建 Job 资源，运行一个单独的 pod 迁移数据； 【前提是创建 Job 不会出故障】</li><li>创建一个 CronJob, 周期性的 检测是否有孤立数据<br></li><li>若使用 StatefulSet, 缩容，会使 PVC 处于孤立状态，数据搁浅。 【若扩容永远不发生的时候】， 可在终止前拉起一个数据迁移的 pod</li></ul><p data-lines="1" data-type="p" data-sign="a49715ebd583f02c3ea12e83ce54914d"></p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><h2 data-lines="1" data-sign="0eafdd23c90ca16a1b2f620e2c38750e" id="%E5%A6%A5%E5%96%84%E5%A4%84%E7%90%86client-%E8%AF%B7%E6%B1%82" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E5%A6%A5%E5%96%84%E5%A4%84%E7%90%86client-%E8%AF%B7%E6%B1%82" class="anchor"></a>妥善处理client 请求</h2><p data-lines="2" data-type="p" data-sign="88fcc7c8ce7de7f304cb8994963f7cfd">1： pod 需要设置就绪探针， 确保服务可用，才将pod 加入可对外服务的集合中。 </p><blockquote data-lines="2" data-sign="f4c4f48dfe4a32eb41f1d2c40c9f07f2_2">若不设置就绪探针，则默认 pod 启动后，服务立马可用。</blockquote><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="38e5c88e3210eef8cf2614c8eabc9c72">2： k8s API 在收到 关闭 Pod 时，要做两件事： </p><ul class="cherry-list__default" data-lines="2" data-sign="aae52c5a8116bc7be1a9589c147efaf9list2"><li>修改 etcd 的状态，</li><li>删除通知给观察者 Kubelet 和 端点控制器(Endpoint Controller)</li></ul><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="cc5cec69ab77af868acd0fb33058d44a">如下图所示，这里的问题是 容器停止的事件 和 kube-proxy 修改 iptables 的前后是不确定的。 </p><p data-lines="2" data-type="p" data-sign="4129f5df00ee378c54bbfc28a84824fa"></p><p data-lines="2" data-type="p" data-sign="968ab10c94c7251db6428358ec1e1195">删除 pod 的时序如下： </p><p data-lines="2" data-type="p" data-sign="99f9bfbe77c926fbd92ef8849fabbc5c"></p><p data-lines="2" data-type="p" data-sign="772c99460bae39574cd53ca55f483bc0">分两种情形： </p><ul class="cherry-list__default" data-lines="2" data-sign="16544f4c943153f2ce02c009d39276b4list2"><li>1： 容器先停止， iptables 后被修改，这时候 API服务器会接着分配请求 【不合理】</li><li>2： iptables 先修改，容器后停止 【合理】</li></ul><p data-lines="1" data-type="p" data-sign="99eaf5ec4f5b3d2ad7aa7455d2cd081e">对于第一种情形，一般是 将容器 延后停止，尽量满足第二种情形。 停止时间需要取一个合理的值， 若时间太长，会导致容器无法正常关闭，太短可能无法处理 request。 </p><p data-lines="2" data-type="p" data-sign="3ddd4f72a8b68daf3a4981c833e17fd4"></p><p data-lines="5" data-type="br" data-sign="br5">&nbsp;</p><h2 data-lines="1" data-sign="cfd0acd60b34b143f320d9a78a4c4cf1" id="%E5%BA%94%E7%94%A8%E5%9C%A8k8s%E4%B8%AD%E5%90%88%E7%90%86%E7%AE%A1%E7%90%86" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E5%BA%94%E7%94%A8%E5%9C%A8k8s%E4%B8%AD%E5%90%88%E7%90%86%E7%AE%A1%E7%90%86" class="anchor"></a>应用在k8s中合理管理</h2><p data-lines="2" data-type="p" data-sign="5e89053e5a6e425c7d9535c9aa71a9c2">1： 打包镜像时： 包含最小工具集即可，避免更新版本时间过长。 </p><p data-lines="2" data-type="p" data-sign="b08b15e7aded6336589c05fd56c13080">2： 合理给镜像打标签</p><ul class="cherry-list__default" data-lines="3" data-sign="05be4d82802edc1238f1b1f54139b1bblist3"><li>若一直是 latest 镜像，则imagePullPolicy 需要设置为 Always，会有两个问题<ul class="cherry-list__default"><li>1： 无法回退到旧镜像； </li><li>2： 每次创建新 pod，都要去检查 镜像是否被修改了； </li></ul></li></ul><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="008c3d42ea55b03c414baa5b3a3d4429">3： 使用多维度标签</p><p data-lines="9" data-type="p" data-sign="af26a89a9c095758f2f018f4b29e2f9a">标签可以包含如下的内容<br>·资源所属的应用（或者微服务） 的名称<br>·应用层级（前端、后端，等等）<br>·运行环境（开发、测试、预发布、生产，等等）<br>· 版本号<br>·发布类型（稳定版 、 金丝雀、蓝绿开发中的绿色或者蓝色，等等）<br>·租户 （如果你在每个租户中运行不同的 pod 而不是使用命名空间）<br>．分片（带分片的系统）  </p><blockquote data-lines="2" data-sign="fef746b5859578e5fd6e9e061082336f_2">分组管理资源</blockquote><p data-lines="5" data-type="br" data-sign="br5">&nbsp;</p><p data-lines="1" data-type="p" data-sign="a6b7d9b28c04f08c1cdc5a3e951debae">4： 添加注解</p><ul class="cherry-list__default" data-lines="2" data-sign="ad225ed3341b760566e3e60c468cd4d0list2"><li>包含作者； </li><li>应用必须的依赖； </li></ul><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="c5e72cadb89d0ae9e5db4312338fa161">5： 更完善的进程终止信息</p><ul class="cherry-list__default" data-lines="5" data-sign="c86197f9fc5af0119638ff657742fb93list5"><li>将终止消息 写入 <code>/dev/termination-log</code> 【可通过  <code>terminationMessagePath</code> 修改 】 , 当 <code>kubectl describe pod</code> 可看到终止日志<ul class="cherry-list__default"><li>若未设置，容器终止的最后几行日志会当做终止消息</li></ul></li><li>将日志打印标准中断， <code>kubectl logs</code> 可见<br></li><li>或者写到pod 中 【挂载pod级别的卷】， 通过 <code>kubectl cp</code> 可拷贝出来； </li></ul><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="b1dfa5d92634c862343d12c18b984532">6： 集中式日志记录， 由 ElasticSearch、Logstash 和 Kibana 组成的 ELK栈。 【可通过 Helm 部署】</p><ul class="cherry-list__default" data-lines="2" data-sign="2f5abd9c7171eca3e82f1cb0aaac7d01list2"><li>FluentD  通过 DaemonSet 部署 Pod  收集日志</li><li>Kibana 可视化 ElasticSearch 的web工具， 也是单独作为 Pod 运行</li></ul><p data-lines="1" data-type="p" data-sign="79bc63d11fec6e1e6129d7d87780a1dd"></p><p data-lines="2" data-type="br" data-sign="br2">&nbsp;</p><h1 data-lines="1" data-sign="127f5c8208aea3037e6336c3177b054a" id="k8s%E5%BA%94%E7%94%A8%E6%89%A9%E5%B1%95" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#k8s%E5%BA%94%E7%94%A8%E6%89%A9%E5%B1%95" class="anchor"></a>k8s应用扩展</h1><h2 data-lines="2" data-sign="019ce25577912a0188db110e30d18cf1" id="%E8%87%AA%E5%AE%9A%E4%B9%89api%E5%AF%B9%E8%B1%A1" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E8%87%AA%E5%AE%9A%E4%B9%89api%E5%AF%B9%E8%B1%A1" class="anchor"></a>自定义API对象</h2><p data-lines="2" data-type="p" data-sign="597dd673e5f3d7cc06fd122aa875a52e">1： 开发者需要向 k8s API 提交 CustomResourceDefinitions (CRD) 对象，即可提交 Json 或 YAML 清单的方式创建新的资源类型。</p><p data-lines="2" data-type="p" data-sign="17959b2a258f67743f05392452477802">2： 例如创建一个 静态网站，自动拉取 Git， 创建 pod，并通过 Service 对外公开。 </p><p data-lines="2" data-type="p" data-sign="9556c941447bf19f9626ebec36590889"></p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="6ad7fe471ec69a38611e88bc3a119835">3： 先创建 CRD 对象，让 k8s API 服务器识别该类型。 </p><div data-sign="43560b3010fdf7524273846add7ce77b" data-type="codeBlock" data-lines="23"><pre><code>apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  # 资源名称
+  name: websites.extensions.example.com
+spec:
+  # Website 这种资源属于哪种命名空间
+  scope: Namespaced
 
-<p data-lines="2" data-type="p" data-sign="c2160ca7f8c7290e06a01069cf85c05d">自定义控制器 先和 proxy通信，然后由 proxy 连接 k8s API. </p><p data-lines="2" data-type="p" data-sign="4e3ef892f96668e215e22eb520f22bae"></p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="08b1be396701dea6ee9db7dc4ad952ce">运行这个控制器 pod，和 API 服务器进行通信， 需要创建 特殊的 ServiceAccount，</p><p data-lines="2" data-type="p" data-sign="d3069ba2beb4f22fcf80eb9f0582ea00">若启用了角色访问控制(RBAC), 则需要 clusterrolebinding 到 <code>clusterrole=cluster-admin</code> </p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="70d9753632242835777cb2111034b042">控制器运行的核心逻辑如下： </p><div data-sign="d90761f830342324a5d75408ecb6f165" data-type="codeBlock" data-lines="80"><pre class="prism language-go" style="position: relative; z-index: 2;"><code class="language-go">
-<span class="token keyword">func</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
-	log<span class="token punctuation">.</span><span class="token function">Println</span><span class="token punctuation">(</span><span class="token string">"website-controller started."</span><span class="token punctuation">)</span>
-	<span class="token keyword">for</span> <span class="token punctuation">{</span>
-		resp<span class="token punctuation">,</span> err <span class="token operator">:=</span> http<span class="token punctuation">.</span><span class="token function">Get</span><span class="token punctuation">(</span><span class="token string">"http://localhost:8001/apis/extensions.example.com/v1/websites?watch=true"</span><span class="token punctuation">)</span>
-		<span class="token keyword">if</span> err <span class="token operator">!=</span> <span class="token boolean">nil</span> <span class="token punctuation">{</span>
-			<span class="token function">panic</span><span class="token punctuation">(</span>err<span class="token punctuation">)</span>
-		<span class="token punctuation">}</span>
-		<span class="token keyword">defer</span> resp<span class="token punctuation">.</span>Body<span class="token punctuation">.</span><span class="token function">Close</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
-
-		decoder <span class="token operator">:=</span> json<span class="token punctuation">.</span><span class="token function">NewDecoder</span><span class="token punctuation">(</span>resp<span class="token punctuation">.</span>Body<span class="token punctuation">)</span>
-		<span class="token keyword">for</span> <span class="token punctuation">{</span>
-			<span class="token keyword">var</span> event v1<span class="token punctuation">.</span>WebsiteWatchEvent
-			<span class="token keyword">if</span> err <span class="token operator">:=</span> decoder<span class="token punctuation">.</span><span class="token function">Decode</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>event<span class="token punctuation">)</span><span class="token punctuation">;</span> err <span class="token operator">==</span> io<span class="token punctuation">.</span>EOF <span class="token punctuation">{</span>
-				<span class="token keyword">break</span>
-			<span class="token punctuation">}</span> <span class="token keyword">else</span> <span class="token keyword">if</span> err <span class="token operator">!=</span> <span class="token boolean">nil</span> <span class="token punctuation">{</span>
-				log<span class="token punctuation">.</span><span class="token function">Fatal</span><span class="token punctuation">(</span>err<span class="token punctuation">)</span>
-			<span class="token punctuation">}</span>
-
-			log<span class="token punctuation">.</span><span class="token function">Printf</span><span class="token punctuation">(</span><span class="token string">"Received watch event: %s: %s: %s\n"</span><span class="token punctuation">,</span> event<span class="token punctuation">.</span>Type<span class="token punctuation">,</span> event<span class="token punctuation">.</span>Object<span class="token punctuation">.</span>Metadata<span class="token punctuation">.</span>Name<span class="token punctuation">,</span> event<span class="token punctuation">.</span>Object<span class="token punctuation">.</span>Spec<span class="token punctuation">.</span>GitRepo<span class="token punctuation">)</span>
-
-			<span class="token keyword">if</span> event<span class="token punctuation">.</span>Type <span class="token operator">==</span> <span class="token string">"ADDED"</span> <span class="token punctuation">{</span>
-				<span class="token function">createWebsite</span><span class="token punctuation">(</span>event<span class="token punctuation">.</span>Object<span class="token punctuation">)</span>
-			<span class="token punctuation">}</span> <span class="token keyword">else</span> <span class="token keyword">if</span> event<span class="token punctuation">.</span>Type <span class="token operator">==</span> <span class="token string">"DELETED"</span> <span class="token punctuation">{</span>
-				<span class="token function">deleteWebsite</span><span class="token punctuation">(</span>event<span class="token punctuation">.</span>Object<span class="token punctuation">)</span>
-			<span class="token punctuation">}</span>
-		<span class="token punctuation">}</span>
-	<span class="token punctuation">}</span>
-
-<span class="token punctuation">}</span>
-
-<span class="token keyword">func</span> <span class="token function">createWebsite</span><span class="token punctuation">(</span>website v1<span class="token punctuation">.</span>Website<span class="token punctuation">)</span> <span class="token punctuation">{</span>
-	<span class="token function">createResource</span><span class="token punctuation">(</span>website<span class="token punctuation">,</span> <span class="token string">"api/v1"</span><span class="token punctuation">,</span> <span class="token string">"services"</span><span class="token punctuation">,</span> <span class="token string">"service-template.json"</span><span class="token punctuation">)</span>
-	<span class="token function">createResource</span><span class="token punctuation">(</span>website<span class="token punctuation">,</span> <span class="token string">"apis/extensions/v1beta1"</span><span class="token punctuation">,</span> <span class="token string">"deployments"</span><span class="token punctuation">,</span> <span class="token string">"deployment-template.json"</span><span class="token punctuation">)</span>
-<span class="token punctuation">}</span>
-
-<span class="token keyword">func</span> <span class="token function">deleteWebsite</span><span class="token punctuation">(</span>website v1<span class="token punctuation">.</span>Website<span class="token punctuation">)</span> <span class="token punctuation">{</span>
-	<span class="token function">deleteResource</span><span class="token punctuation">(</span>website<span class="token punctuation">,</span> <span class="token string">"api/v1"</span><span class="token punctuation">,</span> <span class="token string">"services"</span><span class="token punctuation">,</span> <span class="token function">getName</span><span class="token punctuation">(</span>website<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-	<span class="token function">deleteResource</span><span class="token punctuation">(</span>website<span class="token punctuation">,</span> <span class="token string">"apis/extensions/v1beta1"</span><span class="token punctuation">,</span> <span class="token string">"deployments"</span><span class="token punctuation">,</span> <span class="token function">getName</span><span class="token punctuation">(</span>website<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-<span class="token punctuation">}</span>
-
-<span class="token keyword">func</span> <span class="token function">createResource</span><span class="token punctuation">(</span>webserver v1<span class="token punctuation">.</span>Website<span class="token punctuation">,</span> apiGroup <span class="token builtin">string</span><span class="token punctuation">,</span> kind <span class="token builtin">string</span><span class="token punctuation">,</span> filename <span class="token builtin">string</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
-	log<span class="token punctuation">.</span><span class="token function">Printf</span><span class="token punctuation">(</span><span class="token string">"Creating %s with name %s in namespace %s"</span><span class="token punctuation">,</span> kind<span class="token punctuation">,</span> <span class="token function">getName</span><span class="token punctuation">(</span>webserver<span class="token punctuation">)</span><span class="token punctuation">,</span> webserver<span class="token punctuation">.</span>Metadata<span class="token punctuation">.</span>Namespace<span class="token punctuation">)</span>
-	templateBytes<span class="token punctuation">,</span> err <span class="token operator">:=</span> ioutil<span class="token punctuation">.</span><span class="token function">ReadFile</span><span class="token punctuation">(</span>filename<span class="token punctuation">)</span>
-	<span class="token keyword">if</span> err <span class="token operator">!=</span> <span class="token boolean">nil</span> <span class="token punctuation">{</span>
-		log<span class="token punctuation">.</span><span class="token function">Fatal</span><span class="token punctuation">(</span>err<span class="token punctuation">)</span>
-	<span class="token punctuation">}</span>
-	template <span class="token operator">:=</span> strings<span class="token punctuation">.</span><span class="token function">Replace</span><span class="token punctuation">(</span><span class="token function">string</span><span class="token punctuation">(</span>templateBytes<span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token string">"[NAME]"</span><span class="token punctuation">,</span> <span class="token function">getName</span><span class="token punctuation">(</span>webserver<span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token operator">-</span><span class="token number">1</span><span class="token punctuation">)</span>
-	template <span class="token operator">=</span> strings<span class="token punctuation">.</span><span class="token function">Replace</span><span class="token punctuation">(</span>template<span class="token punctuation">,</span> <span class="token string">"[GIT-REPO]"</span><span class="token punctuation">,</span> webserver<span class="token punctuation">.</span>Spec<span class="token punctuation">.</span>GitRepo<span class="token punctuation">,</span> <span class="token operator">-</span><span class="token number">1</span><span class="token punctuation">)</span>
-
-	resp<span class="token punctuation">,</span> err <span class="token operator">:=</span> http<span class="token punctuation">.</span><span class="token function">Post</span><span class="token punctuation">(</span>fmt<span class="token punctuation">.</span><span class="token function">Sprintf</span><span class="token punctuation">(</span><span class="token string">"http://localhost:8001/%s/namespaces/%s/%s/"</span><span class="token punctuation">,</span> apiGroup<span class="token punctuation">,</span> webserver<span class="token punctuation">.</span>Metadata<span class="token punctuation">.</span>Namespace<span class="token punctuation">,</span> kind<span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token string">"application/json"</span><span class="token punctuation">,</span> strings<span class="token punctuation">.</span><span class="token function">NewReader</span><span class="token punctuation">(</span>template<span class="token punctuation">)</span><span class="token punctuation">)</span>
-	<span class="token keyword">if</span> err <span class="token operator">!=</span> <span class="token boolean">nil</span> <span class="token punctuation">{</span>
-		log<span class="token punctuation">.</span><span class="token function">Fatal</span><span class="token punctuation">(</span>err<span class="token punctuation">)</span>
-	<span class="token punctuation">}</span>
-	log<span class="token punctuation">.</span><span class="token function">Println</span><span class="token punctuation">(</span><span class="token string">"response Status:"</span><span class="token punctuation">,</span> resp<span class="token punctuation">.</span>Status<span class="token punctuation">)</span>
-<span class="token punctuation">}</span>
-
-<span class="token keyword">func</span> <span class="token function">deleteResource</span><span class="token punctuation">(</span>webserver v1<span class="token punctuation">.</span>Website<span class="token punctuation">,</span> apiGroup <span class="token builtin">string</span><span class="token punctuation">,</span> kind <span class="token builtin">string</span><span class="token punctuation">,</span> name <span class="token builtin">string</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
-	log<span class="token punctuation">.</span><span class="token function">Printf</span><span class="token punctuation">(</span><span class="token string">"Deleting %s with name %s in namespace %s"</span><span class="token punctuation">,</span> kind<span class="token punctuation">,</span> name<span class="token punctuation">,</span> webserver<span class="token punctuation">.</span>Metadata<span class="token punctuation">.</span>Namespace<span class="token punctuation">)</span>
-	req<span class="token punctuation">,</span> err <span class="token operator">:=</span> http<span class="token punctuation">.</span><span class="token function">NewRequest</span><span class="token punctuation">(</span>http<span class="token punctuation">.</span>MethodDelete<span class="token punctuation">,</span> fmt<span class="token punctuation">.</span><span class="token function">Sprintf</span><span class="token punctuation">(</span><span class="token string">"http://localhost:8001/%s/namespaces/%s/%s/%s"</span><span class="token punctuation">,</span> apiGroup<span class="token punctuation">,</span> webserver<span class="token punctuation">.</span>Metadata<span class="token punctuation">.</span>Namespace<span class="token punctuation">,</span> kind<span class="token punctuation">,</span> name<span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token boolean">nil</span><span class="token punctuation">)</span>
-	<span class="token keyword">if</span> err <span class="token operator">!=</span> <span class="token boolean">nil</span> <span class="token punctuation">{</span>
-		log<span class="token punctuation">.</span><span class="token function">Fatal</span><span class="token punctuation">(</span>err<span class="token punctuation">)</span>
-		<span class="token keyword">return</span>
-	<span class="token punctuation">}</span>
-	resp<span class="token punctuation">,</span> err <span class="token operator">:=</span> http<span class="token punctuation">.</span>DefaultClient<span class="token punctuation">.</span><span class="token function">Do</span><span class="token punctuation">(</span>req<span class="token punctuation">)</span>
-	<span class="token keyword">if</span> err <span class="token operator">!=</span> <span class="token boolean">nil</span> <span class="token punctuation">{</span>
-		log<span class="token punctuation">.</span><span class="token function">Fatal</span><span class="token punctuation">(</span>err<span class="token punctuation">)</span>
-		<span class="token keyword">return</span>
-	<span class="token punctuation">}</span>
-	log<span class="token punctuation">.</span><span class="token function">Println</span><span class="token punctuation">(</span><span class="token string">"response Status:"</span><span class="token punctuation">,</span> resp<span class="token punctuation">.</span>Status<span class="token punctuation">)</span>
-
-<span class="token punctuation">}</span>
-
-<span class="token keyword">func</span> <span class="token function">getName</span><span class="token punctuation">(</span>website v1<span class="token punctuation">.</span>Website<span class="token punctuation">)</span> <span class="token builtin">string</span> <span class="token punctuation">{</span>
-	<span class="token keyword">return</span> website<span class="token punctuation">.</span>Metadata<span class="token punctuation">.</span>Name <span class="token operator">+</span> <span class="token string">"-website"</span><span class="token punctuation">;</span>
-<span class="token punctuation">}</span>
+  # 定义API 集群和所属版本
+  group: extensions.example.com
+  version: v1
+  names:
+    # 缩短资源的名称
+    kind: Website
+    singular: website
+    #  最后 url 的链接
+    #  http://localhost:8001/apis/extensions.example.com/v1/websites?watch=true
+    plural: websites
 
 </code></pre>
 
-<p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="b7e9a1f56a7793349a7d8384c830fef6">8： 通过 模板 创建所需要的 部署： </p><p data-lines="2" data-type="p" data-sign="14d27acd7e2693f37ad4c73721178cbc">请求创建的 <code>deployment-template.json</code> pod 模板如下： </p><ul class="cherry-list__default" data-lines="3" data-sign="186da3664396207e9cb84cea341ff128list3"><li>创建 nginx 容器，提供服务</li><li>创建 git-sync 拉取仓库， 并通过  emptyDir 进行容器间共享<br><div data-sign="8fd5a8b26707248deeeba487c6bb08bc" data-type="codeBlock" data-lines="85"><pre class="prism language-yaml" style="position: relative; z-index: 2;"><code class="language-yaml"><span class="token punctuation">{</span>
-    <span class="token key atrule">"apiVersion"</span><span class="token punctuation">:</span> <span class="token string">"extensions/v1beta1"</span><span class="token punctuation">,</span>
-    <span class="token key atrule">"kind"</span><span class="token punctuation">:</span> <span class="token string">"Deployment"</span><span class="token punctuation">,</span>
-    <span class="token key atrule">"metadata"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span>
-        <span class="token key atrule">"name"</span><span class="token punctuation">:</span> <span class="token string">"[NAME]"</span><span class="token punctuation">,</span>
-        <span class="token key atrule">"labels"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span>
-            <span class="token key atrule">"webserver"</span><span class="token punctuation">:</span> <span class="token string">"[NAME]"</span>
-        <span class="token punctuation">}</span>
-    <span class="token punctuation">}</span><span class="token punctuation">,</span>
-    <span class="token key atrule">"spec"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span>
-        <span class="token key atrule">"replicas"</span><span class="token punctuation">:</span> <span class="token number">1</span><span class="token punctuation">,</span>
-        <span class="token key atrule">"template"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span>
-            <span class="token key atrule">"metadata"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span>
-                <span class="token key atrule">"name"</span><span class="token punctuation">:</span> <span class="token string">"[NAME]"</span><span class="token punctuation">,</span>
-                <span class="token key atrule">"labels"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span>
-                    <span class="token key atrule">"webserver"</span><span class="token punctuation">:</span> <span class="token string">"[NAME]"</span>
-                <span class="token punctuation">}</span>
-            <span class="token punctuation">}</span><span class="token punctuation">,</span>
-            <span class="token key atrule">"spec"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span>
-                <span class="token key atrule">"containers"</span><span class="token punctuation">:</span> <span class="token punctuation">[</span>
-                    <span class="token punctuation">{</span>
-                        <span class="token key atrule">"image"</span><span class="token punctuation">:</span> <span class="token string">"nginx:alpine"</span><span class="token punctuation">,</span>
-                        <span class="token key atrule">"name"</span><span class="token punctuation">:</span> <span class="token string">"main"</span><span class="token punctuation">,</span>
-                        <span class="token key atrule">"volumeMounts"</span><span class="token punctuation">:</span> <span class="token punctuation">[</span>
-                            <span class="token punctuation">{</span>
-                                <span class="token key atrule">"name"</span><span class="token punctuation">:</span> <span class="token string">"html"</span><span class="token punctuation">,</span>
-                                <span class="token key atrule">"mountPath"</span><span class="token punctuation">:</span> <span class="token string">"/usr/share/nginx/html"</span><span class="token punctuation">,</span>
-                                <span class="token key atrule">"readOnly"</span><span class="token punctuation">:</span> <span class="token boolean important">true</span>
-                            <span class="token punctuation">}</span>
-                        <span class="token punctuation">]</span><span class="token punctuation">,</span>
-                        <span class="token key atrule">"ports"</span><span class="token punctuation">:</span> <span class="token punctuation">[</span>
-                            <span class="token punctuation">{</span>
-                                <span class="token key atrule">"containerPort"</span><span class="token punctuation">:</span> <span class="token number">80</span><span class="token punctuation">,</span>
-                                <span class="token key atrule">"protocol"</span><span class="token punctuation">:</span> <span class="token string">"TCP"</span>
-                            <span class="token punctuation">}</span>
-                        <span class="token punctuation">]</span>
-                    <span class="token punctuation">}</span><span class="token punctuation">,</span>
-                    <span class="token punctuation">{</span>
-                        <span class="token key atrule">"image"</span><span class="token punctuation">:</span> <span class="token string">"openweb/git-sync"</span><span class="token punctuation">,</span>
-                        <span class="token key atrule">"name"</span><span class="token punctuation">:</span> <span class="token string">"git-sync"</span><span class="token punctuation">,</span>
-                        <span class="token key atrule">"env"</span><span class="token punctuation">:</span> <span class="token punctuation">[</span>
-                            <span class="token punctuation">{</span>
-                                <span class="token key atrule">"name"</span><span class="token punctuation">:</span> <span class="token string">"GIT_SYNC_REPO"</span><span class="token punctuation">,</span>
-                                <span class="token key atrule">"value"</span><span class="token punctuation">:</span> <span class="token string">"[GIT-REPO]"</span>
-                            <span class="token punctuation">}</span><span class="token punctuation">,</span>
-                            <span class="token punctuation">{</span>
-                                <span class="token key atrule">"name"</span><span class="token punctuation">:</span> <span class="token string">"GIT_SYNC_DEST"</span><span class="token punctuation">,</span>
-                                <span class="token key atrule">"value"</span><span class="token punctuation">:</span> <span class="token string">"/gitrepo"</span>
-                            <span class="token punctuation">}</span><span class="token punctuation">,</span>
-                            <span class="token punctuation">{</span>
-                                <span class="token key atrule">"name"</span><span class="token punctuation">:</span> <span class="token string">"GIT_SYNC_BRANCH"</span><span class="token punctuation">,</span>
-                                <span class="token key atrule">"value"</span><span class="token punctuation">:</span> <span class="token string">"master"</span>
-                            <span class="token punctuation">}</span><span class="token punctuation">,</span>
-                            <span class="token punctuation">{</span>
-                                <span class="token key atrule">"name"</span><span class="token punctuation">:</span> <span class="token string">"GIT_SYNC_REV"</span><span class="token punctuation">,</span>
-                                <span class="token key atrule">"value"</span><span class="token punctuation">:</span> <span class="token string">"FETCH_HEAD"</span>
-                            <span class="token punctuation">}</span><span class="token punctuation">,</span>
-                            <span class="token punctuation">{</span>
-                                <span class="token key atrule">"name"</span><span class="token punctuation">:</span> <span class="token string">"GIT_SYNC_WAIT"</span><span class="token punctuation">,</span>
-                                <span class="token key atrule">"value"</span><span class="token punctuation">:</span> <span class="token string">"10"</span>
-                            <span class="token punctuation">}</span>
-                        <span class="token punctuation">]</span><span class="token punctuation">,</span>
-                        <span class="token key atrule">"volumeMounts"</span><span class="token punctuation">:</span> <span class="token punctuation">[</span>
-                            <span class="token punctuation">{</span>
-                                <span class="token key atrule">"name"</span><span class="token punctuation">:</span> <span class="token string">"html"</span><span class="token punctuation">,</span>
-                                <span class="token key atrule">"mountPath"</span><span class="token punctuation">:</span> <span class="token string">"/gitrepo"</span>
-                            <span class="token punctuation">}</span>
-                        <span class="token punctuation">]</span>
-                    <span class="token punctuation">}</span>
-                <span class="token punctuation">]</span><span class="token punctuation">,</span>
-                <span class="token key atrule">"volumes"</span><span class="token punctuation">:</span> <span class="token punctuation">[</span>
-                    <span class="token punctuation">{</span>
-                        <span class="token key atrule">"name"</span><span class="token punctuation">:</span> <span class="token string">"html"</span><span class="token punctuation">,</span>
-                        <span class="token key atrule">"emptyDir"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span>
-                            <span class="token key atrule">"medium"</span><span class="token punctuation">:</span> <span class="token string">""</span>
-                        <span class="token punctuation">}</span>
-                    <span class="token punctuation">}</span>
-                <span class="token punctuation">]</span>
-            <span class="token punctuation">}</span>
-        <span class="token punctuation">}</span>
-    <span class="token punctuation">}</span>
-<span class="token punctuation">}</span>
-</code></pre></div></li></ul><p data-lines="1" data-type="p" data-sign="9d629610bbffc2c92109a865a87dcf5f">service 模板  <code>service-template.json</code> 如下 </p><div data-sign="e0fa1ab829016bdafdfe815b1a091892" data-type="codeBlock" data-lines="26"><pre class="prism language-json" style="position: relative; z-index: 2;"><code class="language-json"><span class="token punctuation">{</span>
-    <span class="token property">"apiVersion"</span><span class="token operator">:</span> <span class="token string">"v1"</span><span class="token punctuation">,</span>
-    <span class="token property">"kind"</span><span class="token operator">:</span> <span class="token string">"Service"</span><span class="token punctuation">,</span>
-    <span class="token property">"metadata"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
-        <span class="token property">"labels"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
-            <span class="token property">"webserver"</span><span class="token operator">:</span> <span class="token string">"[NAME]"</span>
-        <span class="token punctuation">}</span><span class="token punctuation">,</span>
-        <span class="token property">"name"</span><span class="token operator">:</span> <span class="token string">"[NAME]"</span>
-    <span class="token punctuation">}</span><span class="token punctuation">,</span>
-    <span class="token property">"spec"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
-        <span class="token property">"type"</span><span class="token operator">:</span> <span class="token string">"NodePort"</span><span class="token punctuation">,</span>
-        <span class="token property">"ports"</span><span class="token operator">:</span> <span class="token punctuation">[</span>
-            <span class="token punctuation">{</span>
-                <span class="token property">"port"</span><span class="token operator">:</span> <span class="token number">80</span><span class="token punctuation">,</span>
-                <span class="token property">"protocol"</span><span class="token operator">:</span> <span class="token string">"TCP"</span><span class="token punctuation">,</span>
-                <span class="token property">"targetPort"</span><span class="token operator">:</span> <span class="token number">80</span>
-            <span class="token punctuation">}</span>
-        <span class="token punctuation">]</span><span class="token punctuation">,</span>
-        <span class="token property">"selector"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
-            <span class="token property">"webserver"</span><span class="token operator">:</span> <span class="token string">"[NAME]"</span>
-        <span class="token punctuation">}</span>
-    <span class="token punctuation">}</span>
-<span class="token punctuation">}</span>
+<p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="0e242a4e86c98fa544129254779f3cb1">4： 提交自定义资源请求： </p><div data-sign="c172cbe814886e3991b2adc183746bf1" data-type="codeBlock" data-lines="8"><pre><code>kind: Website
+metadata:
+  name: kubia
+spec:
+  gitRepo: https://github.com/luksa/kubia-website-example.git
+</code></pre>
+
+<p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="711e7409673cb12c80dbad3706b0c5be">5: create 上述两种资源后，可用 <code>kubectl get</code> 查看资源实例</p><div data-sign="55a636ec1b149316d0bc8d44c985a458" data-type="codeBlock" data-lines="4"><pre><code>kubectl get websites
+</code></pre>
+
+<p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="160731b8a93de86724136f7ef9fa7937">6: 自定义控制器，通过 HTTP 监听 API服务器 Add/Delete 接口，创建 Deployment 资源和 Service资源。 </p><p data-lines="2" data-type="p" data-sign="c96cffdd315784cc807524dc3a957bb4"></p><p data-lines="1" data-type="p" data-sign="852c56397c0156ed9d8738f6c2d2b2d5">7: 控制器部署成一个 pod</p><div data-sign="bcead58193a77e1f0abe2691533f53e3" data-type="codeBlock" data-lines="21"><pre><code>apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: website-controller
+spec:
+  replicas: 1
+  template:
+    metadata:
+      name: website-controller
+      labels:
+        app: website-controller
+    spec:
+      serviceAccountName: website-controller
+      containers:
+      - name: main
+        image: luksa/website-controller
+      - name: proxy
+        image: luksa/kubectl-proxy:1.6.2
+</code></pre>
+
+<p data-lines="2" data-type="p" data-sign="c2160ca7f8c7290e06a01069cf85c05d">自定义控制器 先和 proxy通信，然后由 proxy 连接 k8s API. </p><p data-lines="2" data-type="p" data-sign="4e3ef892f96668e215e22eb520f22bae"></p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="08b1be396701dea6ee9db7dc4ad952ce">运行这个控制器 pod，和 API 服务器进行通信， 需要创建 特殊的 ServiceAccount，</p><p data-lines="2" data-type="p" data-sign="d3069ba2beb4f22fcf80eb9f0582ea00">若启用了角色访问控制(RBAC), 则需要 clusterrolebinding 到 <code>clusterrole=cluster-admin</code> </p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="70d9753632242835777cb2111034b042">控制器运行的核心逻辑如下： </p><div data-sign="d90761f830342324a5d75408ecb6f165" data-type="codeBlock" data-lines="80"><pre><code>
+func main() {
+	log.Println("website-controller started.")
+	for {
+		resp, err := http.Get("http://localhost:8001/apis/extensions.example.com/v1/websites?watch=true")
+		if err != nil {
+			panic(err)
+		}
+		defer resp.Body.Close()
+
+		decoder := json.NewDecoder(resp.Body)
+		for {
+			var event v1.WebsiteWatchEvent
+			if err := decoder.Decode(&amp;event); err == io.EOF {
+				break
+			} else if err != nil {
+				log.Fatal(err)
+			}
+
+			log.Printf("Received watch event: %s: %s: %s\n", event.Type, event.Object.Metadata.Name, event.Object.Spec.GitRepo)
+
+			if event.Type == "ADDED" {
+				createWebsite(event.Object)
+			} else if event.Type == "DELETED" {
+				deleteWebsite(event.Object)
+			}
+		}
+	}
+
+}
+
+func createWebsite(website v1.Website) {
+	createResource(website, "api/v1", "services", "service-template.json")
+	createResource(website, "apis/extensions/v1beta1", "deployments", "deployment-template.json")
+}
+
+func deleteWebsite(website v1.Website) {
+	deleteResource(website, "api/v1", "services", getName(website));
+	deleteResource(website, "apis/extensions/v1beta1", "deployments", getName(website));
+}
+
+func createResource(webserver v1.Website, apiGroup string, kind string, filename string) {
+	log.Printf("Creating %s with name %s in namespace %s", kind, getName(webserver), webserver.Metadata.Namespace)
+	templateBytes, err := ioutil.ReadFile(filename)
+	if err != nil {
+		log.Fatal(err)
+	}
+	template := strings.Replace(string(templateBytes), "[NAME]", getName(webserver), -1)
+	template = strings.Replace(template, "[GIT-REPO]", webserver.Spec.GitRepo, -1)
+
+	resp, err := http.Post(fmt.Sprintf("http://localhost:8001/%s/namespaces/%s/%s/", apiGroup, webserver.Metadata.Namespace, kind), "application/json", strings.NewReader(template))
+	if err != nil {
+		log.Fatal(err)
+	}
+	log.Println("response Status:", resp.Status)
+}
+
+func deleteResource(webserver v1.Website, apiGroup string, kind string, name string) {
+	log.Printf("Deleting %s with name %s in namespace %s", kind, name, webserver.Metadata.Namespace)
+	req, err := http.NewRequest(http.MethodDelete, fmt.Sprintf("http://localhost:8001/%s/namespaces/%s/%s/%s", apiGroup, webserver.Metadata.Namespace, kind, name), nil)
+	if err != nil {
+		log.Fatal(err)
+		return
+	}
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		log.Fatal(err)
+		return
+	}
+	log.Println("response Status:", resp.Status)
+
+}
+
+func getName(website v1.Website) string {
+	return website.Metadata.Name + "-website";
+}
+
+</code></pre>
+
+<p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="b7e9a1f56a7793349a7d8384c830fef6">8： 通过 模板 创建所需要的 部署： </p><p data-lines="2" data-type="p" data-sign="14d27acd7e2693f37ad4c73721178cbc">请求创建的 <code>deployment-template.json</code> pod 模板如下： </p><ul class="cherry-list__default" data-lines="3" data-sign="186da3664396207e9cb84cea341ff128list3"><li>创建 nginx 容器，提供服务</li><li>创建 git-sync 拉取仓库， 并通过  emptyDir 进行容器间共享<br><div data-sign="8fd5a8b26707248deeeba487c6bb08bc" data-type="codeBlock" data-lines="85"><pre><code>{
+    "apiVersion": "extensions/v1beta1",
+    "kind": "Deployment",
+    "metadata": {
+        "name": "[NAME]",
+        "labels": {
+            "webserver": "[NAME]"
+        }
+    },
+    "spec": {
+        "replicas": 1,
+        "template": {
+            "metadata": {
+                "name": "[NAME]",
+                "labels": {
+                    "webserver": "[NAME]"
+                }
+            },
+            "spec": {
+                "containers": [
+                    {
+                        "image": "nginx:alpine",
+                        "name": "main",
+                        "volumeMounts": [
+                            {
+                                "name": "html",
+                                "mountPath": "/usr/share/nginx/html",
+                                "readOnly": true
+                            }
+                        ],
+                        "ports": [
+                            {
+                                "containerPort": 80,
+                                "protocol": "TCP"
+                            }
+                        ]
+                    },
+                    {
+                        "image": "openweb/git-sync",
+                        "name": "git-sync",
+                        "env": [
+                            {
+                                "name": "GIT_SYNC_REPO",
+                                "value": "[GIT-REPO]"
+                            },
+                            {
+                                "name": "GIT_SYNC_DEST",
+                                "value": "/gitrepo"
+                            },
+                            {
+                                "name": "GIT_SYNC_BRANCH",
+                                "value": "master"
+                            },
+                            {
+                                "name": "GIT_SYNC_REV",
+                                "value": "FETCH_HEAD"
+                            },
+                            {
+                                "name": "GIT_SYNC_WAIT",
+                                "value": "10"
+                            }
+                        ],
+                        "volumeMounts": [
+                            {
+                                "name": "html",
+                                "mountPath": "/gitrepo"
+                            }
+                        ]
+                    }
+                ],
+                "volumes": [
+                    {
+                        "name": "html",
+                        "emptyDir": {
+                            "medium": ""
+                        }
+                    }
+                ]
+            }
+        }
+    }
+}
+</code></pre></div></li></ul><p data-lines="1" data-type="p" data-sign="9d629610bbffc2c92109a865a87dcf5f">service 模板  <code>service-template.json</code> 如下 </p><div data-sign="e0fa1ab829016bdafdfe815b1a091892" data-type="codeBlock" data-lines="26"><pre><code>{
+    "apiVersion": "v1",
+    "kind": "Service",
+    "metadata": {
+        "labels": {
+            "webserver": "[NAME]"
+        },
+        "name": "[NAME]"
+    },
+    "spec": {
+        "type": "NodePort",
+        "ports": [
+            {
+                "port": 80,
+                "protocol": "TCP",
+                "targetPort": 80
+            }
+        ],
+        "selector": {
+            "webserver": "[NAME]"
+        }
+    }
+}
 </code></pre>
 
 <p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><h2 data-lines="1" data-sign="00384d85165d4473cd585e38fb60e1f6" id="%E8%87%AA%E5%AE%9A%E4%B9%89api%E6%9C%8D%E5%8A%A1%E5%99%A8" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E8%87%AA%E5%AE%9A%E4%B9%89api%E6%9C%8D%E5%8A%A1%E5%99%A8" class="anchor"></a>自定义API服务器</h2><p data-lines="2" data-type="p" data-sign="8d1c0715fe6ebb613a0f17c74454c5df">1： k8s 1.7 后， 可自定义API服务器 集成到 主API 服务器上</p><p data-lines="2" data-type="p" data-sign="1604070dd70de70871e18cfe1fa78f1e"></p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><h2 data-lines="1" data-sign="a5ab28db542a7e2aebf7fbce54f010ea" id="%E4%BD%BF%E7%94%A8k8s%E6%9C%8D%E5%8A%A1%E7%9B%AE%E5%BD%95%E6%89%A9%E5%B1%95" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E4%BD%BF%E7%94%A8k8s%E6%9C%8D%E5%8A%A1%E7%9B%AE%E5%BD%95%E6%89%A9%E5%B1%95" class="anchor"></a>使用k8s服务目录扩展</h2><p data-lines="2" data-type="p" data-sign="c80ea8c3a1fed7565382654b5196ac7a">1： 服务目录可以快速创建服务实例，而无需处理一个个的 Pod、service、configMap和其它资源。 </p><p data-lines="2" data-type="p" data-sign="be0d3d6f935eda93d9c383baca782f87">2： 服务目录使用四种通用 API 资源： </p><ul class="cherry-list__default" data-lines="9" data-sign="768cc750052d3d81a86b381ef6c7e114list9"><li>一个ClusterServiceBroker, 描述一个可以提供服务的（外部）系统<ul class="cherry-list__default"><li>集群管理员 为每个 服务代理创建 Broker 资源</li></ul></li><li>一个ClusterServiceClass, 描述一个可供应的服务类型<ul class="cherry-list__default"><li>k8s 从服务代理获取到的 服务列表</li></ul></li><li>一个Servicelnstance, 已配置服务的一个实例<ul class="cherry-list__default"><li>用户调配服务时，创建实例<br></li></ul></li><li>一个ServiceBinding, 表示 一 组客户端(pod) 和 Servicelnstance 之间的绑定。 <ul class="cherry-list__default"><li>绑定到具体的pod (<code>instanceRef</code> 引入具体的实例)，并注入一个 Secret</li></ul></li></ul><p data-lines="1" data-type="p" data-sign="1eb552a97356a8c02dc6d70705b76932"></p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="968ba26adb73f4738b717a66d124d57f">3： 服务目录是作为一种外部系统提供服务， 向k8s 集群中注册代理， 暴露服务。  </p><p data-lines="2" data-type="p" data-sign="552a136ec679d5b1f65631b7363b63f6"></p><p data-lines="5" data-type="br" data-sign="br5">&nbsp;</p><h2 data-lines="1" data-sign="a6bd2c04e7d0ccc1f445b2dec91e4a3d" id="paas" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#paas" class="anchor"></a>PaaS</h2><p data-lines="2" data-type="p" data-sign="46c54529e95ae2452c61b3c280d77e18">1: platform-as-a-Service, 平台即服务</p><p data-lines="2" data-type="p" data-sign="96bd7dde9cae34180ba9833b920362ca">2： 红帽(Red Hat) 的 OpenShift </p><blockquote data-lines="2" data-sign="efbc0c3a80aafbc27317dafc8f3e1fad_2">提供多用户环境</blockquote><ul class="cherry-list__default" data-lines="5" data-sign="af9d819f9ee8babed1614f962484c9a7list5"><li>OpenShift PaaS 服务<br><ul class="cherry-list__default"><li>Minishift，与 Minikube 等效<br></li><li><a rel="nofollow" href="https://manage.openshift.com/">https://manage.openshift.com</a> </li></ul></li></ul><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><p data-lines="1" data-type="p" data-sign="11a47d65c469b1d52b2f32029c838b2b">3： </p><ul class="cherry-list__default" data-lines="15" data-sign="cf018fe4d5d32391d2db6baa6a7dbe88list15"><li>Deis Workflow 【微软】<br><ul class="cherry-list__default"><li><a rel="nofollow" href="https://deis.com/workflow">https://deis.com/workflow</a><br></li></ul></li><li>Helm ： 部署现有应用的标准方式， 包管理器，类似于 yum,apt,homebrew <br><ul class="cherry-list__default"><li>helm CLI 客户端<br></li><li>Tiller<br><ul class="cherry-list__default"><li>寻找现有的图表: <a rel="nofollow" href="https://github.com/kubernetes/charts">https://github.com/kubernetes/charts</a><br></li><li>helm install --name my-database stable/mysql: 自动部署所需的 Deployment、Service、Secret 和 PersistentVolumeClaim<br></li><li>OpenVPN: 最有用的图表，通过 VPN和访问服务来输入 pod 网络，类似本地计算机是集群中的一个容器， 对开发应用程序并在本地运行时很有用</li></ul></li></ul></li></ul><p data-lines="2" data-type="br" data-sign="br2">&nbsp;</p><h1 data-lines="1" data-sign="29518ab4bc4c5ffd2bb9b804888b2dbc" id="%E8%87%B4%E8%B0%A2" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E8%87%B4%E8%B0%A2" class="anchor"></a>致谢</h1><p data-lines="1" data-type="p" data-sign="90dc861e96a4726b994d9d6788299fec">感谢读者阅读，欢迎指正错误，谢谢。 </p><p data-lines="3" data-type="br" data-sign="br3">&nbsp;</p><h1 data-lines="1" data-sign="8d737bbbd439f77ccced3acae178af32" id="%E5%8F%82%E8%80%83%E5%8F%8A%E6%89%A9%E5%B1%95" class="toc-enable"><a href="https://km.woa.com/group/29321/articles/show/474330?kmref=search&amp;from_page=1&amp;no=2#%E5%8F%82%E8%80%83%E5%8F%8A%E6%89%A9%E5%B1%95" class="anchor"></a>参考及扩展</h1><ul class="cherry-list__default" data-lines="59" data-sign="51efc2fbcbf9718d34f4d1a9f1dcd4cdlist59"><li>Luksa M. Kubernetes in action[M]. Shelter Island: Manning Publications, 2018.<br></li><li><a rel="nofollow" href="https://skyao.io/">https://skyao.io/</a><br></li><li><a rel="nofollow" href="https://jimmysong.io/">https://jimmysong.io/</a><br></li><li>搜索镜像： <a rel="nofollow" href="https://hub.docker.com/">https://hub.docker.com/</a><br></li><li>社区兴趣小组：<a rel="nofollow" href="https://github.com/kubernetes/community/blob/master/sig-list.md">https://github.com/kubernetes/community/blob/master/sig-list.md</a><br></li><li>Swagger 创建 访问 API 服务器的客户端 : <a rel="nofollow" href="https://swagger.io/">https://swagger.io/</a><br></li><li>控制器相关 源代码： <a rel="nofollow" href="https://github.com/kubernetes/kubernetes/tree/master/pkg/controller">https://github.com/kubernetes/kubernetes/tree/master/pkg/controller</a><br></li><li>k8s 中领导者选举的例子： <a rel="nofollow" href="https://github.com/kubernetes-retired/contrib/blob/master/election/">https://github.com/kubernetes-retired/contrib/blob/master/election/</a><br></li><li>k8s 集群管理员指南： <a rel="nofollow" href="http://kubernetes.io/docs/admin">http://kubernetes.io/docs/admin</a><br></li><li>minikube文档： <a rel="nofollow" href="https://minikube.sigs.k8s.io/docs/commands/ip/">https://minikube.sigs.k8s.io/docs/commands/ip/</a><br></li><li>minikube mount 将本地文件系统挂载到 Minikube Vm 中， 然后通过 一个 hostPath 卷 挂载到容器<br><ul class="cherry-list__default"><li><a rel="nofollow" href="https://github.com/kuberetes/minikube/tree/master/docs">https://github.com/kuberetes/minikube/tree/master/docs</a><br></li></ul></li><li>kube-applier 工具： 可以定时从 版本控制中检出资源，提交更改<br></li><li>Ksonnet + jsonnet: 自定义高级片段，快速转换成完整的 Deployment 配置文件<br><ul class="cherry-list__default"><li><a rel="nofollow" href="https://github.com/ksonnet/ksonnet-lib">https://github.com/ksonnet/ksonnet-lib</a><br></li></ul></li><li>Fabric8 持续集成方案: <a rel="nofollow" href="http://fabric8.io/">http://fabric8.io</a>  <br><ul class="cherry-list__default"><li>Google Cloud 在线实验室： <a rel="nofollow" href="https://github.com/GoogleCloudPlatform/continuous-deployment-on-kubenetes">https://github.com/GoogleCloudPlatform/continuous-deployment-on-kubenetes</a><br></li></ul></li><li>k8s 最新的 代码仓库: <a rel="nofollow" href="http://github.com/kubernetes">http://github.com/kubernetes</a><br></li><li>OpenShift PaaS 服务<br><ul class="cherry-list__default"><li>Minishift，与 Minikube 等效<br></li><li><a rel="nofollow" href="https://manage.openshift.com/">https://manage.openshift.com</a> <br></li></ul></li><li>Deis Workflow 【微软】<br><ul class="cherry-list__default"><li><a rel="nofollow" href="https://deis.com/workflow">https://deis.com/workflow</a><br></li></ul></li><li>Helm ： 部署现有应用的标准方式， 包管理器，类似于 yum,apt,homebrew <br><ul class="cherry-list__default"><li>helm CLI 客户端<br></li><li>Tiller<br><ul class="cherry-list__default"><li>寻找现有的图表: <a rel="nofollow" href="https://github.com/kubernetes/charts">https://github.com/kubernetes/charts</a><br></li><li>helm install --name my-database stable/mysql: 自动部署所需的 Deployment、Service、Secret 和 PersistentVolumeClaim<br></li><li>OpenVPN: 最有用的图表，通过 VPN和访问服务来输入 pod 网络，类似本地计算机是集群中的一个容器， 对开发应用程序并在本地运行时很有用<br></li></ul></li></ul></li><li>kubernetes 中文文档： <a rel="nofollow" href="https://kubernetes.io/zh/docs/home/">https://kubernetes.io/zh/docs/home/</a></li></ul><span id="mark-markdown-toc-enable" data-toc-enable="true"></span>				</div>

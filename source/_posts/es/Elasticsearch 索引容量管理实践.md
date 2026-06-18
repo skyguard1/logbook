@@ -22,38 +22,38 @@ categories:
 <h3 id="2-1 创建索引">2.1 创建索引</h3>
 
 <p>索引名上带日期的写法：</p>
-<pre style="position: relative; z-index: 2;"><code>&lt;static_name{date_math_expr{date_format|time_zone}}&gt;
+<pre><code>&lt;static_name{date_math_expr{date_format|time_zone}}&gt;
 </code></pre>
 
 <p>日期格式就是 java 的日期格式:</p>
 
-<pre class="  language-python" style="position: relative; z-index: 2;"><code class="prism  language-python">yyyy：年
+<pre><code>yyyy：年
 MM：月
 dd：日
-hh：<span class="token number">1</span><span class="token operator">~</span><span class="token number">12</span>小时制<span class="token punctuation">(</span><span class="token number">1</span><span class="token operator">-</span><span class="token number">12</span><span class="token punctuation">)</span>
-HH：<span class="token number">24</span>小时制<span class="token punctuation">(</span><span class="token number">0</span><span class="token operator">-</span><span class="token number">23</span><span class="token punctuation">)</span>
+hh：1~12小时制(1-12)
+HH：24小时制(0-23)
 mm：分
 ss：秒
 S：毫秒
 E：星期几
 D：一年中的第几天
-F：一月中的第几个星期<span class="token punctuation">(</span>会把这个月总共过的天数除以<span class="token number">7</span><span class="token punctuation">)</span>
+F：一月中的第几个星期(会把这个月总共过的天数除以7)
 w：一年中的第几个星期
-W：一月中的第几星期<span class="token punctuation">(</span>会根据实际情况来算<span class="token punctuation">)</span>
+W：一月中的第几星期(会根据实际情况来算)
 a：上下午标识
-k：和HH差不多，表示一天<span class="token number">24</span>小时制<span class="token punctuation">(</span><span class="token number">1</span><span class="token operator">-</span><span class="token number">24</span><span class="token punctuation">)</span>。
-K：和hh差不多，表示一天<span class="token number">12</span>小时制<span class="token punctuation">(</span><span class="token number">0</span><span class="token operator">-</span><span class="token number">11</span><span class="token punctuation">)</span>。
+k：和HH差不多，表示一天24小时制(1-24)。
+K：和hh差不多，表示一天12小时制(0-11)。
 z：表示时区
 </code></pre>
 
 <p>参考官方文档：<a href="https://www.elastic.co/guide/en/elasticsearch/reference/7.x/date-math-index-names.html" target="_blank">Date math support in index names</a></p>
 
 <p>例如：</p>
-<pre style="position: relative; z-index: 2;"><code>&lt;logs-{now{yyyyMMddHH|+08:00}}-000001&gt;
+<pre><code>&lt;logs-{now{yyyyMMddHH|+08:00}}-000001&gt;
 </code></pre>
 
 <p>在使用的时候,索引名要 urlencode 后再使用</p>
-<pre style="position: relative; z-index: 2;"><code>PUT /%3Cmylogs-%7Bnow%7ByyyyMMddHH%7C%2B08%3A00%7D%7D-000001%3E
+<pre><code>PUT /%3Cmylogs-%7Bnow%7ByyyyMMddHH%7C%2B08%3A00%7D%7D-000001%3E
 {
   "aliases": {
   "mylogs-read-alias": {}
@@ -63,37 +63,37 @@ z：表示时区
 
 <p>执行结果：</p>
 
-<pre class="  language-json" style="position: relative; z-index: 2;"><code class="prism  language-json"><span class="token punctuation">{</span>
-  <span class="token string">"acknowledged"</span> <span class="token punctuation">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
-  <span class="token string">"shards_acknowledged"</span> <span class="token punctuation">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
-  <span class="token string">"index"</span> <span class="token punctuation">:</span> <span class="token string">"mylogs-2020061518-000001"</span>
-<span class="token punctuation">}</span>
+<pre><code>{
+  "acknowledged" : true,
+  "shards_acknowledged" : true,
+  "index" : "mylogs-2020061518-000001"
+}
 </code></pre>
 
 <h3 id="2-2 写入数据">2.2 写入数据</h3>
 
 <p>写入数据的时候也要带上日期</p>
 
-<pre class="  language-json" style="position: relative; z-index: 2;"><code class="prism  language-json"><span class="token constant">POST</span> <span class="token operator">/</span><span class="token operator">%</span><span class="token number">3</span><span class="token maybe-class-name">Cmylogs</span><span class="token operator">-</span><span class="token operator">%</span><span class="token number">7</span><span class="token maybe-class-name">Bnow</span><span class="token operator">%</span><span class="token number">7</span><span class="token maybe-class-name">ByyyyMMddHH</span><span class="token operator">%</span><span class="token number">7</span>C<span class="token operator">%</span><span class="token number">2</span><span class="token maybe-class-name">B08</span><span class="token operator">%</span><span class="token number">3</span><span class="token maybe-class-name">A00</span><span class="token operator">%</span><span class="token number">7</span>D<span class="token operator">%</span><span class="token number">7</span>D<span class="token operator">-</span><span class="token number">000001</span><span class="token operator">%</span><span class="token number">3</span>E<span class="token operator">/</span>_doc
-<span class="token punctuation">{</span><span class="token string">"name"</span><span class="token punctuation">:</span><span class="token string">"xxx"</span><span class="token punctuation">}</span>
+<pre><code>POST /%3Cmylogs-%7Bnow%7ByyyyMMddHH%7C%2B08%3A00%7D%7D-000001%3E/_doc
+{"name":"xxx"}
 </code></pre>
 
 <p>执行结果:</p>
 
-<pre class="  language-json" style="position: relative; z-index: 2;"><code class="prism  language-json"><span class="token punctuation">{</span>
-  <span class="token string">"_index"</span> <span class="token punctuation">:</span> <span class="token string">"mylogs-2020061518-000001"</span><span class="token punctuation">,</span>
-  <span class="token string">"_type"</span> <span class="token punctuation">:</span> <span class="token string">"_doc"</span><span class="token punctuation">,</span>
-  <span class="token string">"_id"</span> <span class="token punctuation">:</span> <span class="token string">"VNZut3IBgpLCCHbxDzDB"</span><span class="token punctuation">,</span>
-  <span class="token string">"_version"</span> <span class="token punctuation">:</span> <span class="token number">1</span><span class="token punctuation">,</span>
-  <span class="token string">"result"</span> <span class="token punctuation">:</span> <span class="token string">"created"</span><span class="token punctuation">,</span>
-  <span class="token string">"_shards"</span> <span class="token punctuation">:</span> <span class="token punctuation">{</span>
-    <span class="token string">"total"</span> <span class="token punctuation">:</span> <span class="token number">2</span><span class="token punctuation">,</span>
-    <span class="token string">"successful"</span> <span class="token punctuation">:</span> <span class="token number">2</span><span class="token punctuation">,</span>
-    <span class="token string">"failed"</span> <span class="token punctuation">:</span> <span class="token number">0</span>
-  <span class="token punctuation">}</span><span class="token punctuation">,</span>
-  <span class="token string">"_seq_no"</span> <span class="token punctuation">:</span> <span class="token number">0</span><span class="token punctuation">,</span>
-  <span class="token string">"_primary_term"</span> <span class="token punctuation">:</span> <span class="token number">1</span>
-<span class="token punctuation">}</span>
+<pre><code>{
+  "_index" : "mylogs-2020061518-000001",
+  "_type" : "_doc",
+  "_id" : "VNZut3IBgpLCCHbxDzDB",
+  "_version" : 1,
+  "result" : "created",
+  "_shards" : {
+    "total" : 2,
+    "successful" : 2,
+    "failed" : 0
+  },
+  "_seq_no" : 0,
+  "_primary_term" : 1
+}
 </code></pre>
 
 <h3 id="2-3 查询数据">2.3 查询数据</h3>
@@ -102,60 +102,60 @@ z：表示时区
 
 <h4 id="2-3-1 使用逗号分割指定多个索引">2.3.1 使用逗号分割指定多个索引</h4>
 
-<pre class="  language-json" style="position: relative; z-index: 2;"><code class="prism  language-json"><span class="token constant">GET</span> <span class="token operator">/</span>mylogs<span class="token operator">-</span><span class="token number">2020061518</span><span class="token operator">-</span><span class="token number">000001</span><span class="token punctuation">,</span>mylogs<span class="token operator">-</span><span class="token number">2020061519</span><span class="token operator">-</span><span class="token number">000001</span><span class="token operator">/</span>_search
-<span class="token punctuation">{</span><span class="token string">"query"</span><span class="token punctuation">:</span><span class="token punctuation">{</span><span class="token string">"match_all"</span><span class="token punctuation">:</span><span class="token punctuation">{</span><span class="token punctuation">}</span><span class="token punctuation">}</span><span class="token punctuation">}</span>
+<pre><code>GET /mylogs-2020061518-000001,mylogs-2020061519-000001/_search
+{"query":{"match_all":{}}}
 </code></pre>
 
 <h3 id="2-3-2 使用通配符查询">2.3.2 使用通配符查询</h3>
 
-<pre class="  language-json" style="position: relative; z-index: 2;"><code class="prism  language-json"><span class="token constant">GET</span> <span class="token operator">/</span>mylogs<span class="token operator">-</span><span class="token operator">*</span><span class="token operator">/</span>_search
-<span class="token punctuation">{</span>
-  <span class="token string">"query"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span>
-    <span class="token string">"match_all"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span><span class="token punctuation">}</span>
-  <span class="token punctuation">}</span>
-<span class="token punctuation">}</span>
+<pre><code>GET /mylogs-*/_search
+{
+  "query": {
+    "match_all": {}
+  }
+}
 </code></pre>
 
 <p>执行结果：</p>
 
-<pre class="  language-json" style="position: relative; z-index: 2;"><code class="prism  language-json"><span class="token punctuation">{</span>
-  <span class="token string">"took"</span> <span class="token punctuation">:</span> <span class="token number">0</span><span class="token punctuation">,</span>
-  <span class="token string">"timed_out"</span> <span class="token punctuation">:</span> <span class="token boolean">false</span><span class="token punctuation">,</span>
-  <span class="token string">"_shards"</span> <span class="token punctuation">:</span> <span class="token punctuation">{</span>
-    <span class="token string">"total"</span> <span class="token punctuation">:</span> <span class="token number">1</span><span class="token punctuation">,</span>
-    <span class="token string">"successful"</span> <span class="token punctuation">:</span> <span class="token number">1</span><span class="token punctuation">,</span>
-    <span class="token string">"skipped"</span> <span class="token punctuation">:</span> <span class="token number">0</span><span class="token punctuation">,</span>
-    <span class="token string">"failed"</span> <span class="token punctuation">:</span> <span class="token number">0</span>
-  <span class="token punctuation">}</span><span class="token punctuation">,</span>
-  <span class="token string">"hits"</span> <span class="token punctuation">:</span> <span class="token punctuation">{</span>
-    <span class="token string">"total"</span> <span class="token punctuation">:</span> <span class="token punctuation">{</span>
-      <span class="token string">"value"</span> <span class="token punctuation">:</span> <span class="token number">1</span><span class="token punctuation">,</span>
-      <span class="token string">"relation"</span> <span class="token punctuation">:</span> <span class="token string">"eq"</span>
-    <span class="token punctuation">}</span><span class="token punctuation">,</span>
-    <span class="token string">"max_score"</span> <span class="token punctuation">:</span> <span class="token number">1.0</span><span class="token punctuation">,</span>
-    <span class="token string">"hits"</span> <span class="token punctuation">:</span> <span class="token punctuation">[</span>
-      <span class="token punctuation">{</span>
-        <span class="token string">"_index"</span> <span class="token punctuation">:</span> <span class="token string">"mylogs-2020061518-000001"</span><span class="token punctuation">,</span>
-        <span class="token string">"_type"</span> <span class="token punctuation">:</span> <span class="token string">"_doc"</span><span class="token punctuation">,</span>
-        <span class="token string">"_id"</span> <span class="token punctuation">:</span> <span class="token string">"VNZut3IBgpLCCHbxDzDB"</span><span class="token punctuation">,</span>
-        <span class="token string">"_score"</span> <span class="token punctuation">:</span> <span class="token number">1.0</span><span class="token punctuation">,</span>
-        <span class="token string">"_source"</span> <span class="token punctuation">:</span> <span class="token punctuation">{</span>
-          <span class="token string">"name"</span> <span class="token punctuation">:</span> <span class="token string">"xxx"</span>
-        <span class="token punctuation">}</span>
-      <span class="token punctuation">}</span>
-    <span class="token punctuation">]</span>
-  <span class="token punctuation">}</span>
-<span class="token punctuation">}</span>
+<pre><code>{
+  "took" : 0,
+  "timed_out" : false,
+  "_shards" : {
+    "total" : 1,
+    "successful" : 1,
+    "skipped" : 0,
+    "failed" : 0
+  },
+  "hits" : {
+    "total" : {
+      "value" : 1,
+      "relation" : "eq"
+    },
+    "max_score" : 1.0,
+    "hits" : [
+      {
+        "_index" : "mylogs-2020061518-000001",
+        "_type" : "_doc",
+        "_id" : "VNZut3IBgpLCCHbxDzDB",
+        "_score" : 1.0,
+        "_source" : {
+          "name" : "xxx"
+        }
+      }
+    ]
+  }
+}
 </code></pre>
 
 <h3 id="2-3-3 使用别名查询">2.3.3 使用别名查询</h3>
 
-<pre class="  language-json" style="position: relative; z-index: 2;"><code class="prism  language-json"><span class="token constant">GET</span> <span class="token operator">/</span>mylogs<span class="token operator">-</span>read<span class="token operator">-</span>alias<span class="token operator">/</span>_search
-<span class="token punctuation">{</span>
-  <span class="token string">"query"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span>
-    <span class="token string">"match_all"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span><span class="token punctuation">}</span>
-  <span class="token punctuation">}</span>
-<span class="token punctuation">}</span>
+<pre><code>GET /mylogs-read-alias/_search
+{
+  "query": {
+    "match_all": {}
+  }
+}
 </code></pre>
 
 <p>执行结果同上</p>
@@ -178,89 +178,89 @@ z：表示时区
 
 <p><strong>注意：</strong> 索引名称的格式为 {.*}-d 这种格式的，数字默认是 6位</p>
 
-<pre class="  language-json" style="position: relative; z-index: 2;"><code class="prism  language-json"><span class="token constant">PUT</span> myro<span class="token operator">-</span><span class="token number">000001</span>
-<span class="token punctuation">{</span>
-  <span class="token string">"aliases"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span>
-    <span class="token string">"myro_write_alias"</span><span class="token punctuation">:</span><span class="token punctuation">{</span><span class="token punctuation">}</span>
-  <span class="token punctuation">}</span>
-<span class="token punctuation">}</span>
+<pre><code>PUT myro-000001
+{
+  "aliases": {
+    "myro_write_alias":{}
+  }
+}
 </code></pre>
 
 <h3 id="3-2 通过别名写数据">3.2 通过别名写数据</h3>
 
 <p>使用 bulk 一次写入了 3条记录</p>
 
-<pre class="  language-json" style="position: relative; z-index: 2;"><code class="prism  language-json"><span class="token constant">POST</span> <span class="token operator">/</span>myro_write_alias<span class="token operator">/</span>_bulk<span class="token operator">?</span>refresh<span class="token operator">=</span><span class="token boolean">true</span>
-<span class="token punctuation">{</span><span class="token string">"create"</span><span class="token punctuation">:</span><span class="token punctuation">{</span><span class="token punctuation">}</span><span class="token punctuation">}</span>
-<span class="token punctuation">{</span><span class="token string">"name"</span><span class="token punctuation">:</span><span class="token string">"xxx"</span><span class="token punctuation">}</span>
-<span class="token punctuation">{</span><span class="token string">"create"</span><span class="token punctuation">:</span><span class="token punctuation">{</span><span class="token punctuation">}</span><span class="token punctuation">}</span>
-<span class="token punctuation">{</span><span class="token string">"name"</span><span class="token punctuation">:</span><span class="token string">"xxx"</span><span class="token punctuation">}</span>
-<span class="token punctuation">{</span><span class="token string">"create"</span><span class="token punctuation">:</span><span class="token punctuation">{</span><span class="token punctuation">}</span><span class="token punctuation">}</span>
-<span class="token punctuation">{</span><span class="token string">"name"</span><span class="token punctuation">:</span><span class="token string">"xxx"</span><span class="token punctuation">}</span>
+<pre><code>POST /myro_write_alias/_bulk?refresh=true
+{"create":{}}
+{"name":"xxx"}
+{"create":{}}
+{"name":"xxx"}
+{"create":{}}
+{"name":"xxx"}
 </code></pre>
 
 <p>执行结果：</p>
 
-<pre class="  language-json" style="position: relative; z-index: 2;"><code class="prism  language-json"><span class="token punctuation">{</span>
-  <span class="token string">"took"</span> <span class="token punctuation">:</span> <span class="token number">37</span><span class="token punctuation">,</span>
-  <span class="token string">"errors"</span> <span class="token punctuation">:</span> <span class="token boolean">false</span><span class="token punctuation">,</span>
-  <span class="token string">"items"</span> <span class="token punctuation">:</span> <span class="token punctuation">[</span>
-    <span class="token punctuation">{</span>
-      <span class="token string">"create"</span> <span class="token punctuation">:</span> <span class="token punctuation">{</span>
-        <span class="token string">"_index"</span> <span class="token punctuation">:</span> <span class="token string">"myro-000001"</span><span class="token punctuation">,</span>
-        <span class="token string">"_type"</span> <span class="token punctuation">:</span> <span class="token string">"_doc"</span><span class="token punctuation">,</span>
-        <span class="token string">"_id"</span> <span class="token punctuation">:</span> <span class="token string">"wVvFtnIBUTVfQxRWwXyM"</span><span class="token punctuation">,</span>
-        <span class="token string">"_version"</span> <span class="token punctuation">:</span> <span class="token number">1</span><span class="token punctuation">,</span>
-        <span class="token string">"result"</span> <span class="token punctuation">:</span> <span class="token string">"created"</span><span class="token punctuation">,</span>
-        <span class="token string">"forced_refresh"</span> <span class="token punctuation">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
-        <span class="token string">"_shards"</span> <span class="token punctuation">:</span> <span class="token punctuation">{</span>
-          <span class="token string">"total"</span> <span class="token punctuation">:</span> <span class="token number">2</span><span class="token punctuation">,</span>
-          <span class="token string">"successful"</span> <span class="token punctuation">:</span> <span class="token number">2</span><span class="token punctuation">,</span>
-          <span class="token string">"failed"</span> <span class="token punctuation">:</span> <span class="token number">0</span>
-        <span class="token punctuation">}</span><span class="token punctuation">,</span>
-        <span class="token string">"_seq_no"</span> <span class="token punctuation">:</span> <span class="token number">0</span><span class="token punctuation">,</span>
-        <span class="token string">"_primary_term"</span> <span class="token punctuation">:</span> <span class="token number">1</span><span class="token punctuation">,</span>
-        <span class="token string">"status"</span> <span class="token punctuation">:</span> <span class="token number">201</span>
-      <span class="token punctuation">}</span>
-    <span class="token punctuation">}</span><span class="token punctuation">,</span>
-    <span class="token punctuation">{</span>
-      <span class="token string">"create"</span> <span class="token punctuation">:</span> <span class="token punctuation">{</span>
-        <span class="token string">"_index"</span> <span class="token punctuation">:</span> <span class="token string">"myro-000001"</span><span class="token punctuation">,</span>
-        <span class="token string">"_type"</span> <span class="token punctuation">:</span> <span class="token string">"_doc"</span><span class="token punctuation">,</span>
-        <span class="token string">"_id"</span> <span class="token punctuation">:</span> <span class="token string">"wlvFtnIBUTVfQxRWwXyM"</span><span class="token punctuation">,</span>
-        <span class="token string">"_version"</span> <span class="token punctuation">:</span> <span class="token number">1</span><span class="token punctuation">,</span>
-        <span class="token string">"result"</span> <span class="token punctuation">:</span> <span class="token string">"created"</span><span class="token punctuation">,</span>
-        <span class="token string">"forced_refresh"</span> <span class="token punctuation">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
-        <span class="token string">"_shards"</span> <span class="token punctuation">:</span> <span class="token punctuation">{</span>
-          <span class="token string">"total"</span> <span class="token punctuation">:</span> <span class="token number">2</span><span class="token punctuation">,</span>
-          <span class="token string">"successful"</span> <span class="token punctuation">:</span> <span class="token number">2</span><span class="token punctuation">,</span>
-          <span class="token string">"failed"</span> <span class="token punctuation">:</span> <span class="token number">0</span>
-        <span class="token punctuation">}</span><span class="token punctuation">,</span>
-        <span class="token string">"_seq_no"</span> <span class="token punctuation">:</span> <span class="token number">1</span><span class="token punctuation">,</span>
-        <span class="token string">"_primary_term"</span> <span class="token punctuation">:</span> <span class="token number">1</span><span class="token punctuation">,</span>
-        <span class="token string">"status"</span> <span class="token punctuation">:</span> <span class="token number">201</span>
-      <span class="token punctuation">}</span>
-    <span class="token punctuation">}</span><span class="token punctuation">,</span>
-    <span class="token punctuation">{</span>
-      <span class="token string">"create"</span> <span class="token punctuation">:</span> <span class="token punctuation">{</span>
-        <span class="token string">"_index"</span> <span class="token punctuation">:</span> <span class="token string">"myro-000001"</span><span class="token punctuation">,</span>
-        <span class="token string">"_type"</span> <span class="token punctuation">:</span> <span class="token string">"_doc"</span><span class="token punctuation">,</span>
-        <span class="token string">"_id"</span> <span class="token punctuation">:</span> <span class="token string">"w1vFtnIBUTVfQxRWwXyM"</span><span class="token punctuation">,</span>
-        <span class="token string">"_version"</span> <span class="token punctuation">:</span> <span class="token number">1</span><span class="token punctuation">,</span>
-        <span class="token string">"result"</span> <span class="token punctuation">:</span> <span class="token string">"created"</span><span class="token punctuation">,</span>
-        <span class="token string">"forced_refresh"</span> <span class="token punctuation">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
-        <span class="token string">"_shards"</span> <span class="token punctuation">:</span> <span class="token punctuation">{</span>
-          <span class="token string">"total"</span> <span class="token punctuation">:</span> <span class="token number">2</span><span class="token punctuation">,</span>
-          <span class="token string">"successful"</span> <span class="token punctuation">:</span> <span class="token number">2</span><span class="token punctuation">,</span>
-          <span class="token string">"failed"</span> <span class="token punctuation">:</span> <span class="token number">0</span>
-        <span class="token punctuation">}</span><span class="token punctuation">,</span>
-        <span class="token string">"_seq_no"</span> <span class="token punctuation">:</span> <span class="token number">2</span><span class="token punctuation">,</span>
-        <span class="token string">"_primary_term"</span> <span class="token punctuation">:</span> <span class="token number">1</span><span class="token punctuation">,</span>
-        <span class="token string">"status"</span> <span class="token punctuation">:</span> <span class="token number">201</span>
-      <span class="token punctuation">}</span>
-    <span class="token punctuation">}</span>
-  <span class="token punctuation">]</span>
-<span class="token punctuation">}</span>
+<pre><code>{
+  "took" : 37,
+  "errors" : false,
+  "items" : [
+    {
+      "create" : {
+        "_index" : "myro-000001",
+        "_type" : "_doc",
+        "_id" : "wVvFtnIBUTVfQxRWwXyM",
+        "_version" : 1,
+        "result" : "created",
+        "forced_refresh" : true,
+        "_shards" : {
+          "total" : 2,
+          "successful" : 2,
+          "failed" : 0
+        },
+        "_seq_no" : 0,
+        "_primary_term" : 1,
+        "status" : 201
+      }
+    },
+    {
+      "create" : {
+        "_index" : "myro-000001",
+        "_type" : "_doc",
+        "_id" : "wlvFtnIBUTVfQxRWwXyM",
+        "_version" : 1,
+        "result" : "created",
+        "forced_refresh" : true,
+        "_shards" : {
+          "total" : 2,
+          "successful" : 2,
+          "failed" : 0
+        },
+        "_seq_no" : 1,
+        "_primary_term" : 1,
+        "status" : 201
+      }
+    },
+    {
+      "create" : {
+        "_index" : "myro-000001",
+        "_type" : "_doc",
+        "_id" : "w1vFtnIBUTVfQxRWwXyM",
+        "_version" : 1,
+        "result" : "created",
+        "forced_refresh" : true,
+        "_shards" : {
+          "total" : 2,
+          "successful" : 2,
+          "failed" : 0
+        },
+        "_seq_no" : 2,
+        "_primary_term" : 1,
+        "status" : 201
+      }
+    }
+  ]
+}
 </code></pre>
 
 <p>记录都写到了 myro-000001 索引下</p>
@@ -269,63 +269,63 @@ z：表示时区
 
 <p>rollover 的3个条件是并列关系，任意一个条件满足就会发生 rollover</p>
 
-<pre class="  language-json" style="position: relative; z-index: 2;"><code class="prism  language-json"><span class="token constant">POST</span> <span class="token operator">/</span>myro_write_alias<span class="token operator">/</span>_rollover
-<span class="token punctuation">{</span>
-  <span class="token string">"conditions"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span>
-    <span class="token string">"max_age"</span><span class="token punctuation">:</span>   <span class="token string">"7d"</span><span class="token punctuation">,</span>
-    <span class="token string">"max_docs"</span><span class="token punctuation">:</span>  <span class="token number">3</span><span class="token punctuation">,</span>
-    <span class="token string">"max_size"</span><span class="token punctuation">:</span> <span class="token string">"5gb"</span>
-  <span class="token punctuation">}</span>
-<span class="token punctuation">}</span>
+<pre><code>POST /myro_write_alias/_rollover
+{
+  "conditions": {
+    "max_age":   "7d",
+    "max_docs":  3,
+    "max_size": "5gb"
+  }
+}
 </code></pre>
 
 <p>执行结果：</p>
 
-<pre class="  language-json" style="position: relative; z-index: 2;"><code class="prism  language-json"><span class="token punctuation">{</span>
-  <span class="token string">"acknowledged"</span> <span class="token punctuation">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
-  <span class="token string">"shards_acknowledged"</span> <span class="token punctuation">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
-  <span class="token string">"old_index"</span> <span class="token punctuation">:</span> <span class="token string">"myro-000001"</span><span class="token punctuation">,</span>
-  <span class="token string">"new_index"</span> <span class="token punctuation">:</span> <span class="token string">"myro-000002"</span><span class="token punctuation">,</span>
-  <span class="token string">"rolled_over"</span> <span class="token punctuation">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
-  <span class="token string">"dry_run"</span> <span class="token punctuation">:</span> <span class="token boolean">false</span><span class="token punctuation">,</span>
-  <span class="token string">"conditions"</span> <span class="token punctuation">:</span> <span class="token punctuation">{</span>
-    <span class="token string">"[max_docs: 3]"</span> <span class="token punctuation">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
-    <span class="token string">"[max_size: 5gb]"</span> <span class="token punctuation">:</span> <span class="token boolean">false</span><span class="token punctuation">,</span>
-    <span class="token string">"[max_age: 7d]"</span> <span class="token punctuation">:</span> <span class="token boolean">false</span>
-  <span class="token punctuation">}</span>
-<span class="token punctuation">}</span>
+<pre><code>{
+  "acknowledged" : true,
+  "shards_acknowledged" : true,
+  "old_index" : "myro-000001",
+  "new_index" : "myro-000002",
+  "rolled_over" : true,
+  "dry_run" : false,
+  "conditions" : {
+    "[max_docs: 3]" : true,
+    "[max_size: 5gb]" : false,
+    "[max_age: 7d]" : false
+  }
+}
 </code></pre>
 
 <p>分析一下执行结果：</p>
 
-<pre class="  language-python" style="position: relative; z-index: 2;"><code class="prism  language-python"> <span class="token string">"new_index"</span> <span class="token punctuation">:</span> <span class="token string">"myro-000002"</span>
- <span class="token string">"[max_docs: 3]"</span> <span class="token punctuation">:</span> true<span class="token punctuation">,</span>
+<pre><code> "new_index" : "myro-000002"
+ "[max_docs: 3]" : true,
 </code></pre>
 
 <p>从结果看出满足了条件（"[max_docs: 3]" : true）发生了 rollover，新的索引指向了 myro-000002</p>
 
 <p>再写入一条记录：</p>
 
-<pre class="  language-json" style="position: relative; z-index: 2;"><code class="prism  language-json"><span class="token constant">POST</span> <span class="token operator">/</span>myro_write_alias<span class="token operator">/</span>_doc
-<span class="token punctuation">{</span><span class="token string">"name"</span><span class="token punctuation">:</span><span class="token string">"xxx"</span><span class="token punctuation">}</span>
+<pre><code>POST /myro_write_alias/_doc
+{"name":"xxx"}
 </code></pre>
 
 <p>已经写入了新的索引,结果符合预期</p>
 
-<pre class="  language-json" style="position: relative; z-index: 2;"><code class="prism  language-json"><span class="token punctuation">{</span>
-  <span class="token string">"_index"</span> <span class="token punctuation">:</span> <span class="token string">"myro-000002"</span><span class="token punctuation">,</span>
-  <span class="token string">"_type"</span> <span class="token punctuation">:</span> <span class="token string">"_doc"</span><span class="token punctuation">,</span>
-  <span class="token string">"_id"</span> <span class="token punctuation">:</span> <span class="token string">"BdbMtnIBgpLCCHbxhihi"</span><span class="token punctuation">,</span>
-  <span class="token string">"_version"</span> <span class="token punctuation">:</span> <span class="token number">1</span><span class="token punctuation">,</span>
-  <span class="token string">"result"</span> <span class="token punctuation">:</span> <span class="token string">"created"</span><span class="token punctuation">,</span>
-  <span class="token string">"_shards"</span> <span class="token punctuation">:</span> <span class="token punctuation">{</span>
-    <span class="token string">"total"</span> <span class="token punctuation">:</span> <span class="token number">2</span><span class="token punctuation">,</span>
-    <span class="token string">"successful"</span> <span class="token punctuation">:</span> <span class="token number">2</span><span class="token punctuation">,</span>
-    <span class="token string">"failed"</span> <span class="token punctuation">:</span> <span class="token number">0</span>
-  <span class="token punctuation">}</span><span class="token punctuation">,</span>
-  <span class="token string">"_seq_no"</span> <span class="token punctuation">:</span> <span class="token number">0</span><span class="token punctuation">,</span>
-  <span class="token string">"_primary_term"</span> <span class="token punctuation">:</span> <span class="token number">1</span>
-<span class="token punctuation">}</span>
+<pre><code>{
+  "_index" : "myro-000002",
+  "_type" : "_doc",
+  "_id" : "BdbMtnIBgpLCCHbxhihi",
+  "_version" : 1,
+  "result" : "created",
+  "_shards" : {
+    "total" : 2,
+    "successful" : 2,
+    "failed" : 0
+  },
+  "_seq_no" : 0,
+  "_primary_term" : 1
+}
 </code></pre>
 
 <h3 id="3-4 使用 Rollover 的缺点">3.4 使用 Rollover 的缺点</h3>
@@ -340,7 +340,7 @@ z：表示时区
 
 <p>ES 一直在索引管理这块进行优化迭代，从6.7版本推出了索引生命周期管理（Index Lifecycle Management ，简称ILM)机制，是目前官方提供的比较完善的索引管理方法。所谓 Lifecycle(生命周期)是把索引定义了四个阶段：</p>
 
-<p style=""><img src="./Elasticsearch 索引容量管理实践 -  - KM平台_files/cos-file-url(2)" alt="" style="position: relative; z-index: 2;" class="amplify"></p>
+<p style=""></p>
 
 <ul>
 <li>Hot：索引可写入，也可查询，也就是我们通常说的热数据，为保证性能数据通常都是在内存中的</li>
@@ -359,7 +359,7 @@ z：表示时区
 
 <p>例如下面这个策略</p>
 
-<p style=""><img src="./Elasticsearch 索引容量管理实践 -  - KM平台_files/cos-file-url(3)" alt="" style="position: relative; z-index: 2;" class="amplify"></p>
+<p style=""></p>
 
 <ul>
 <li>暂时只配置了 Hot 阶段</li>
@@ -368,59 +368,59 @@ z：表示时区
 
 <p>导出的语句如下</p>
 
-<pre class="  language-json" style="position: relative; z-index: 2;"><code class="prism  language-json"><span class="token constant">PUT</span> _ilm<span class="token operator">/</span>policy<span class="token operator">/</span>myes<span class="token operator">-</span>lifecycle
-<span class="token punctuation">{</span>
-  <span class="token string">"policy"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span>
-    <span class="token string">"phases"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span>
-      <span class="token string">"hot"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span>
-        <span class="token string">"min_age"</span><span class="token punctuation">:</span> <span class="token string">"0ms"</span><span class="token punctuation">,</span>
-        <span class="token string">"actions"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span>
-          <span class="token string">"rollover"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span>
-            <span class="token string">"max_age"</span><span class="token punctuation">:</span> <span class="token string">"30d"</span><span class="token punctuation">,</span>
-            <span class="token string">"max_size"</span><span class="token punctuation">:</span> <span class="token string">"50gb"</span><span class="token punctuation">,</span>
-            <span class="token string">"max_docs"</span><span class="token punctuation">:</span> <span class="token number">2</span>
-          <span class="token punctuation">}</span><span class="token punctuation">,</span>
-          <span class="token string">"set_priority"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span>
-            <span class="token string">"priority"</span><span class="token punctuation">:</span> <span class="token number">100</span>
-          <span class="token punctuation">}</span>
-        <span class="token punctuation">}</span>
-      <span class="token punctuation">}</span>
-    <span class="token punctuation">}</span>
-  <span class="token punctuation">}</span>
-<span class="token punctuation">}</span>
+<pre><code>PUT _ilm/policy/myes-lifecycle
+{
+  "policy": {
+    "phases": {
+      "hot": {
+        "min_age": "0ms",
+        "actions": {
+          "rollover": {
+            "max_age": "30d",
+            "max_size": "50gb",
+            "max_docs": 2
+          },
+          "set_priority": {
+            "priority": 100
+          }
+        }
+      }
+    }
+  }
+}
 </code></pre>
 
 <h3 id="4-2 建立索引模版">4.2 建立索引模版</h3>
 
 <p>ES 语句如下：</p>
 
-<pre class="  language-json" style="position: relative; z-index: 2;"><code class="prism  language-json"><span class="token constant">PUT</span> <span class="token operator">/</span>_template<span class="token operator">/</span>myes_template
-<span class="token punctuation">{</span>
-  <span class="token string">"index_patterns"</span><span class="token punctuation">:</span> <span class="token punctuation">[</span>
-    <span class="token string">"myes-*"</span>
-  <span class="token punctuation">]</span><span class="token punctuation">,</span>
-  <span class="token string">"aliases"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span>
-    <span class="token string">"myes_reade_alias"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span><span class="token punctuation">}</span>
-  <span class="token punctuation">}</span><span class="token punctuation">,</span>
-  <span class="token string">"settings"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span>
-    <span class="token string">"index"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span>
-      <span class="token string">"lifecycle"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span>
-        <span class="token string">"name"</span><span class="token punctuation">:</span> <span class="token string">"myes-lifecycle"</span><span class="token punctuation">,</span>
-        <span class="token string">"rollover_alias"</span><span class="token punctuation">:</span> <span class="token string">"myes_write_alias"</span>
-      <span class="token punctuation">}</span><span class="token punctuation">,</span>
-      <span class="token string">"refresh_interval"</span><span class="token punctuation">:</span> <span class="token string">"30s"</span><span class="token punctuation">,</span>
-      <span class="token string">"number_of_shards"</span><span class="token punctuation">:</span> <span class="token string">"12"</span><span class="token punctuation">,</span>
-      <span class="token string">"number_of_replicas"</span><span class="token punctuation">:</span> <span class="token string">"1"</span>
-    <span class="token punctuation">}</span>
-  <span class="token punctuation">}</span><span class="token punctuation">,</span>
-  <span class="token string">"mappings"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span>
-    <span class="token string">"properties"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span>
-      <span class="token string">"name"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span>
-        <span class="token string">"type"</span><span class="token punctuation">:</span> <span class="token string">"keyword"</span>
-      <span class="token punctuation">}</span>
-    <span class="token punctuation">}</span>
-  <span class="token punctuation">}</span>
-<span class="token punctuation">}</span>
+<pre><code>PUT /_template/myes_template
+{
+  "index_patterns": [
+    "myes-*"
+  ],
+  "aliases": {
+    "myes_reade_alias": {}
+  },
+  "settings": {
+    "index": {
+      "lifecycle": {
+        "name": "myes-lifecycle",
+        "rollover_alias": "myes_write_alias"
+      },
+      "refresh_interval": "30s",
+      "number_of_shards": "12",
+      "number_of_replicas": "1"
+    }
+  },
+  "mappings": {
+    "properties": {
+      "name": {
+        "type": "keyword"
+      }
+    }
+  }
+}
 </code></pre>
 
 <p><strong>⚠️注意:</strong></p>
@@ -435,12 +435,12 @@ z：表示时区
 
 <p>ES 语句：</p>
 
-<pre class="  language-json" style="position: relative; z-index: 2;"><code class="prism  language-json"><span class="token constant">PUT</span> <span class="token operator">/</span>myes<span class="token operator">-</span>testindex<span class="token operator">-</span><span class="token number">000001</span>
-<span class="token punctuation">{</span>
-  <span class="token string">"aliases"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span>
-    <span class="token string">"myes_write_alias"</span><span class="token punctuation">:</span><span class="token punctuation">{</span><span class="token punctuation">}</span>
-  <span class="token punctuation">}</span>
-<span class="token punctuation">}</span>
+<pre><code>PUT /myes-testindex-000001
+{
+  "aliases": {
+    "myes_write_alias":{}
+  }
+}
 </code></pre>
 
 <p><strong>⚠️注意:</strong></p>
@@ -452,87 +452,87 @@ z：表示时区
 
 <h3 id="4-4 查看索引配置-">4.4 查看索引配置：</h3>
 
-<pre class="  language-json" style="position: relative; z-index: 2;"><code class="prism  language-json"><span class="token constant">GET</span> <span class="token operator">/</span>myes<span class="token operator">-</span>testindex<span class="token operator">-</span><span class="token number">000001</span>
-<span class="token punctuation">{</span><span class="token punctuation">}</span>
+<pre><code>GET /myes-testindex-000001
+{}
 </code></pre>
 
 <p>执行结果：</p>
 
-<pre class="  language-json" style="position: relative; z-index: 2;"><code class="prism  language-json"><span class="token punctuation">{</span>
-  <span class="token string">"myes-testindex-000001"</span> <span class="token punctuation">:</span> <span class="token punctuation">{</span>
-    <span class="token string">"aliases"</span> <span class="token punctuation">:</span> <span class="token punctuation">{</span>
-      <span class="token string">"myes_reade_alias"</span> <span class="token punctuation">:</span> <span class="token punctuation">{</span> <span class="token punctuation">}</span><span class="token punctuation">,</span>
-      <span class="token string">"myes_write_alias"</span> <span class="token punctuation">:</span> <span class="token punctuation">{</span> <span class="token punctuation">}</span>
-    <span class="token punctuation">}</span><span class="token punctuation">,</span>
-    <span class="token string">"mappings"</span> <span class="token punctuation">:</span> <span class="token punctuation">{</span>
-      <span class="token string">"dynamic_templates"</span> <span class="token punctuation">:</span> <span class="token punctuation">[</span>
-        <span class="token punctuation">{</span>
-          <span class="token string">"message_full"</span> <span class="token punctuation">:</span> <span class="token punctuation">{</span>
-            <span class="token string">"match"</span> <span class="token punctuation">:</span> <span class="token string">"message_full"</span><span class="token punctuation">,</span>
-            <span class="token string">"mapping"</span> <span class="token punctuation">:</span> <span class="token punctuation">{</span>
-              <span class="token string">"fields"</span> <span class="token punctuation">:</span> <span class="token punctuation">{</span>
-                <span class="token string">"keyword"</span> <span class="token punctuation">:</span> <span class="token punctuation">{</span>
-                  <span class="token string">"ignore_above"</span> <span class="token punctuation">:</span> <span class="token number">2048</span><span class="token punctuation">,</span>
-                  <span class="token string">"type"</span> <span class="token punctuation">:</span> <span class="token string">"keyword"</span>
-                <span class="token punctuation">}</span>
-              <span class="token punctuation">}</span><span class="token punctuation">,</span>
-              <span class="token string">"type"</span> <span class="token punctuation">:</span> <span class="token string">"text"</span>
-            <span class="token punctuation">}</span>
-          <span class="token punctuation">}</span>
-        <span class="token punctuation">}</span><span class="token punctuation">,</span>
-        <span class="token punctuation">{</span>
-          <span class="token string">"message"</span> <span class="token punctuation">:</span> <span class="token punctuation">{</span>
-            <span class="token string">"match"</span> <span class="token punctuation">:</span> <span class="token string">"message"</span><span class="token punctuation">,</span>
-            <span class="token string">"mapping"</span> <span class="token punctuation">:</span> <span class="token punctuation">{</span>
-              <span class="token string">"type"</span> <span class="token punctuation">:</span> <span class="token string">"text"</span>
-            <span class="token punctuation">}</span>
-          <span class="token punctuation">}</span>
-        <span class="token punctuation">}</span><span class="token punctuation">,</span>
-        <span class="token punctuation">{</span>
-          <span class="token string">"strings"</span> <span class="token punctuation">:</span> <span class="token punctuation">{</span>
-            <span class="token string">"match_mapping_type"</span> <span class="token punctuation">:</span> <span class="token string">"string"</span><span class="token punctuation">,</span>
-            <span class="token string">"mapping"</span> <span class="token punctuation">:</span> <span class="token punctuation">{</span>
-              <span class="token string">"type"</span> <span class="token punctuation">:</span> <span class="token string">"keyword"</span>
-            <span class="token punctuation">}</span>
-          <span class="token punctuation">}</span>
-        <span class="token punctuation">}</span>
-      <span class="token punctuation">]</span><span class="token punctuation">,</span>
-      <span class="token string">"properties"</span> <span class="token punctuation">:</span> <span class="token punctuation">{</span>
-        <span class="token string">"name"</span> <span class="token punctuation">:</span> <span class="token punctuation">{</span>
-          <span class="token string">"type"</span> <span class="token punctuation">:</span> <span class="token string">"keyword"</span>
-        <span class="token punctuation">}</span>
-      <span class="token punctuation">}</span>
-    <span class="token punctuation">}</span><span class="token punctuation">,</span>
-    <span class="token string">"settings"</span> <span class="token punctuation">:</span> <span class="token punctuation">{</span>
-      <span class="token string">"index"</span> <span class="token punctuation">:</span> <span class="token punctuation">{</span>
-        <span class="token string">"lifecycle"</span> <span class="token punctuation">:</span> <span class="token punctuation">{</span>
-          <span class="token string">"name"</span> <span class="token punctuation">:</span> <span class="token string">"myes-lifecycle"</span><span class="token punctuation">,</span>
-          <span class="token string">"rollover_alias"</span> <span class="token punctuation">:</span> <span class="token string">"myes_write_alias"</span>
-        <span class="token punctuation">}</span><span class="token punctuation">,</span>
-        <span class="token string">"refresh_interval"</span> <span class="token punctuation">:</span> <span class="token string">"30s"</span><span class="token punctuation">,</span>
-        <span class="token string">"number_of_shards"</span> <span class="token punctuation">:</span> <span class="token string">"12"</span><span class="token punctuation">,</span>
-        <span class="token string">"translog"</span> <span class="token punctuation">:</span> <span class="token punctuation">{</span>
-          <span class="token string">"sync_interval"</span> <span class="token punctuation">:</span> <span class="token string">"5s"</span><span class="token punctuation">,</span>
-          <span class="token string">"durability"</span> <span class="token punctuation">:</span> <span class="token string">"async"</span>
-        <span class="token punctuation">}</span><span class="token punctuation">,</span>
-        <span class="token string">"provided_name"</span> <span class="token punctuation">:</span> <span class="token string">"myes-testindex-000001"</span><span class="token punctuation">,</span>
-        <span class="token string">"max_result_window"</span> <span class="token punctuation">:</span> <span class="token string">"65536"</span><span class="token punctuation">,</span>
-        <span class="token string">"creation_date"</span> <span class="token punctuation">:</span> <span class="token string">"1592222799955"</span><span class="token punctuation">,</span>
-        <span class="token string">"unassigned"</span> <span class="token punctuation">:</span> <span class="token punctuation">{</span>
-          <span class="token string">"node_left"</span> <span class="token punctuation">:</span> <span class="token punctuation">{</span>
-            <span class="token string">"delayed_timeout"</span> <span class="token punctuation">:</span> <span class="token string">"5m"</span>
-          <span class="token punctuation">}</span>
-        <span class="token punctuation">}</span><span class="token punctuation">,</span>
-        <span class="token string">"priority"</span> <span class="token punctuation">:</span> <span class="token string">"100"</span><span class="token punctuation">,</span>
-        <span class="token string">"number_of_replicas"</span> <span class="token punctuation">:</span> <span class="token string">"1"</span><span class="token punctuation">,</span>
-        <span class="token string">"uuid"</span> <span class="token punctuation">:</span> <span class="token string">"tPwDbkuvRjKtRHiL4fKcPA"</span><span class="token punctuation">,</span>
-        <span class="token string">"version"</span> <span class="token punctuation">:</span> <span class="token punctuation">{</span>
-          <span class="token string">"created"</span> <span class="token punctuation">:</span> <span class="token string">"7050199"</span>
-        <span class="token punctuation">}</span>
-      <span class="token punctuation">}</span>
-    <span class="token punctuation">}</span>
-  <span class="token punctuation">}</span>
-<span class="token punctuation">}</span>
+<pre><code>{
+  "myes-testindex-000001" : {
+    "aliases" : {
+      "myes_reade_alias" : { },
+      "myes_write_alias" : { }
+    },
+    "mappings" : {
+      "dynamic_templates" : [
+        {
+          "message_full" : {
+            "match" : "message_full",
+            "mapping" : {
+              "fields" : {
+                "keyword" : {
+                  "ignore_above" : 2048,
+                  "type" : "keyword"
+                }
+              },
+              "type" : "text"
+            }
+          }
+        },
+        {
+          "message" : {
+            "match" : "message",
+            "mapping" : {
+              "type" : "text"
+            }
+          }
+        },
+        {
+          "strings" : {
+            "match_mapping_type" : "string",
+            "mapping" : {
+              "type" : "keyword"
+            }
+          }
+        }
+      ],
+      "properties" : {
+        "name" : {
+          "type" : "keyword"
+        }
+      }
+    },
+    "settings" : {
+      "index" : {
+        "lifecycle" : {
+          "name" : "myes-lifecycle",
+          "rollover_alias" : "myes_write_alias"
+        },
+        "refresh_interval" : "30s",
+        "number_of_shards" : "12",
+        "translog" : {
+          "sync_interval" : "5s",
+          "durability" : "async"
+        },
+        "provided_name" : "myes-testindex-000001",
+        "max_result_window" : "65536",
+        "creation_date" : "1592222799955",
+        "unassigned" : {
+          "node_left" : {
+            "delayed_timeout" : "5m"
+          }
+        },
+        "priority" : "100",
+        "number_of_replicas" : "1",
+        "uuid" : "tPwDbkuvRjKtRHiL4fKcPA",
+        "version" : {
+          "created" : "7050199"
+        }
+      }
+    }
+  }
+}
 </code></pre>
 
 <p><strong>⚠️注意:</strong></p>
@@ -544,77 +544,77 @@ z：表示时区
 
 <h3 id="4-5 写入数据">4.5 写入数据</h3>
 
-<pre class="  language-json" style="position: relative; z-index: 2;"><code class="prism  language-json"><span class="token constant">POST</span> <span class="token operator">/</span>myes_write_alias<span class="token operator">/</span>_bulk<span class="token operator">?</span>refresh<span class="token operator">=</span><span class="token boolean">true</span>
-<span class="token punctuation">{</span><span class="token string">"create"</span><span class="token punctuation">:</span><span class="token punctuation">{</span><span class="token punctuation">}</span><span class="token punctuation">}</span>
-<span class="token punctuation">{</span><span class="token string">"name"</span><span class="token punctuation">:</span><span class="token string">"xxx"</span><span class="token punctuation">}</span>
-<span class="token punctuation">{</span><span class="token string">"create"</span><span class="token punctuation">:</span><span class="token punctuation">{</span><span class="token punctuation">}</span><span class="token punctuation">}</span>
-<span class="token punctuation">{</span><span class="token string">"name"</span><span class="token punctuation">:</span><span class="token string">"xxx"</span><span class="token punctuation">}</span>
-<span class="token punctuation">{</span><span class="token string">"create"</span><span class="token punctuation">:</span><span class="token punctuation">{</span><span class="token punctuation">}</span><span class="token punctuation">}</span>
-<span class="token punctuation">{</span><span class="token string">"name"</span><span class="token punctuation">:</span><span class="token string">"xxx"</span><span class="token punctuation">}</span>
+<pre><code>POST /myes_write_alias/_bulk?refresh=true
+{"create":{}}
+{"name":"xxx"}
+{"create":{}}
+{"name":"xxx"}
+{"create":{}}
+{"name":"xxx"}
 </code></pre>
 
 <p>执行结果:</p>
 
-<pre class="  language-json" style="position: relative; z-index: 2;"><code class="prism  language-json"><span class="token punctuation">{</span>
-  <span class="token string">"took"</span> <span class="token punctuation">:</span> <span class="token number">18</span><span class="token punctuation">,</span>
-  <span class="token string">"errors"</span> <span class="token punctuation">:</span> <span class="token boolean">false</span><span class="token punctuation">,</span>
-  <span class="token string">"items"</span> <span class="token punctuation">:</span> <span class="token punctuation">[</span>
-    <span class="token punctuation">{</span>
-      <span class="token string">"create"</span> <span class="token punctuation">:</span> <span class="token punctuation">{</span>
-        <span class="token string">"_index"</span> <span class="token punctuation">:</span> <span class="token string">"myes-testindex-000001"</span><span class="token punctuation">,</span>
-        <span class="token string">"_type"</span> <span class="token punctuation">:</span> <span class="token string">"_doc"</span><span class="token punctuation">,</span>
-        <span class="token string">"_id"</span> <span class="token punctuation">:</span> <span class="token string">"jF3it3IBUTVfQxRW1Xys"</span><span class="token punctuation">,</span>
-        <span class="token string">"_version"</span> <span class="token punctuation">:</span> <span class="token number">1</span><span class="token punctuation">,</span>
-        <span class="token string">"result"</span> <span class="token punctuation">:</span> <span class="token string">"created"</span><span class="token punctuation">,</span>
-        <span class="token string">"forced_refresh"</span> <span class="token punctuation">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
-        <span class="token string">"_shards"</span> <span class="token punctuation">:</span> <span class="token punctuation">{</span>
-          <span class="token string">"total"</span> <span class="token punctuation">:</span> <span class="token number">2</span><span class="token punctuation">,</span>
-          <span class="token string">"successful"</span> <span class="token punctuation">:</span> <span class="token number">2</span><span class="token punctuation">,</span>
-          <span class="token string">"failed"</span> <span class="token punctuation">:</span> <span class="token number">0</span>
-        <span class="token punctuation">}</span><span class="token punctuation">,</span>
-        <span class="token string">"_seq_no"</span> <span class="token punctuation">:</span> <span class="token number">0</span><span class="token punctuation">,</span>
-        <span class="token string">"_primary_term"</span> <span class="token punctuation">:</span> <span class="token number">1</span><span class="token punctuation">,</span>
-        <span class="token string">"status"</span> <span class="token punctuation">:</span> <span class="token number">201</span>
-      <span class="token punctuation">}</span>
-    <span class="token punctuation">}</span><span class="token punctuation">,</span>
-    <span class="token punctuation">{</span>
-      <span class="token string">"create"</span> <span class="token punctuation">:</span> <span class="token punctuation">{</span>
-        <span class="token string">"_index"</span> <span class="token punctuation">:</span> <span class="token string">"myes-testindex-000001"</span><span class="token punctuation">,</span>
-        <span class="token string">"_type"</span> <span class="token punctuation">:</span> <span class="token string">"_doc"</span><span class="token punctuation">,</span>
-        <span class="token string">"_id"</span> <span class="token punctuation">:</span> <span class="token string">"jV3it3IBUTVfQxRW1Xys"</span><span class="token punctuation">,</span>
-        <span class="token string">"_version"</span> <span class="token punctuation">:</span> <span class="token number">1</span><span class="token punctuation">,</span>
-        <span class="token string">"result"</span> <span class="token punctuation">:</span> <span class="token string">"created"</span><span class="token punctuation">,</span>
-        <span class="token string">"forced_refresh"</span> <span class="token punctuation">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
-        <span class="token string">"_shards"</span> <span class="token punctuation">:</span> <span class="token punctuation">{</span>
-          <span class="token string">"total"</span> <span class="token punctuation">:</span> <span class="token number">2</span><span class="token punctuation">,</span>
-          <span class="token string">"successful"</span> <span class="token punctuation">:</span> <span class="token number">2</span><span class="token punctuation">,</span>
-          <span class="token string">"failed"</span> <span class="token punctuation">:</span> <span class="token number">0</span>
-        <span class="token punctuation">}</span><span class="token punctuation">,</span>
-        <span class="token string">"_seq_no"</span> <span class="token punctuation">:</span> <span class="token number">0</span><span class="token punctuation">,</span>
-        <span class="token string">"_primary_term"</span> <span class="token punctuation">:</span> <span class="token number">1</span><span class="token punctuation">,</span>
-        <span class="token string">"status"</span> <span class="token punctuation">:</span> <span class="token number">201</span>
-      <span class="token punctuation">}</span>
-    <span class="token punctuation">}</span><span class="token punctuation">,</span>
-    <span class="token punctuation">{</span>
-      <span class="token string">"create"</span> <span class="token punctuation">:</span> <span class="token punctuation">{</span>
-        <span class="token string">"_index"</span> <span class="token punctuation">:</span> <span class="token string">"myes-testindex-000001"</span><span class="token punctuation">,</span>
-        <span class="token string">"_type"</span> <span class="token punctuation">:</span> <span class="token string">"_doc"</span><span class="token punctuation">,</span>
-        <span class="token string">"_id"</span> <span class="token punctuation">:</span> <span class="token string">"jl3it3IBUTVfQxRW1Xys"</span><span class="token punctuation">,</span>
-        <span class="token string">"_version"</span> <span class="token punctuation">:</span> <span class="token number">1</span><span class="token punctuation">,</span>
-        <span class="token string">"result"</span> <span class="token punctuation">:</span> <span class="token string">"created"</span><span class="token punctuation">,</span>
-        <span class="token string">"forced_refresh"</span> <span class="token punctuation">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
-        <span class="token string">"_shards"</span> <span class="token punctuation">:</span> <span class="token punctuation">{</span>
-          <span class="token string">"total"</span> <span class="token punctuation">:</span> <span class="token number">2</span><span class="token punctuation">,</span>
-          <span class="token string">"successful"</span> <span class="token punctuation">:</span> <span class="token number">2</span><span class="token punctuation">,</span>
-          <span class="token string">"failed"</span> <span class="token punctuation">:</span> <span class="token number">0</span>
-        <span class="token punctuation">}</span><span class="token punctuation">,</span>
-        <span class="token string">"_seq_no"</span> <span class="token punctuation">:</span> <span class="token number">0</span><span class="token punctuation">,</span>
-        <span class="token string">"_primary_term"</span> <span class="token punctuation">:</span> <span class="token number">1</span><span class="token punctuation">,</span>
-        <span class="token string">"status"</span> <span class="token punctuation">:</span> <span class="token number">201</span>
-      <span class="token punctuation">}</span>
-    <span class="token punctuation">}</span>
-  <span class="token punctuation">]</span>
-<span class="token punctuation">}</span>
+<pre><code>{
+  "took" : 18,
+  "errors" : false,
+  "items" : [
+    {
+      "create" : {
+        "_index" : "myes-testindex-000001",
+        "_type" : "_doc",
+        "_id" : "jF3it3IBUTVfQxRW1Xys",
+        "_version" : 1,
+        "result" : "created",
+        "forced_refresh" : true,
+        "_shards" : {
+          "total" : 2,
+          "successful" : 2,
+          "failed" : 0
+        },
+        "_seq_no" : 0,
+        "_primary_term" : 1,
+        "status" : 201
+      }
+    },
+    {
+      "create" : {
+        "_index" : "myes-testindex-000001",
+        "_type" : "_doc",
+        "_id" : "jV3it3IBUTVfQxRW1Xys",
+        "_version" : 1,
+        "result" : "created",
+        "forced_refresh" : true,
+        "_shards" : {
+          "total" : 2,
+          "successful" : 2,
+          "failed" : 0
+        },
+        "_seq_no" : 0,
+        "_primary_term" : 1,
+        "status" : 201
+      }
+    },
+    {
+      "create" : {
+        "_index" : "myes-testindex-000001",
+        "_type" : "_doc",
+        "_id" : "jl3it3IBUTVfQxRW1Xys",
+        "_version" : 1,
+        "result" : "created",
+        "forced_refresh" : true,
+        "_shards" : {
+          "total" : 2,
+          "successful" : 2,
+          "failed" : 0
+        },
+        "_seq_no" : 0,
+        "_primary_term" : 1,
+        "status" : 201
+      }
+    }
+  ]
+}
 </code></pre>
 
 <p><strong>⚠️注意:</strong></p>
@@ -625,66 +625,66 @@ z：表示时区
 
 <p>再次执行上面的语句，写入 3条记录发现新的数据都写到了 myes-testindex-000002 中, 结果符合预期。</p>
 
-<pre class="  language-json" style="position: relative; z-index: 2;"><code class="prism  language-json"><span class="token punctuation">{</span>
-  <span class="token string">"took"</span> <span class="token punctuation">:</span> <span class="token number">17</span><span class="token punctuation">,</span>
-  <span class="token string">"errors"</span> <span class="token punctuation">:</span> <span class="token boolean">false</span><span class="token punctuation">,</span>
-  <span class="token string">"items"</span> <span class="token punctuation">:</span> <span class="token punctuation">[</span>
-    <span class="token punctuation">{</span>
-      <span class="token string">"create"</span> <span class="token punctuation">:</span> <span class="token punctuation">{</span>
-        <span class="token string">"_index"</span> <span class="token punctuation">:</span> <span class="token string">"myes-testindex-000002"</span><span class="token punctuation">,</span>
-        <span class="token string">"_type"</span> <span class="token punctuation">:</span> <span class="token string">"_doc"</span><span class="token punctuation">,</span>
-        <span class="token string">"_id"</span> <span class="token punctuation">:</span> <span class="token string">"yl0JuHIBUTVfQxRWvsv5"</span><span class="token punctuation">,</span>
-        <span class="token string">"_version"</span> <span class="token punctuation">:</span> <span class="token number">1</span><span class="token punctuation">,</span>
-        <span class="token string">"result"</span> <span class="token punctuation">:</span> <span class="token string">"created"</span><span class="token punctuation">,</span>
-        <span class="token string">"forced_refresh"</span> <span class="token punctuation">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
-        <span class="token string">"_shards"</span> <span class="token punctuation">:</span> <span class="token punctuation">{</span>
-          <span class="token string">"total"</span> <span class="token punctuation">:</span> <span class="token number">2</span><span class="token punctuation">,</span>
-          <span class="token string">"successful"</span> <span class="token punctuation">:</span> <span class="token number">2</span><span class="token punctuation">,</span>
-          <span class="token string">"failed"</span> <span class="token punctuation">:</span> <span class="token number">0</span>
-        <span class="token punctuation">}</span><span class="token punctuation">,</span>
-        <span class="token string">"_seq_no"</span> <span class="token punctuation">:</span> <span class="token number">0</span><span class="token punctuation">,</span>
-        <span class="token string">"_primary_term"</span> <span class="token punctuation">:</span> <span class="token number">1</span><span class="token punctuation">,</span>
-        <span class="token string">"status"</span> <span class="token punctuation">:</span> <span class="token number">201</span>
-      <span class="token punctuation">}</span>
-    <span class="token punctuation">}</span><span class="token punctuation">,</span>
-    <span class="token punctuation">{</span>
-      <span class="token string">"create"</span> <span class="token punctuation">:</span> <span class="token punctuation">{</span>
-        <span class="token string">"_index"</span> <span class="token punctuation">:</span> <span class="token string">"myes-testindex-000002"</span><span class="token punctuation">,</span>
-        <span class="token string">"_type"</span> <span class="token punctuation">:</span> <span class="token string">"_doc"</span><span class="token punctuation">,</span>
-        <span class="token string">"_id"</span> <span class="token punctuation">:</span> <span class="token string">"y10JuHIBUTVfQxRWvsv5"</span><span class="token punctuation">,</span>
-        <span class="token string">"_version"</span> <span class="token punctuation">:</span> <span class="token number">1</span><span class="token punctuation">,</span>
-        <span class="token string">"result"</span> <span class="token punctuation">:</span> <span class="token string">"created"</span><span class="token punctuation">,</span>
-        <span class="token string">"forced_refresh"</span> <span class="token punctuation">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
-        <span class="token string">"_shards"</span> <span class="token punctuation">:</span> <span class="token punctuation">{</span>
-          <span class="token string">"total"</span> <span class="token punctuation">:</span> <span class="token number">2</span><span class="token punctuation">,</span>
-          <span class="token string">"successful"</span> <span class="token punctuation">:</span> <span class="token number">2</span><span class="token punctuation">,</span>
-          <span class="token string">"failed"</span> <span class="token punctuation">:</span> <span class="token number">0</span>
-        <span class="token punctuation">}</span><span class="token punctuation">,</span>
-        <span class="token string">"_seq_no"</span> <span class="token punctuation">:</span> <span class="token number">0</span><span class="token punctuation">,</span>
-        <span class="token string">"_primary_term"</span> <span class="token punctuation">:</span> <span class="token number">1</span><span class="token punctuation">,</span>
-        <span class="token string">"status"</span> <span class="token punctuation">:</span> <span class="token number">201</span>
-      <span class="token punctuation">}</span>
-    <span class="token punctuation">}</span><span class="token punctuation">,</span>
-    <span class="token punctuation">{</span>
-      <span class="token string">"create"</span> <span class="token punctuation">:</span> <span class="token punctuation">{</span>
-        <span class="token string">"_index"</span> <span class="token punctuation">:</span> <span class="token string">"myes-testindex-000002"</span><span class="token punctuation">,</span>
-        <span class="token string">"_type"</span> <span class="token punctuation">:</span> <span class="token string">"_doc"</span><span class="token punctuation">,</span>
-        <span class="token string">"_id"</span> <span class="token punctuation">:</span> <span class="token string">"zF0JuHIBUTVfQxRWvsv5"</span><span class="token punctuation">,</span>
-        <span class="token string">"_version"</span> <span class="token punctuation">:</span> <span class="token number">1</span><span class="token punctuation">,</span>
-        <span class="token string">"result"</span> <span class="token punctuation">:</span> <span class="token string">"created"</span><span class="token punctuation">,</span>
-        <span class="token string">"forced_refresh"</span> <span class="token punctuation">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
-        <span class="token string">"_shards"</span> <span class="token punctuation">:</span> <span class="token punctuation">{</span>
-          <span class="token string">"total"</span> <span class="token punctuation">:</span> <span class="token number">2</span><span class="token punctuation">,</span>
-          <span class="token string">"successful"</span> <span class="token punctuation">:</span> <span class="token number">2</span><span class="token punctuation">,</span>
-          <span class="token string">"failed"</span> <span class="token punctuation">:</span> <span class="token number">0</span>
-        <span class="token punctuation">}</span><span class="token punctuation">,</span>
-        <span class="token string">"_seq_no"</span> <span class="token punctuation">:</span> <span class="token number">0</span><span class="token punctuation">,</span>
-        <span class="token string">"_primary_term"</span> <span class="token punctuation">:</span> <span class="token number">1</span><span class="token punctuation">,</span>
-        <span class="token string">"status"</span> <span class="token punctuation">:</span> <span class="token number">201</span>
-      <span class="token punctuation">}</span>
-    <span class="token punctuation">}</span>
-  <span class="token punctuation">]</span>
-<span class="token punctuation">}</span>
+<pre><code>{
+  "took" : 17,
+  "errors" : false,
+  "items" : [
+    {
+      "create" : {
+        "_index" : "myes-testindex-000002",
+        "_type" : "_doc",
+        "_id" : "yl0JuHIBUTVfQxRWvsv5",
+        "_version" : 1,
+        "result" : "created",
+        "forced_refresh" : true,
+        "_shards" : {
+          "total" : 2,
+          "successful" : 2,
+          "failed" : 0
+        },
+        "_seq_no" : 0,
+        "_primary_term" : 1,
+        "status" : 201
+      }
+    },
+    {
+      "create" : {
+        "_index" : "myes-testindex-000002",
+        "_type" : "_doc",
+        "_id" : "y10JuHIBUTVfQxRWvsv5",
+        "_version" : 1,
+        "result" : "created",
+        "forced_refresh" : true,
+        "_shards" : {
+          "total" : 2,
+          "successful" : 2,
+          "failed" : 0
+        },
+        "_seq_no" : 0,
+        "_primary_term" : 1,
+        "status" : 201
+      }
+    },
+    {
+      "create" : {
+        "_index" : "myes-testindex-000002",
+        "_type" : "_doc",
+        "_id" : "zF0JuHIBUTVfQxRWvsv5",
+        "_version" : 1,
+        "result" : "created",
+        "forced_refresh" : true,
+        "_shards" : {
+          "total" : 2,
+          "successful" : 2,
+          "failed" : 0
+        },
+        "_seq_no" : 0,
+        "_primary_term" : 1,
+        "status" : 201
+      }
+    }
+  ]
+}
 </code></pre>
 
 <p><strong>⚠️注意:</strong><br>
@@ -700,12 +700,12 @@ z：表示时区
 
 <p>修改 Lifecycle 配置：</p>
 
-<pre class="  language-json" style="position: relative; z-index: 2;"><code class="prism  language-json"><span class="token constant">PUT</span> _cluster<span class="token operator">/</span>settings
-<span class="token punctuation">{</span>
-  <span class="token string">"transient"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span>
-    <span class="token string">"indices.lifecycle.poll_interval"</span><span class="token punctuation">:</span> <span class="token string">"3s"</span>
-  <span class="token punctuation">}</span>
-<span class="token punctuation">}</span>
+<pre><code>PUT _cluster/settings
+{
+  "transient": {
+    "indices.lifecycle.poll_interval": "3s"
+  }
+}
 </code></pre>
 
 <h2 id="5- ES 在 QQ 家校群作业统计功能上的实践">5. ES 在 QQ 家校群作业统计功能上的实践</h2>
@@ -716,9 +716,9 @@ z：表示时区
 
 <p>近期推出的作业统计功能，可以指定时间段+指定科目动态给出排名，有效提高了学生答题的积极性。在功能的实现上如果用传统的 SQL + KV 的方式实现成本比较高，要做到高性能也需要花不少精力，借助 ES 强大的统计聚合能力大大降低了开发成本，实现了需求的快速上线。</p>
 
-<p style=""><img src="./Elasticsearch 索引容量管理实践 -  - KM平台_files/cos-file-url(4)" alt="" style="position: relative; z-index: 2;" class="amplify"></p>
+<p style=""></p>
 
-<p style=""><img src="./Elasticsearch 索引容量管理实践 -  - KM平台_files/cos-file-url(5)" alt="" style="position: relative; z-index: 2;" class="amplify"></p>
+<p style=""></p>
 
 <h3 id="5-2 数据量评估">5.2 数据量评估</h3>
 
@@ -748,9 +748,9 @@ z：表示时区
 <li>单个分片最大大小 10GB</li>
 </ul>
 
-<p style=""><img src="./Elasticsearch 索引容量管理实践 -  - KM平台_files/cos-file-url(6)" alt="" style="position: relative; z-index: 2;" class="amplify"></p>
+<p style=""></p>
 
-<p style=""><img src="./Elasticsearch 索引容量管理实践 -  - KM平台_files/cos-file-url(7)" alt="" style="position: relative; z-index: 2;" class="amplify"></p>
+<p style=""></p>
 
 <h3 id="5-5 实际耗时情况">5.5 实际耗时情况</h3>
 
@@ -760,7 +760,7 @@ z：表示时区
 <li>聚合：200ms 以内</li>
 </ul>
 
-<p style=""><img src="./Elasticsearch 索引容量管理实践 -  - KM平台_files/cos-file-url(8)" alt="" style="position: relative; z-index: 2;" class="amplify"></p>
+<p style=""></p>
 
 <h2 id="参考链接">参考链接</h2>
 

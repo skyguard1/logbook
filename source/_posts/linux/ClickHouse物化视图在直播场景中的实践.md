@@ -19,7 +19,7 @@ categories:
 <li>单集群日均分布式查询百万+次，平均耗时1.68s，TP90&nbsp;1.98s</li>
 <li>单集群日均实时写入百万+次，峰值写入量1亿+/s 。其中在线特征集群写入(全链路)平均延迟 2秒，TP90 3秒</li>
 </ul><h2 id="78b8d6f4-d057-0884-70cb-913a49dc1f62" class="toc-enable">二、整体架构</h2>
-<p style=""><img src="./【WeOLAP】ClickHouse物化视图在直播场景中的实践 - OLAP - KM平台_files/cos-file-url(1)" style="display: block; margin-left: auto; margin-right: auto; position: relative; z-index: 2;" alt="" class="amplify"></p>
+<p style=""></p>
 <p>在数据中心实时Pipeline的整个架构中，主要分为5个模块：</p>
 <ul><li>Pulsar：消息队列，用于实时数据的接收和转发，目前支持千亿级别的流量收发，是整个实时Pipeline的流量入口；</li>
 <li>Flink：流计算引擎，主要用于对实时流进行加工处理，通过关联Redis和HBase进行用户画像、实验命中信息关联；</li>
@@ -53,22 +53,22 @@ categories:
 <p class="auto-cursor-target">1次提交sql次数对比：1次提交1个，提交10次；1次提交3个，提交10次；1次提交5个，提交10次；1次提交10个，提交10次。</p>
 </li>
 </ul><div class="km_insert_code">
-<pre class="language-sql" style="position: relative; z-index: 2;"><code class="prism language-sql">基础表查询：
-<span class="token keyword">select</span> hour_<span class="token punctuation">,</span>uniqCombined<span class="token punctuation">(</span>uuid<span class="token punctuation">)</span> <span class="token keyword">as</span> uv<span class="token punctuation">,</span><span class="token function">sum</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span> <span class="token keyword">as</span> pv <span class="token keyword">from</span> test<span class="token punctuation">.</span>test_mergetree_local <span class="token keyword">group</span> <span class="token keyword">by</span> hour_
-<span class="token keyword">select</span> hour_<span class="token punctuation">,</span>x1<span class="token punctuation">,</span>uniqCombined<span class="token punctuation">(</span>uuid<span class="token punctuation">)</span> <span class="token keyword">as</span> uv<span class="token punctuation">,</span><span class="token function">sum</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span> <span class="token keyword">as</span> pv <span class="token keyword">from</span> test<span class="token punctuation">.</span>test_mergetree_local <span class="token keyword">group</span> <span class="token keyword">by</span> hour_<span class="token punctuation">,</span>x1
-<span class="token keyword">select</span> hour_<span class="token punctuation">,</span>x2<span class="token punctuation">,</span>uniqCombined<span class="token punctuation">(</span>uuid<span class="token punctuation">)</span> <span class="token keyword">as</span> uv<span class="token punctuation">,</span><span class="token function">sum</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span> <span class="token keyword">as</span> pv <span class="token keyword">from</span> test<span class="token punctuation">.</span>test_mergetree_local <span class="token keyword">group</span> <span class="token keyword">by</span> hour_<span class="token punctuation">,</span>x2
-<span class="token keyword">select</span> x1<span class="token punctuation">,</span>x2<span class="token punctuation">,</span>uniqCombined<span class="token punctuation">(</span>uuid<span class="token punctuation">)</span> <span class="token keyword">as</span> uv<span class="token punctuation">,</span><span class="token function">sum</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span> <span class="token keyword">as</span> pv <span class="token keyword">from</span> test<span class="token punctuation">.</span>test_mergetree_local <span class="token keyword">group</span> <span class="token keyword">by</span> x1<span class="token punctuation">,</span>x2
-<span class="token keyword">select</span> hour_<span class="token punctuation">,</span>x1<span class="token punctuation">,</span>x2<span class="token punctuation">,</span>uniqCombined<span class="token punctuation">(</span>uuid<span class="token punctuation">)</span> <span class="token keyword">as</span> uv<span class="token punctuation">,</span><span class="token function">sum</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span> <span class="token keyword">as</span> pv <span class="token keyword">from</span> test<span class="token punctuation">.</span>test_mergetree_local <span class="token keyword">group</span> <span class="token keyword">by</span> hour_<span class="token punctuation">,</span>x1<span class="token punctuation">,</span>x2
+<pre><code>基础表查询：
+select hour_,uniqCombined(uuid) as uv,sum(1) as pv from test.test_mergetree_local group by hour_
+select hour_,x1,uniqCombined(uuid) as uv,sum(1) as pv from test.test_mergetree_local group by hour_,x1
+select hour_,x2,uniqCombined(uuid) as uv,sum(1) as pv from test.test_mergetree_local group by hour_,x2
+select x1,x2,uniqCombined(uuid) as uv,sum(1) as pv from test.test_mergetree_local group by x1,x2
+select hour_,x1,x2,uniqCombined(uuid) as uv,sum(1) as pv from test.test_mergetree_local group by hour_,x1,x2
 
 物化视图查询：
-<span class="token keyword">select</span> hour_<span class="token punctuation">,</span>uniqCombinedMerge<span class="token punctuation">(</span>uv<span class="token punctuation">)</span> <span class="token keyword">as</span> uv<span class="token punctuation">,</span>sumMerge<span class="token punctuation">(</span>pv<span class="token punctuation">)</span> <span class="token keyword">as</span> pv <span class="token keyword">from</span> test<span class="token punctuation">.</span>test_mv_local <span class="token keyword">group</span> <span class="token keyword">by</span> hour_
-<span class="token keyword">select</span> hour_<span class="token punctuation">,</span>x1<span class="token punctuation">,</span>uniqCombinedMerge<span class="token punctuation">(</span>uv<span class="token punctuation">)</span> <span class="token keyword">as</span> uv<span class="token punctuation">,</span>sumMerge<span class="token punctuation">(</span>pv<span class="token punctuation">)</span> <span class="token keyword">as</span> pv <span class="token keyword">from</span> test<span class="token punctuation">.</span>test_mv_local <span class="token keyword">group</span> <span class="token keyword">by</span> hour_<span class="token punctuation">,</span>x1
-<span class="token keyword">select</span> hour_<span class="token punctuation">,</span>x2<span class="token punctuation">,</span>uniqCombinedMerge<span class="token punctuation">(</span>uv<span class="token punctuation">)</span> <span class="token keyword">as</span> uv<span class="token punctuation">,</span>sumMerge<span class="token punctuation">(</span>pv<span class="token punctuation">)</span> <span class="token keyword">as</span> pv <span class="token keyword">from</span> test<span class="token punctuation">.</span>test_mv_local <span class="token keyword">group</span> <span class="token keyword">by</span> hour_<span class="token punctuation">,</span>x2
-<span class="token keyword">select</span> x1<span class="token punctuation">,</span>x2<span class="token punctuation">,</span>uniqCombinedMerge<span class="token punctuation">(</span>uv<span class="token punctuation">)</span> <span class="token keyword">as</span> uv<span class="token punctuation">,</span>sumMerge<span class="token punctuation">(</span>pv<span class="token punctuation">)</span> <span class="token keyword">as</span> pv <span class="token keyword">from</span> test<span class="token punctuation">.</span>test_mv_local <span class="token keyword">group</span> <span class="token keyword">by</span> x1<span class="token punctuation">,</span>x2
-<span class="token keyword">select</span> hour_<span class="token punctuation">,</span>x1<span class="token punctuation">,</span>x2<span class="token punctuation">,</span>uniqCombinedMerge<span class="token punctuation">(</span>uv<span class="token punctuation">)</span> <span class="token keyword">as</span> uv<span class="token punctuation">,</span>sumMerge<span class="token punctuation">(</span>pv<span class="token punctuation">)</span> <span class="token keyword">as</span> pv <span class="token keyword">from</span> test<span class="token punctuation">.</span>test_mv_local <span class="token keyword">group</span> <span class="token keyword">by</span> hour_<span class="token punctuation">,</span>x1<span class="token punctuation">,</span>x2
+select hour_,uniqCombinedMerge(uv) as uv,sumMerge(pv) as pv from test.test_mv_local group by hour_
+select hour_,x1,uniqCombinedMerge(uv) as uv,sumMerge(pv) as pv from test.test_mv_local group by hour_,x1
+select hour_,x2,uniqCombinedMerge(uv) as uv,sumMerge(pv) as pv from test.test_mv_local group by hour_,x2
+select x1,x2,uniqCombinedMerge(uv) as uv,sumMerge(pv) as pv from test.test_mv_local group by x1,x2
+select hour_,x1,x2,uniqCombinedMerge(uv) as uv,sumMerge(pv) as pv from test.test_mv_local group by hour_,x1,x2
 
 测试方法：
-benchmark <span class="token comment">--port=9000  --password=xxxxx --host=host --database=test -c 3 -i 30 --max_threads=16 --cumulative -d 10 &lt;sql</span></code></pre>
+benchmark --port=9000  --password=xxxxx --host=host --database=test -c 3 -i 30 --max_threads=16 --cumulative -d 10 &lt;sql</code></pre>
 
 <table class="fixed-table wrapped confluenceTable" style="width:890px;"><colgroup><col><col><col><col><col><col><col></colgroup><tbody><tr><th class="confluenceTh" style="width:15px;"><br></th>
 <th class="confluenceTh" style="width:141px;">指标</th>
@@ -148,74 +148,76 @@ benchmark <span class="token comment">--port=9000  --password=xxxxx --host=host 
 <h2 id="c18f974f-e149-6bc5-1121-d555c2e55563" class="toc-enable"><span style="color:#333333;">四、物化视图实践</span></h2>
 <h3 id="2107f61c-ce14-c36a-2597-670e74e1f0fe" class="toc-enable">1.物化视图简单介绍</h3>
 <p><span style="color:#333333;"><a href="https://clickhouse.com/docs/en/sql-reference/statements/create/view/#materialized">物化视图</a>是一种通过<strong>空间换时间</strong>的预计算逻辑，是查询结果的持久化存储。<br></span>物化视图实际上分为两部分：视图计算<strong>view</strong>和物化存储<strong>table（以下简称为view和table）</strong>。<br></p>
-<p style=""><img src="./【WeOLAP】ClickHouse物化视图在直播场景中的实践 - OLAP - KM平台_files/cos-file-url(2)" width="310" height="366" alt="" style="position: relative; z-index: 2;">&nbsp;<img src="./【WeOLAP】ClickHouse物化视图在直播场景中的实践 - OLAP - KM平台_files/cos-file-url(3)" width="458" height="363" alt="" style="position: relative; z-index: 2;"></p>
+<p style="">&nbsp;</p>
 <p>通过上述的创建sql看到，正常创建一个物化视图<strong>view</strong>(test.test_mv_data_local)，同时也会在test库下生成一个.inner.test_mv_data_local的表<strong>table</strong>。<br>其中<strong>view</strong>是物化视图的计算过程，是一串可定义的Select语句，主要描述数据应该如何计算。<strong>table</strong>是将<strong>view</strong>计算的结果进行实际存储的物理表。<br>数据写入<strong>基础表</strong>(test.test_mv_local)后，由<strong>view</strong>(test,test_mv_data_local)计算存储到<strong>table</strong>(test.`.inner.test_mv_data_local`)中，是一个写入流(BlockInputStream)的单向传递过程，基础表的更新和删除不会传递给物化视图，物化视图的更新和删除也不会影响基础表。<br><strong>*AggregatingMergeTree</strong>是物化视图<strong>table</strong>的主要表引擎。可以针对聚合数据结果，做增量计算优化，具有后台<strong>merge</strong>时按照<strong>order by</strong>再次聚合数据的能力。<br>表字段分为两部分：</p>
 <ul><li><strong>聚合函数字段</strong>：可以将聚合函数计算的中间状态（而不是结果）存储在字段中，中间状态支持增量迭代，可以理解为<strong>计算指标</strong>，图中的uv和pv使用了<strong>AggregateFunction</strong>；</li>
 <li><strong>Group by Key</strong>：建表时的<strong>Order by key</strong>，是指按照不同的字段进行数据聚合的key，可以理解为<strong>维度</strong>，图中的day_，hour_，x1，x2。</li>
 </ul><p>普通的聚合函数后加State就可以转换为聚合函数字段。比如uinqCombinedState(uuid)生成AggregateFunction(uniqCombined,Int64)，sumState(1)生成AggregateFunction(sum,UInt8)。<br>简单理解下<strong>中间状态（State）</strong>的概念，以uv为例，通常使用去重函数计算会得到数值结果。但是往往会遇到有不同的维度枚举情况，会有用户重复使得uv计算的数值结果无法通过简单加法进行计算的。<br>常规做法是创建一张新的表，在计算时将所有的可能维度都计算出来，比如对每个维度计算一个总计，这样是可以支持维度组合(不需要的维度过滤为汇总)，但是计算的代价很大，2的n次方unoin。<br>有什么办法可以像常规方式一样进行维度组合计算，同时避免高额的计算代价？<br>将计算的指标不存储最终计算的值，而是存储一个可迭代的中间状态（State）。<br>比如通过array、set、或者<a href="https://en.wikipedia.org/wiki/HyperLogLog">HyperLogLog</a>将uin进行聚合，数据结构中的元素为uin，这样数据的组织形式会变成&lt;时间维度、维度1、维度2、维度3、uvstate&gt;。<br>从上述的维度中任意取一个维度组合，都会得到一个uin的结果集，不论是array、set、<a href="https://en.wikipedia.org/wiki/HyperLogLog">HyperLogLog</a>，都可以进行合并和去重，最终结果集的基数就是uv。</p>
 <p>用一个表格描述下AggregatingMergeTree的merge过程，假设目前表中有以下数据存在表中等待merge，其中 order by (day_,id_)，数据将会以day_，id_为维度对聚合字段类型的指标的中间状态进行组合（这里通过值的计算来解释这个过程，实际存储是经过序列化的中间状态）。</p>
-<p style=""><img src="./【WeOLAP】ClickHouse物化视图在直播场景中的实践 - OLAP - KM平台_files/cos-file-url(4)" style="display: block; margin-left: auto; margin-right: auto; position: relative; z-index: 2;" width="683" height="121" alt="" class="amplify"></p>
+<p style=""></p>
 <p>在实际生产环境中，我们遇到了挺多问题，这里分享一下给大家排排坑。</p>
-<p style=""><em><strong>坑1：<span style="color:#ff0000;">order by key</span></strong><span style="color:#ff0000;"> <strong>一定要是数据聚合的group by key</strong></span>，否则数据merge后会有问题<br></em>举个例子：假设我们有3个维度 day_、x1、x2，但是order by (day_,x1) ，如下图所示，这个时候聚合后 x2的维度将会被忽略，只保留order by 排序后的最小的值。<br>创建表<br><img src="./【WeOLAP】ClickHouse物化视图在直播场景中的实践 - OLAP - KM平台_files/cos-file-url(5)" alt="" style="position: relative; z-index: 2;"><br></p>
-<p style="">写入3条测试数据<br><img src="./【WeOLAP】ClickHouse物化视图在直播场景中的实践 - OLAP - KM平台_files/cos-file-url(6)" alt="" style="position: relative; z-index: 2;"><br></p>
-<p style="">手动触发merge后的数据<br><img src="./【WeOLAP】ClickHouse物化视图在直播场景中的实践 - OLAP - KM平台_files/cos-file-url(7)" alt="" style="position: relative; z-index: 2;"><br></p>
+<p style=""><em><strong>坑1：<span style="color:#ff0000;">order by key</span></strong><span style="color:#ff0000;"> <strong>一定要是数据聚合的group by key</strong></span>，否则数据merge后会有问题<br></em>举个例子：假设我们有3个维度 day_、x1、x2，但是order by (day_,x1) ，如下图所示，这个时候聚合后 x2的维度将会被忽略，只保留order by 排序后的最小的值。<br>创建表<br><br></p>
+<p style="">写入3条测试数据<br><br></p>
+<p style="">手动触发merge后的数据<br><br></p>
 <p>merge后X2维度失去了基数，当需要查询或者枚举这个维度的数据时，查询的数据是错误的。</p>
 <p><em><strong>坑2：AggregateFunction</strong>使用时注意字段输入类型<span style="color:#ff0000;"><strong>严格对齐</strong></span>，不会隐式转换<br></em><a href="https://clickhouse.com/docs/en/sql-reference/data-types/aggregatefunction/">AggregateFunction</a>(函数名称, types_of_arguments…)，这里的types_of_arguments是输入参数类型。<br>这个输入类型必须要和真正的字段类型严格对齐。字段类型不一致是无法正常写入的，会出现错误。<br>AggregateFunction(sum,UInt8)与AggregateFunction(sum,UInt16)不等价，AggregateFunction(sum,Nullable(UInt8))与AggregateFunction(sum,UInt8)不等价。<br>其中最容易出现问题的是sumState(1)，1在clickhouse的类型为UInt8，而sumState(1)的聚合函数字段类型是AggregateFunction(sum, UInt8)。<br>如果将一个sumState(toUInt16(1))写入到AggregateFunction(sum, UInt8)会出现如下错误：<br>DB::Exception: Conversion from AggregateFunction(sum, UInt16) to AggregateFunction(sum, UInt8) is not supported: while<br>converting source column pv to destination column pv.</p>
 <h3 id="453340cb-b07f-c7eb-91c0-41d3f17a0188" class="toc-enable">2.物化视图的两种创建方法</h3>
 <p>物化视图的创建语法：</p>
 <div class="km_insert_code">
-<pre class="language-sql" style="position: relative; z-index: 2;"><code class="prism language-sql"><span class="token keyword">CREATE</span> MATERIALIZED <span class="token keyword">VIEW</span> <span class="token punctuation">[</span><span class="token keyword">IF</span> <span class="token operator">NOT</span> <span class="token keyword">EXISTS</span><span class="token punctuation">]</span> <span class="token punctuation">[</span>db<span class="token punctuation">.</span><span class="token punctuation">]</span>table_name <span class="token punctuation">[</span><span class="token keyword">ON</span> CLUSTER<span class="token punctuation">]</span> <span class="token punctuation">[</span><span class="token keyword">TO</span><span class="token punctuation">[</span>db<span class="token punctuation">.</span><span class="token punctuation">]</span>name<span class="token punctuation">]</span> <br><span class="token punctuation">[</span><span class="token keyword">ENGINE</span> <span class="token operator">=</span> <span class="token keyword">engine</span><span class="token punctuation">]</span> <span class="token punctuation">[</span>POPULATE<span class="token punctuation">]</span> <br><span class="token keyword">AS</span> <span class="token keyword">SELECT</span> <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span></code></pre>
+<pre><code>CREATE MATERIALIZED VIEW [IF NOT EXISTS] [db.]table_name [ON CLUSTER] [TO[db.]name]
+[ENGINE = engine] [POPULATE]
+AS SELECT ...</code></pre>
 
 <p>物化视图的创建实际上是创建<strong>view</strong>和<strong>table</strong>的过程。<br>有两种方式创建：</p>
 <ul><li><strong>由view计算生成table，view和table绑定在一起共同组成物化视图，其中table为私有表；</strong></li>
 <li><strong>view和table分开创建，view和table解耦，view计算的结果持久化存储在table。</strong></li>
 </ul><div class="km_insert_code">
-<pre class="language-sql" style="position: relative; z-index: 2;"><code class="prism language-sql">方法<span class="token number">1</span>：
-<span class="token keyword">create</span> MATERIALIZED <span class="token keyword">VIEW</span>  test<span class="token punctuation">.</span>test_mv_data_local
-<span class="token keyword">ENGINE</span> <span class="token operator">=</span> AggregatingMergeTree
-<span class="token keyword">partition</span> <span class="token keyword">by</span> day_
-<span class="token keyword">order</span> <span class="token keyword">by</span> <span class="token punctuation">(</span>hour_<span class="token punctuation">,</span>x1<span class="token punctuation">)</span>
-<span class="token keyword">as</span> <span class="token keyword">select</span> day_<span class="token punctuation">,</span>hour_<span class="token punctuation">,</span>x1<span class="token punctuation">,</span>x2
-        <span class="token punctuation">,</span>uniqCombinedState<span class="token punctuation">(</span>uuid<span class="token punctuation">)</span> <span class="token keyword">as</span> uv
-        <span class="token punctuation">,</span>sumState<span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span> <span class="token keyword">as</span> pv
-<span class="token keyword">from</span> test<span class="token punctuation">.</span>test_mv_local
-<span class="token keyword">group</span> <span class="token keyword">by</span> day_<span class="token punctuation">,</span>hour_<span class="token punctuation">,</span>x1<span class="token punctuation">,</span>x2
-<span class="token comment">--此时会在test库下新增一张表，表名test.`.inner_test_mv_data_local`(数据库引擎Ordinary)或者`.inner_id.{uuid}`(数据库引擎Atomic)</span>
-<span class="token comment">--这张表是物化视图实际存储数据的表table，test.test_mv_data_local是物化视图的view。</span>
-<span class="token keyword">CREATE</span> <span class="token keyword">TABLE</span> test<span class="token punctuation">.</span><span class="token punctuation">`</span><span class="token punctuation">.</span><span class="token keyword">inner</span><span class="token punctuation">.</span>test_mv_data_local<span class="token punctuation">`</span>
-<span class="token punctuation">(</span>
-    <span class="token punctuation">`</span>day_<span class="token punctuation">`</span> <span class="token keyword">Date</span><span class="token punctuation">,</span>
-    <span class="token punctuation">`</span>hour_<span class="token punctuation">`</span> <span class="token keyword">DateTime</span><span class="token punctuation">,</span>
-    <span class="token punctuation">`</span>x1<span class="token punctuation">`</span> Int64<span class="token punctuation">,</span>
-    <span class="token punctuation">`</span>x2<span class="token punctuation">`</span> Int64<span class="token punctuation">,</span>
-    <span class="token punctuation">`</span>uv<span class="token punctuation">`</span> AggregateFunction<span class="token punctuation">(</span>uniqCombined<span class="token punctuation">,</span> Int64<span class="token punctuation">)</span><span class="token punctuation">,</span>
-    <span class="token punctuation">`</span>pv<span class="token punctuation">`</span> AggregateFunction<span class="token punctuation">(</span>sum<span class="token punctuation">,</span> UInt8<span class="token punctuation">)</span>
-<span class="token punctuation">)</span>
-<span class="token keyword">ENGINE</span> <span class="token operator">=</span> AggregatingMergeTree
-<span class="token keyword">PARTITION</span> <span class="token keyword">BY</span> day_
-<span class="token keyword">ORDER</span> <span class="token keyword">BY</span> <span class="token punctuation">(</span>hour_<span class="token punctuation">,</span> x1<span class="token punctuation">,</span> x2<span class="token punctuation">)</span>
-方法<span class="token number">2</span>：
-<span class="token comment">--首先创建物化视图的存储表table，如方法1中生成的`.inner_test_mv_data_local`</span>
-<span class="token comment">--创建物化视图存储table</span>
-<span class="token keyword">CREATE</span> <span class="token keyword">TABLE</span> test<span class="token punctuation">.</span>test_mv_data_3_local
-<span class="token punctuation">(</span>
-    <span class="token punctuation">`</span>day_<span class="token punctuation">`</span> <span class="token keyword">Date</span><span class="token punctuation">,</span>
-    <span class="token punctuation">`</span>hour_<span class="token punctuation">`</span> <span class="token keyword">DateTime</span><span class="token punctuation">,</span>
-    <span class="token punctuation">`</span>x1<span class="token punctuation">`</span> Int64<span class="token punctuation">,</span>
-    <span class="token punctuation">`</span>x2<span class="token punctuation">`</span> Int64<span class="token punctuation">,</span>
-    <span class="token punctuation">`</span>uv<span class="token punctuation">`</span> AggregateFunction<span class="token punctuation">(</span>uniqCombined<span class="token punctuation">,</span> Int64<span class="token punctuation">)</span><span class="token punctuation">,</span>
-    <span class="token punctuation">`</span>pv<span class="token punctuation">`</span> AggregateFunction<span class="token punctuation">(</span>sum<span class="token punctuation">,</span> UInt8<span class="token punctuation">)</span>
-<span class="token punctuation">)</span>
-<span class="token keyword">ENGINE</span> <span class="token operator">=</span> AggregatingMergeTree
-<span class="token keyword">PARTITION</span> <span class="token keyword">BY</span> day_
-<span class="token keyword">ORDER</span> <span class="token keyword">BY</span> <span class="token punctuation">(</span>hour_<span class="token punctuation">,</span> x1<span class="token punctuation">,</span> x2<span class="token punctuation">)</span>
-<span class="token comment">--然后创建物化视图的view,将数据以TO的方式写入物化视图的table(test.test_mv_data_3_local)</span>
-<span class="token keyword">create</span> MATERIALIZED <span class="token keyword">VIEW</span>  test<span class="token punctuation">.</span>test_mv_view_local <span class="token keyword">to</span> test<span class="token punctuation">.</span>test_mv_data_3_local
-<span class="token keyword">as</span> <span class="token keyword">select</span> day_<span class="token punctuation">,</span>hour_<span class="token punctuation">,</span>x1<span class="token punctuation">,</span>x2
-        <span class="token punctuation">,</span>uniqCombinedState<span class="token punctuation">(</span>uuid<span class="token punctuation">)</span> <span class="token keyword">as</span> uv
-        <span class="token punctuation">,</span>sumState<span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span> <span class="token keyword">as</span> pv
-<span class="token keyword">from</span> test<span class="token punctuation">.</span>test_mv_local
-<span class="token keyword">group</span> <span class="token keyword">by</span> day_<span class="token punctuation">,</span>hour_<span class="token punctuation">,</span>x1<span class="token punctuation">,</span>x2</code></pre>
+<pre><code>方法1：
+create MATERIALIZED VIEW  test.test_mv_data_local
+ENGINE = AggregatingMergeTree
+partition by day_
+order by (hour_,x1)
+as select day_,hour_,x1,x2
+        ,uniqCombinedState(uuid) as uv
+        ,sumState(1) as pv
+from test.test_mv_local
+group by day_,hour_,x1,x2
+--此时会在test库下新增一张表，表名test.`.inner_test_mv_data_local`(数据库引擎Ordinary)或者`.inner_id.{uuid}`(数据库引擎Atomic)
+--这张表是物化视图实际存储数据的表table，test.test_mv_data_local是物化视图的view。
+CREATE TABLE test.`.inner.test_mv_data_local`
+(
+    `day_` Date,
+    `hour_` DateTime,
+    `x1` Int64,
+    `x2` Int64,
+    `uv` AggregateFunction(uniqCombined, Int64),
+    `pv` AggregateFunction(sum, UInt8)
+)
+ENGINE = AggregatingMergeTree
+PARTITION BY day_
+ORDER BY (hour_, x1, x2)
+方法2：
+--首先创建物化视图的存储表table，如方法1中生成的`.inner_test_mv_data_local`
+--创建物化视图存储table
+CREATE TABLE test.test_mv_data_3_local
+(
+    `day_` Date,
+    `hour_` DateTime,
+    `x1` Int64,
+    `x2` Int64,
+    `uv` AggregateFunction(uniqCombined, Int64),
+    `pv` AggregateFunction(sum, UInt8)
+)
+ENGINE = AggregatingMergeTree
+PARTITION BY day_
+ORDER BY (hour_, x1, x2)
+--然后创建物化视图的view,将数据以TO的方式写入物化视图的table(test.test_mv_data_3_local)
+create MATERIALIZED VIEW  test.test_mv_view_local to test.test_mv_data_3_local
+as select day_,hour_,x1,x2
+        ,uniqCombinedState(uuid) as uv
+        ,sumState(1) as pv
+from test.test_mv_local
+group by day_,hour_,x1,x2</code></pre>
 
 <p>两者的区别在于是否指定TO [db.] name：<br></p>
 <ul><li>当不指定时，系统认为需要创建存储table（需申明表引擎），将会根据view的计算表达式生成所需的存储table。</li>
@@ -245,15 +247,15 @@ benchmark <span class="token comment">--port=9000  --password=xxxxx --host=host 
 <td class="confluenceTd" style="text-align:left;width:106px;">需用户实现</td>
 <td class="confluenceTd" style="text-align:left;width:182px;" colspan="1">弱，部分错误会在建表时隐藏，写入时暴露</td>
 <td class="confluenceTd" colspan="1" style="width:90px;">支持</td>
-</tr></tbody></table><p style="">方法1因为alter的局限性，修改逻辑只能重新创建，历史数据处理很麻烦，所以适用场景有限。<br>方法2在扩展性，灵活性上更好，且风险可以主动避免，是目前生产环境<strong>主要的</strong>使用方式。<br>方法2需要注意<strong>插入数据使用列名而不是顺序，这里展开讲一下：<br></strong>正常我们在往基础表写入数据时，会按照顺序匹配字段，如果insert的列在select中不存在时，且会出现列不匹配的错误，但是这个在物化视图中不一样，存在差异点。<br>物化视图是Create as select，当列在create中但是不在select时，这个列将会填充默认值，而不是返回列不匹配的错误。<br>当列不在Create中但是在select时，这个列将会忽略。<br>举个例子：<br>创建物化视图table，有day_、hour_、x1、x2 四个维度，uv、pv 2个指标。<br><img src="./【WeOLAP】ClickHouse物化视图在直播场景中的实践 - OLAP - KM平台_files/cos-file-url(8)" alt="" style="position: relative; z-index: 2;"><br></p>
-<p style="">创建物化视图view，注意view中没有x2,多了一个x3,多了1个succ_pv，创建物化视图view是成功的。<br><img src="./【WeOLAP】ClickHouse物化视图在直播场景中的实践 - OLAP - KM平台_files/cos-file-url(9)" width="409" height="283" alt="" style="position: relative; z-index: 2;"><br></p>
-<p style="">手动写入一条测试数据，显示成功，说明物化视图数据也写入成功了。<br><img src="./【WeOLAP】ClickHouse物化视图在直播场景中的实践 - OLAP - KM平台_files/cos-file-url(10)" alt="" style="position: relative; z-index: 2;"><br></p>
-<p style="">查询物化视图可以看到刚才写入的测试数据，x1填充了默认值0，succ_pv忽略了。<img src="./【WeOLAP】ClickHouse物化视图在直播场景中的实践 - OLAP - KM平台_files/cos-file-url(11)" width="410" height="111" alt="" style="position: relative; z-index: 2;"></p>
+</tr></tbody></table><p style="">方法1因为alter的局限性，修改逻辑只能重新创建，历史数据处理很麻烦，所以适用场景有限。<br>方法2在扩展性，灵活性上更好，且风险可以主动避免，是目前生产环境<strong>主要的</strong>使用方式。<br>方法2需要注意<strong>插入数据使用列名而不是顺序，这里展开讲一下：<br></strong>正常我们在往基础表写入数据时，会按照顺序匹配字段，如果insert的列在select中不存在时，且会出现列不匹配的错误，但是这个在物化视图中不一样，存在差异点。<br>物化视图是Create as select，当列在create中但是不在select时，这个列将会填充默认值，而不是返回列不匹配的错误。<br>当列不在Create中但是在select时，这个列将会忽略。<br>举个例子：<br>创建物化视图table，有day_、hour_、x1、x2 四个维度，uv、pv 2个指标。<br><br></p>
+<p style="">创建物化视图view，注意view中没有x2,多了一个x3,多了1个succ_pv，创建物化视图view是成功的。<br><br></p>
+<p style="">手动写入一条测试数据，显示成功，说明物化视图数据也写入成功了。<br><br></p>
+<p style="">查询物化视图可以看到刚才写入的测试数据，x1填充了默认值0，succ_pv忽略了。</p>
 <h3 id="1e8557c8-a2c5-4ba2-e676-2746bd3c221f" class="toc-enable">3.物化视图的常用操作</h3>
 <p>上文介绍了物化视图创建的2种方法，其中方法1存在alter的局限性，维度、指标的新增，逻辑的修改都需要重建物化视图。以下操作主要适用于方法2。</p>
 <p><strong>1.新增维度和指标</strong></p>
 <p>通常我们会遇到给物化视图增加维度的情况，可以和基础表新增维度一样，通过alter增加，不过物化视图和基础表有个差异点，必须要同时修改order by 。上面讲到，物化视图的order by 一定要和group by 一致，不然数据后台merge会有错误。这里给个修改模板，以上述的test.test_mv_data_3_local为例，新增一个x3维度并加到order by 中。</p>
-<p style=""><img src="./【WeOLAP】ClickHouse物化视图在直播场景中的实践 - OLAP - KM平台_files/cos-file-url(12)" alt="" style="position: relative; z-index: 2;"></p>
+<p style=""></p>
 <p>只能在新增字段时将这个字段加到order by 中，存量的字段是不允许新增到order by 的。<br>新增指标就和基础表增加字段一样，不需要修改order by。</p>
 <p><strong>2.调整计算逻辑</strong></p>
 <p>在方法2中，因为view和table是分开的，单纯的删除view，并不会影响table中的存量数据，只是不增加新数据了。<br>所以可以将这个view删除，然后修改sql后重建物化视图的view，新的数据将会按照新的逻辑进行计算写入。<br>更新计算逻辑是有损的，在删除物化视图的view和重新创建的过程中，如果有block写入，这部分block是不会写入到这个物化视图中的，相对于这部分数据丢失了，虽然删除和新建的速度非常快，但是不能保证没有数据丢失。</p>
@@ -265,7 +267,7 @@ benchmark <span class="token comment">--port=9000  --password=xxxxx --host=host 
 </ul><h2 id="9e2d6507-8b76-3e60-191e-69e9f95e7ae9" class="toc-enable">五、物化视图进阶</h2>
 <h3 id="c058238f-af35-03db-def7-95c44c7e9bfe" class="toc-enable">1.物化视图数据写入流程</h3>
 <p>物化视图在创建时会在基础表中增加一个依赖关系，当基础表有block写入时，会根据这个依赖关系触发物化视图的计算过程。<br>通过一个简单的流程图描述一下基础表和物化视图的写入流程。</p>
-<p style=""><img src="./【WeOLAP】ClickHouse物化视图在直播场景中的实践 - OLAP - KM平台_files/cos-file-url(13)" style="display: block; margin-left: auto; margin-right: auto; position: relative; z-index: 2;" alt="" class="amplify"></p>
+<p style=""></p>
 <p>在这个过程中，整个流程的触发来源于对基础表的Insert操作，然后block在基础表和物化视图中流转，在整个操作过程中，<br>会先对基础表加写锁，在写物化视图时，对物化视图table加写锁，只有整个流程都成功，这个block才算真正写入完成，保证基础表和物化视图的数据一致性。<br>在实际的生产环境中，上述过程存在一个问题，如果一个基础表有多个物化视图，物化视图是根据view名顺序执行的，整个过程的耗时是累计加在一起的总耗时，会导致insert写入耗时增大，系统的吞吐降低。<br>可以通过在users.xml中<strong>新增parallel_view_processing=true</strong>将<strong>串行</strong>过程改成<strong>并行</strong>。当一个基础表有多个物化视图时，耗时是取决于耗时最长的那个物化视图计算，并行度由<strong>max_threads</strong>控制。<br>物化视图在数据写入之后，类似于查基础表的方式查询就行，如果有聚合函数字段，需要去解这个中间状态得到结果，-State 和-Merge组合器的配套使用。</p>
 <h3 id="952c0308-0b2e-9dfa-c4c6-ad74261f05fc" class="toc-enable">2.物化视图组合指标宽表</h3>
 <p>在直播业务的实际使用中，我们遇到了以下问题：</p>
@@ -277,7 +279,7 @@ benchmark <span class="token comment">--port=9000  --password=xxxxx --host=host 
 <li>基于不同的基础表生成物化视图，最终维度关联仍然需要join或者union实现，虽然能降低io，但是还是效率差，上层使用还是不方便。</li>
 </ul><p><strong>解决方案：通过多个基础表物化视图指标预计算组合成指标宽表解决。</strong></p>
 <p>以直播场景为例，我们的数据上游有多个协议，在经过flink关联画像和实验信息后写入到clickhouse。<br>每张基础表的数据会通过物化视图进行计算，然后指定字段写入到一个公共的存储<strong>table</strong>中，每个指标来源于上游某个基础表的计算逻辑生成，也可以来自与多个基础表的计算逻辑共同生成，不参与计算的字段将由默认值填充。<br>相当于计算层union all的实现机制。<br>物化视图<strong>table</strong>只存储一份数据，由多个物化视图的<strong>view</strong>计算得到，然后使用ReplicatedAggregatingMergeTree通过后台merge将数据打平(可以手动触发)。<br>以直播的物化视图大盘中间表举例介绍实现过程：</p>
-<p style=""><img src="./【WeOLAP】ClickHouse物化视图在直播场景中的实践 - OLAP - KM平台_files/cos-file-url(14)" style="display: block; margin-left: auto; margin-right: auto; position: relative; z-index: 2;" width="733" height="250" alt="" class="amplify"></p>
+<p style=""></p>
 <p>直播的物化视图大盘数据表，共有33个维度，110个指标，一共使用了3个聚合函数(uniqCombined,sum,groupBitmap)，其中指标字段都是聚合函数字段AggregateFunction字段。<br>接入层写入clickhouse生成6个mid基础表，每个基础表对应一个物化视图view，然后<strong>共同</strong>写入一个物化视图table。这里采用的是物化视图view和table分离的建表方式，TO模式写入。<br>比如mid_10001是关于曝光的数据，根据公共维度，计算曝光相关指标（AggregateFunction(uniqCombined,UInt64)），然后写入到物化视图table中指定的字段中。<br>每个数据流都只需要产出相关的部分数据，某个流的指标延迟，也不会影响其他流。<br>物化视图table采用的是ReplicatedAggregatingMergeTree，数据会在后台自动根据维度数据merge聚合函数中间态，将多个流写入的数据聚合打平，让记录和存储进一步降低。<br>以指标宽表的方式解决了指标关联问题，查询基于单表进行，上层查询只需要通过简单select即可得到结果，符合clickhouse使用场景，使用便捷，查询高效。</p>
 <h3 id="8c7fa959-8984-fc23-83ae-67695983ffc8" class="toc-enable">3.物化视图结合外部字典实现维度补充</h3>
 <p>在直播场景中，需要将实验补充、直播热度等低基数维度关联到clickhouse，既有计算关联，也有查询关联。<br>依赖clickhouse数据进行计算得到热度和聚集度的数据，这些数据因为是状态数据，需要进行计算时关联。<br>我们选择使用clickhouse外部字典进行这方面数据的加工和补充。<br>外部字典是clickhouse中的一种高效维表实现方式，具有以下优势：</p>
@@ -288,20 +290,20 @@ benchmark <span class="token comment">--port=9000  --password=xxxxx --host=host 
 <li>自动加载和更新</li>
 </ul><p>字典查询的方式：</p>
 <div class="km_insert_code">
-<pre class="language-sql" style="position: relative; z-index: 2;"><code class="prism language-sql"><span class="token comment">--普通查询</span>
-<span class="token keyword">select</span> dictGet<span class="token punctuation">(</span><span class="token string">'test.hot_view_dim'</span><span class="token punctuation">,</span><span class="token string">'rank_'</span><span class="token punctuation">,</span>toUInt64OrZero<span class="token punctuation">(</span>id_<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token comment">--这里的id_ 是表中的字段，通过传入id_获得人数和排名</span>
+<pre><code>--普通查询
+select dictGet('test.hot_view_dim','rank_',toUInt64OrZero(id_)) --这里的id_ 是表中的字段，通过传入id_获得人数和排名
 
-<span class="token comment">--在物化视图中补全维度</span>
-<span class="token keyword">WITH</span> dictGet<span class="token punctuation">(</span><span class="token string">'test.hot_view_dim'</span><span class="token punctuation">,</span><span class="token string">'rank_'</span><span class="token punctuation">,</span>toUInt64OrZero<span class="token punctuation">(</span>id_<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token keyword">AS</span> rank_
-<span class="token keyword">select</span> multiIf<span class="token punctuation">(</span> rank_<span class="token operator">&gt;</span><span class="token number">0</span> <span class="token operator">AND</span> rank_<span class="token operator">&lt;=</span><span class="token number">10</span><span class="token punctuation">,</span><span class="token string">'top10'</span>
-             <span class="token punctuation">,</span>rank_<span class="token operator">&gt;</span><span class="token number">10</span> <span class="token operator">AND</span> rank_<span class="token operator">&lt;=</span><span class="token number">100</span><span class="token punctuation">,</span><span class="token string">'top100'</span>
-             <span class="token punctuation">,</span>rank_<span class="token operator">&gt;</span><span class="token number">100</span> <span class="token operator">AND</span> rank_<span class="token operator">&lt;=</span><span class="token number">200</span><span class="token punctuation">,</span><span class="token string">'top200'</span>
-             <span class="token punctuation">,</span>rank_<span class="token operator">&gt;</span><span class="token number">200</span><span class="token punctuation">,</span><span class="token string">'top200+'</span>
-             <span class="token punctuation">,</span><span class="token string">'未知'</span><span class="token punctuation">)</span> <span class="token keyword">AS</span> rank_top_
-    <span class="token punctuation">,</span><span class="token punctuation">`</span>各种维度<span class="token punctuation">`</span>
-    <span class="token punctuation">,</span><span class="token punctuation">`</span>各种指标<span class="token punctuation">`</span>
-<span class="token keyword">from</span> test<span class="token punctuation">.</span><span class="token keyword">table</span>
-<span class="token keyword">group</span> <span class="token keyword">by</span> rank_top_<span class="token punctuation">,</span><span class="token punctuation">`</span>各种维度<span class="token punctuation">`</span></code></pre>
+--在物化视图中补全维度
+WITH dictGet('test.hot_view_dim','rank_',toUInt64OrZero(id_)) AS rank_
+select multiIf( rank_&gt;0 AND rank_&lt;=10,'top10'
+             ,rank_&gt;10 AND rank_&lt;=100,'top100'
+             ,rank_&gt;100 AND rank_&lt;=200,'top200'
+             ,rank_&gt;200,'top200+'
+             ,'未知') AS rank_top_
+    ,`各种维度`
+    ,`各种指标`
+from test.table
+group by rank_top_,`各种维度`</code></pre>
 
 <p>我们针对外部字典做的一些测试数据。内存存储，对比不同数据量，正常内存存储和内存压缩存储，以UInt64为key，Int8，Int8两个值为属性，做了以下测试：</p>
 <table class="wrapped confluenceTable" style="margin-left:30px;"><colgroup><col style="width:93px;"><col style="width:119px;"><col style="width:107px;"><col style="width:107px;"><col style="width:107px;"></colgroup><thead style="margin-left:30px;"><tr style="margin-left:30px;"><th class="confluenceTh" style="text-align:left;">
