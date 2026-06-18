@@ -9,7 +9,7 @@ categories:
 <p>Elasticsearch （简称ES）是一个分布式、高扩展、高实时的搜索与数据分析引擎。它能很方便的使大量数据具有搜索、分析和探索的能力。充分利用ES的水平伸缩性，能使数据在生产环境变得更有价值。ES采用Java编写，建立在 Apache Lucene 之上的开源分布式搜索引擎</p>
 <h2 id="d864fe84-00ce-4330-b035-c07d64118ad5" class="toc-enable">二 ES架构原理</h2>
 <h3 id="4de3e6e3-e2e3-3d71-f92d-c8f739b7c1f6" class="toc-enable">1.基础架构</h3>
-<p style=""><img src="./Elasticsearch（ES）分布式架构原理 - KM平台_files/cos-file-url(1)" alt="" style="position: relative; z-index: 2;" class="amplify"></p>
+<p style=""><img src="/logbook/images/es/Elasticsearch（ES）分布式架构原理/79a4423664a9.png" alt="" style="position: relative; z-index: 2;" class="amplify"></p>
 <p>一个简单的ES架构如上图所示，和大部分的分布式架构类似，都是存在主/备概念。</p>
 <p>我们在创建ES的索引时通常会指定两个参数 index.number_of_shards 和 index.number_of_replicas，前者是用来指定shard（分片）数，后者是用来指定副本数。</p>
 <p>ES-Client进行数据写入时，会落到其中的一个分片的主分区上，然后从主分区进行同步到各个备份分区上。在读取数据时则是会从备份分区上进行读取。</p>
@@ -49,12 +49,12 @@ categories:
 
 <h3 id="e314e0c9-ae74-57a2-65b7-2929fd64e9c6" class="toc-enable">6.选主</h3>
 <p>7.x之后的ES，采用一种新的选主算法，实际上是 Raft 的实现，但并非严格按照 Raft 论文实现，而是做了一些调整（在7.x之前是基于bull的方式）。</p>
-<p style=""><img src="./Elasticsearch（ES）分布式架构原理 - KM平台_files/cos-file-url(2)" alt="" style="position: relative; z-index: 2;" class="amplify"></p>
+<p style=""><img src="/logbook/images/es/Elasticsearch（ES）分布式架构原理/0b46a792f5b6.png" alt="" style="position: relative; z-index: 2;" class="amplify"></p>
 <p>Raft中存在3种状态，Follower，Candidate，Leader。Candidate为一个中间状态正在参与选举的选举者</p>
 <p>当出发到选主流程时，此时候选主节点状态会转为Candidate状态。然后进行节点数判断，当节点数达到大多数，会准备触发RequestVote过程。ES实现中，候选人不先投自己，而是直接并行发起RequestVote，这相当于候选人有投票给其他候选人的机会。这样的好处是可以在一定程度上避免3个节点同时成为候选人时，都投自己，无法成功选主的情况。同时ES中一个ES不限制每个节点在某个term上只能投一票， 节点可以投多票这样就可以产生，多个主有一样的选票数的情况，这种情况，ES的处理是让最后当选的Leader成功。</p>
 <p>（此处选举写的比较简单，ES7.x后基本是基于Raft算法做选举，如果详细说明得先说明一遍Raft算法，较为繁琐，此处简化，感兴趣的同学可以后面自行学习一下）</p>
 <h2 id="ba098745-ecc0-18c8-cb5d-9f65ce2b38f5" class="toc-enable">三 ES容灾与一致性</h2>
-<p style=""><img src="./Elasticsearch（ES）分布式架构原理 - KM平台_files/cos-file-url(3)" alt="" style="position: relative; z-index: 2;" class="amplify"></p>
+<p style=""><img src="/logbook/images/es/Elasticsearch（ES）分布式架构原理/1f4e986e78a3.png" alt="" style="position: relative; z-index: 2;" class="amplify"></p>
 <h3 id="dce63fd8-ea49-66e3-b858-4339c67ca81a" class="toc-enable">1.数据写入</h3>
 <p>当发起数据写入的时候，会先被路由到一个协调节点上，协调节点上进行请求转发到主节点上，主节点进行数据写入，后将数据同步给各个备节点上。当协调节点感知到数据写完时，会返回给客户端，告知客户端数据以及写入完成。</p>
 <p>对于每个节点上来说，当数据写入时，会先写入buffer，然后会写入一个translog文件，当buffer快满时或过了一定时间间隔会进行refresh刷新操作，将数据刷新到磁盘。（当然不是直接写入磁盘，而是写入了os cache，操作系统缓存，再由操作系统进行真实落盘）</p>

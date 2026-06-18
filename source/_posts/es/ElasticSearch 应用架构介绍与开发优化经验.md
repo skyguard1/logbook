@@ -72,7 +72,7 @@ categories:
 <p>因此推荐不用 ik ，而是在更新文档和搜索的时候，在外部做分词，然后用空格拼起来，传给 ES 做索引/搜索。这种方案中，在 ES mapping 中配置成 whitespace 分词器。</p>
 <p>外部分词可以灵活使用 cppjieba，QQSeg 等，其中索引分词还可以合并多种分词算法结果提高召回率。</p>
 <p>另外，索引分词之前，也有必要做 UTF8 的 normalize，全角转半角，英文大小写统一，和英文的词干提取， mapping 中常用</p>
-<pre style="position: relative; z-index: 2;"><code class="hljs haskell"><span class="hljs-string">"cjk_width"</span>, <span class="hljs-string">"lowercase"</span>, <span class="hljs-string">"porter_stem"</span>
+<pre><code>"cjk_width", "lowercase", "porter_stem"
 </code></pre><p>这些filter</p>
 <p>具体可以参考已有业务代码。</p>
 <h3 id="h3-3-3-"><a name="3.3.关系型搜索" class="reference-link"></a><span class="header-link octicon octicon-link"></span>3.3.关系型搜索</h3><p>实际某业务开发中，我们遇到了典型的  one-many 关系型数据上的检索需求，</p>
@@ -95,20 +95,20 @@ categories:
 <p><a href="https://www.elastic.co/guide/en/elasticsearch/reference/current/search-explain.html" target="_blank">https://www.elastic.co/guide/en/elasticsearch/reference/current/search-explain.html</a></p>
 <h4 id="h4-3-4-1-bm25-"><a name="3.4.1. BM25 例解" class="reference-link"></a><span class="header-link octicon octicon-link"></span>3.4.1. BM25 例解</h4><p>比如某业务的真实数据中，我们在所有文档的 title 这个 field 搜索 “牛奶 ” 这个词，</p>
 <p>explain 可以看到，这个 bm25 分数的是这样得来的：</p>
-<pre style="position: relative; z-index: 2;"><code class="hljs groovy">sum( weight(<span class="hljs-string">title:</span>牛奶 <span class="hljs-keyword">in</span> <span class="hljs-number">77341</span>) [PerFieldSimilarity] ) ，
-weight(<span class="hljs-string">title:</span>牛奶 <span class="hljs-keyword">in</span> <span class="hljs-number">77341</span>) [PerFieldSimilarity] = idf * tfNorm
+<pre><code>sum( weight(title:牛奶 in 77341) [PerFieldSimilarity] ) ，
+weight(title:牛奶 in 77341) [PerFieldSimilarity] = idf * tfNorm
 </code></pre><p>首先，如果某 field 被多个 term 命中，分别算每个 term 的分数 (PerFieldSimilarity)，然后求和，本例子只有1个 term “牛奶”。</p>
 <p>每个 term 的分数 PerFieldSimilarity</p>
-<pre style="position: relative; z-index: 2;"><code class="hljs ini"><span class="hljs-attr">PerFieldSimilarity</span> = idf * tfNorm
+<pre><code>PerFieldSimilarity = idf * tfNorm
 </code></pre><p>而 idf 表征词的重要程度，与具体文档无关。</p>
-<pre style="position: relative; z-index: 2;"><code class="hljs lisp">idf = log(<span class="hljs-number">1</span> + (<span class="hljs-name">docCount</span> - docFreq + <span class="hljs-number">0.5</span>) / (<span class="hljs-name">docFreq</span> + <span class="hljs-number">0.5</span>))
+<pre><code>idf = log(1 + (docCount - docFreq + 0.5) / (docFreq + 0.5))
 </code></pre><p>其中<br>docFreq 就是本shard 中，有多少个文档含有 “牛奶”，<br>docCount 就是本shard 一共有多少个文档。</p>
-<pre style="position: relative; z-index: 2;"><code class="hljs ini"><span class="hljs-attr">tfNorm</span> = (freq * (k1 + <span class="hljs-number">1</span>)) / (freq + k1 * (<span class="hljs-number">1</span> - b + b * fieldLength / avgFieldLength))
-<span class="hljs-attr">termFreq</span>=<span class="hljs-number">1.0</span>
-<span class="hljs-attr">k1</span>=<span class="hljs-number">1.2</span>
-<span class="hljs-attr">b</span>=<span class="hljs-number">0.75</span>
-<span class="hljs-attr">avgFieldLength</span>=<span class="hljs-number">14.456173</span>
-<span class="hljs-attr">fieldLength</span>=<span class="hljs-number">2</span> //比如如果 title 是 <span class="hljs-string">"牛奶 醪糟"</span> ，那就是 <span class="hljs-number">2</span>个 term
+<pre><code>tfNorm = (freq * (k1 + 1)) / (freq + k1 * (1 - b + b * fieldLength / avgFieldLength))
+termFreq=1.0
+k1=1.2
+b=0.75
+avgFieldLength=14.456173
+fieldLength=2 //比如如果 title 是 "牛奶 醪糟" ，那就是 2个 term
 </code></pre><p>freq 即该 field 中，“牛奶”这个词出现了几次<br>k1 和 b 都是固定常数。<br>fieldLength 是当前文档的当前field ，一共有多少个 term。<br>avgFieldLength 即本 shard 中的所有文档的本 field 的 fieldLength 的平均值</p>
 <h4 id="h4-3-4-2-bm25-shard-"><a name="3.4.2. BM25 shard 调整" class="reference-link"></a><span class="header-link octicon octicon-link"></span>3.4.2. BM25 shard 调整</h4><p>实际业务发现，当 index 内文档太少(比如 10w 量级就算少) 时 ， 有的词在多个 shard 内，词频分布会出现严重不均匀，可能会导致 bm25 分数产生较大偏差，</p>
 <p>实践中的解决办法：</p>
@@ -117,8 +117,8 @@ weight(<span class="hljs-string">title:</span>牛奶 <span class="hljs-keyword">
 <h4 id="h4-3-4-3-bm25-similarity-"><a name="3.4.3. BM25 similarity 参数调整" class="reference-link"></a><span class="header-link octicon octicon-link"></span>3.4.3. BM25 similarity 参数调整</h4><p>如上计算过程可见，bm25 中的 b 参数，是用来给短文档做加权的，即 b 越大，越倾向于给短文档更高的 score，<br>实际中，和算法同学一起分析后，发现针对我们的某业务，不应该对短文本有太高偏向，所以我们把 b 调整成了 0.3 ，<br>实测发现解决了一批 bad case，用户体验有明显改善。</p>
 <h3 id="h3-3-5-"><a name="3.5 版本控制" class="reference-link"></a><span class="header-link octicon octicon-link"></span>3.5 版本控制</h3><p>后台数据一般都有持续的实时增量更新，有时候又希望一次导入全量数据。在全量导入的场景下，<br>由于全量数据从产生到实际导入，总是有一段时间区间，在区间内，就有部分文档被实时增量更新过了，<br>这样就存在 “老覆盖新”的风险。</p>
 <p>对此， ES 提供一种 index-versioning 机制，对每个文档，都有个内置的 int64 的版本号，<br>利用这一机制，我们可以把时间戳填入 version，即 在 Bulk 更新的时候，</p>
-<pre style="position: relative; z-index: 2;"><code class="hljs groovy"><span class="hljs-string">version_type :</span> <span class="hljs-string">"external"</span>,
-<span class="hljs-string">version :</span> 数据产生时时间戳
+<pre><code>version_type : "external",
+version : 数据产生时时间戳
 </code></pre><p>ES 发现 请求版本号&lt;= 当前文档版本号，就会拒绝更新，就解决了 “老覆盖新” 的问题。</p>
 <p><a href="https://www.elastic.co/guide/en/elasticsearch/reference/current/docs-index/_.html#index-versioning" target="_blank">https://www.elastic.co/guide/en/elasticsearch/reference/current/docs-index\_.html#index-versioning</a></p>
 <p><a href="https://cloud.tencent.com/developer/article/1373212" target="_blank">https://cloud.tencent.com/developer/article/1373212</a></p>
@@ -146,7 +146,7 @@ weight(<span class="hljs-string">title:</span>牛奶 <span class="hljs-keyword">
 <ol>
 <li>副本数越小越好。越小，单机数据越少，文件被 cache 的比例越高，性能越好。</li><li>副本太少会影响可用性。因此必须大于最大能容忍故障单机个数 max_failures 。</li></ol>
 <p>综合起来就是： </p>
-<pre style="position: relative; z-index: 2;"><code class="hljs stylus"><span class="hljs-function"><span class="hljs-title">max</span><span class="hljs-params">(max_failures, ceil(num_nodes / num_primaries)</span></span> - <span class="hljs-number">1</span>).
+<pre><code>max(max_failures, ceil(num_nodes / num_primaries) - 1).
 </code></pre><p>num_primaries 是 primary shards 的数量，就是一个 index 有多少个 shards，一般都 &gt; num_nodes</p>
 <p><a href="https://www.elastic.co/guide/en/elasticsearch/reference/master/tune-for-search-speed.html#_replicas_might_help_with_throughput_but_not_always" target="_blank">replicas_might_help_with_throughput_but_not_always</a></p>
 <p>对数据量特别少的 index，可以每台机都存一个副本<br>“auto_expand_replicas”: “0-all”,</p>

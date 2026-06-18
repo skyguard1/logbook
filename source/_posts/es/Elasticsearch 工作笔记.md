@@ -10,138 +10,138 @@ categories:
 	 相关issue: <a rel="nofollow" href="https://github.com/elastic/elasticsearch/issues/60437">https://github.com/elastic/elasticsearch/issues/60437</a>
 
 	 相关PR：<a rel="nofollow" href="https://github.com/elastic/elasticsearch/pull/60818">https://github.com/elastic/elasticsearch/pull/60818</a></p><h2 data-lines="2" data-sign="876f56bb78c5e5b258eb1db7512984a3" id="%E4%BA%8C%E3%80%81%E4%BD%BF%E7%94%A8%E6%96%B9%E5%BC%8F%E7%B1%BB%E7%9A%84%E9%97%AE%E9%A2%98%E8%AE%B0%E5%BD%95"><a href="https://km.woa.com/group/34177/articles/show/505564?kmref=search&amp;from_page=1&amp;no=7#%E4%BA%8C%E3%80%81%E4%BD%BF%E7%94%A8%E6%96%B9%E5%BC%8F%E7%B1%BB%E7%9A%84%E9%97%AE%E9%A2%98%E8%AE%B0%E5%BD%95" class="anchor"></a>二、使用方式类的问题记录</h2><p data-lines="2" data-type="p" data-sign="8dd7a4def4660f79856b5c1864ab8070">11 . 二进制字段如何设置mapping?</p><div data-sign="1669a8bd08e6b714fc8d25646749919a" data-type="codeBlock" data-lines="10">
-      <pre class="language-javascript" style="position: relative; z-index: 2;"><code class="language-javascript"><span class="code-line">	<span class="token string">"mapping"</span><span class="token operator">:</span> <span class="token punctuation">{</span></span>
-<span class="code-line">	  <span class="token string">"type"</span><span class="token operator">:</span> <span class="token string">"binary"</span><span class="token punctuation">,</span></span>
-<span class="code-line">	  <span class="token string">"doc_values"</span><span class="token operator">:</span> <span class="token string">"false"</span><span class="token punctuation">,</span></span>
-<span class="code-line">	  <span class="token string">"norms"</span><span class="token operator">:</span> <span class="token string">"false"</span><span class="token punctuation">,</span></span>
-<span class="code-line">	  <span class="token string">"fielddata"</span><span class="token operator">:</span> <span class="token string">"false"</span><span class="token punctuation">,</span></span>
-<span class="code-line">	  <span class="token string">"store"</span><span class="token operator">:</span> <span class="token string">"false"</span></span>
-<span class="code-line">	<span class="token punctuation">}</span></span></code></pre>
+      <pre><code>	"mapping": {
+	  "type": "binary",
+	  "doc_values": "false",
+	  "norms": "false",
+	  "fielddata": "false",
+	  "store": "false"
+	}</code></pre>
 
 <p data-lines="2" data-type="p" data-sign="00d6af319fe028489db93eb9b287018f">12 . 对ip字段进行聚合，希望聚合结果返回每个ip的一条数据，该怎么实现？</p><span data-lines="2" data-type="br" data-sign="br2"></span><p data-lines="1" data-type="p" data-sign="9a9b6614035f3ea7d0c6ef6c0e0517ea">	先使用terms聚合，再使用top_hits子聚合能达到目的，使用&nbsp;collapse 配合 inner_hits也可以实现</p><span data-lines="2" data-type="br" data-sign="br2"></span><p data-lines="1" data-type="p" data-sign="82ff7749b73d2a9d2f174a4f0d787699">13 . 有一张消费明细表(一个人有多条消费记录)，首先想计算出一个人的总消费金额，然后想得到总消费大于500美金的所有人数，query DSL该怎么写？</p><div data-sign="17d4b22271596ca1fb481da2b60377f8" data-type="codeBlock" data-lines="32">
-      <pre class="language-javascript" style="position: relative; z-index: 2;"><code class="language-javascript"><span class="code-line">	<span class="token punctuation">{</span></span>
-<span class="code-line">    <span class="token string">"aggs"</span><span class="token operator">:</span><span class="token punctuation">{</span></span>
-<span class="code-line">        <span class="token string">"one"</span><span class="token operator">:</span><span class="token punctuation">{</span></span>
-<span class="code-line">            <span class="token string">"terms"</span><span class="token operator">:</span><span class="token punctuation">{</span></span>
-<span class="code-line">                <span class="token string">"field"</span><span class="token operator">:</span><span class="token string">"mobile_nbr"</span></span>
-<span class="code-line">            <span class="token punctuation">}</span><span class="token punctuation">,</span></span>
-<span class="code-line">            <span class="token string">"aggs"</span><span class="token operator">:</span><span class="token punctuation">{</span></span>
-<span class="code-line">                <span class="token string">"x"</span><span class="token operator">:</span><span class="token punctuation">{</span></span>
-<span class="code-line">                    <span class="token string">"sum"</span><span class="token operator">:</span><span class="token punctuation">{</span></span>
-<span class="code-line">                        <span class="token string">"field"</span><span class="token operator">:</span><span class="token string">"trans_amt"</span></span>
-<span class="code-line">                    <span class="token punctuation">}</span></span>
-<span class="code-line">                <span class="token punctuation">}</span><span class="token punctuation">,</span></span>
-<span class="code-line">                <span class="token string">"sum_bucket_filter"</span><span class="token operator">:</span><span class="token punctuation">{</span></span>
-<span class="code-line">                    <span class="token string">"bucket_selector"</span><span class="token operator">:</span><span class="token punctuation">{</span></span>
-<span class="code-line">                        <span class="token string">"buckets_path"</span><span class="token operator">:</span><span class="token punctuation">{</span></span>
-<span class="code-line">                            <span class="token string">"totalSum"</span><span class="token operator">:</span><span class="token string">"x"</span></span>
-<span class="code-line">                        <span class="token punctuation">}</span><span class="token punctuation">,</span></span>
-<span class="code-line">                        <span class="token string">"script"</span><span class="token operator">:</span><span class="token string">"params.totalSum &gt; 500"</span></span>
-<span class="code-line">                    <span class="token punctuation">}</span></span>
-<span class="code-line">                <span class="token punctuation">}</span></span>
-<span class="code-line">            <span class="token punctuation">}</span></span>
-<span class="code-line">        <span class="token punctuation">}</span><span class="token punctuation">,</span></span>
-<span class="code-line">        <span class="token string">"stats_buckets"</span><span class="token operator">:</span><span class="token punctuation">{</span></span>
-<span class="code-line">            <span class="token string">"stats_bucket"</span><span class="token operator">:</span><span class="token punctuation">{</span></span>
-<span class="code-line">                <span class="token string">"buckets_path"</span><span class="token operator">:</span><span class="token string">"one.x"</span></span>
-<span class="code-line">            <span class="token punctuation">}</span></span>
-<span class="code-line">        <span class="token punctuation">}</span></span>
-<span class="code-line">    <span class="token punctuation">}</span></span>
-<span class="code-line"><span class="token punctuation">}</span></span></code></pre>
+      <pre><code>	{
+    "aggs":{
+        "one":{
+            "terms":{
+                "field":"mobile_nbr"
+            },
+            "aggs":{
+                "x":{
+                    "sum":{
+                        "field":"trans_amt"
+                    }
+                },
+                "sum_bucket_filter":{
+                    "bucket_selector":{
+                        "buckets_path":{
+                            "totalSum":"x"
+                        },
+                        "script":"params.totalSum &gt; 500"
+                    }
+                }
+            }
+        },
+        "stats_buckets":{
+            "stats_bucket":{
+                "buckets_path":"one.x"
+            }
+        }
+    }
+}</code></pre>
 
 <p data-lines="2" data-type="p" data-sign="484da3f172920df673e971c62a75f15f">
 14 . 使用Logstash迁移ES的数据，简单的配置文件</p><div data-sign="1e9e0daaab8042873d4f797591937d78" data-type="codeBlock" data-lines="16">
-      <pre class="language-javascript" style="position: relative; z-index: 2;"><code class="language-javascript"><span class="code-line">	input <span class="token punctuation">{</span></span>
-<span class="code-line">	    elasticsearch <span class="token punctuation">{</span></span>
-<span class="code-line">	        <span class="token parameter">hosts</span> <span class="token operator">=&gt;</span> <span class="token punctuation">[</span><span class="token string">"http://x.x.x.x:9200"</span><span class="token punctuation">]</span></span>
-<span class="code-line">	        <span class="token parameter">index</span> <span class="token operator">=&gt;</span> <span class="token string">"*"</span></span>
-<span class="code-line">	        <span class="token parameter">docinfo</span> <span class="token operator">=&gt;</span> <span class="token boolean">true</span></span>
-<span class="code-line">	    <span class="token punctuation">}</span></span>
-<span class="code-line">	<span class="token punctuation">}</span></span>
-<span class="code-line">	output <span class="token punctuation">{</span></span>
-<span class="code-line">	    elasticsearch <span class="token punctuation">{</span></span>
-<span class="code-line">	        <span class="token parameter">hosts</span> <span class="token operator">=&gt;</span> <span class="token punctuation">[</span><span class="token string">"http://x.x.x.x:9200"</span><span class="token punctuation">]</span></span>
-<span class="code-line">	        <span class="token parameter">index</span> <span class="token operator">=&gt;</span> <span class="token string">"%{[@metadata][_index]}"</span></span>
-<span class="code-line">	    <span class="token punctuation">}</span></span>
-<span class="code-line">	<span class="token punctuation">}</span></span></code></pre>
+      <pre><code>	input {
+	    elasticsearch {
+	        hosts =&gt; ["http://x.x.x.x:9200"]
+	        index =&gt; "*"
+	        docinfo =&gt; true
+	    }
+	}
+	output {
+	    elasticsearch {
+	        hosts =&gt; ["http://x.x.x.x:9200"]
+	        index =&gt; "%{[@metadata][_index]}"
+	    }
+	}</code></pre>
 
 <p data-lines="1" data-type="p" data-sign="fea29f31b69751d53943d6abe88bbe56">15 . 一个有用的脚本,用于追加netsted objects</p><div data-sign="5e41890899886ddeee50a80f25a82a74" data-type="codeBlock" data-lines="16">
-      <pre class="language-javascript" style="position: relative; z-index: 2;"><code class="language-javascript"><span class="code-line">	<span class="token punctuation">{</span></span>
-<span class="code-line">	  <span class="token string">"script"</span><span class="token operator">:</span> <span class="token punctuation">{</span></span>
-<span class="code-line">	    <span class="token string">"lang"</span><span class="token operator">:</span> <span class="token string">"painless"</span><span class="token punctuation">,</span></span>
-<span class="code-line">	    <span class="token string">"inline"</span><span class="token operator">:</span> <span class="token string">" if (ctx._source.redu!=null) {ctx._source.redu.add(params.object);} else {Object[] temp= new Object[]{params.object};ctx._source.redu= temp;}"</span><span class="token punctuation">,</span></span>
-<span class="code-line">	    <span class="token string">"params"</span><span class="token operator">:</span> <span class="token punctuation">{</span></span>
-<span class="code-line">	      <span class="token string">"object"</span><span class="token operator">:</span> <span class="token punctuation">{</span></span>
-<span class="code-line">	        <span class="token string">"visit_time"</span><span class="token operator">:</span> <span class="token string">"2020-03-15 22:00:00"</span><span class="token punctuation">,</span></span>
-<span class="code-line">	        <span class="token string">"visit_cnt"</span><span class="token operator">:</span> <span class="token number">1000</span><span class="token punctuation">,</span></span>
-<span class="code-line">	        <span class="token string">"visit_scene"</span><span class="token operator">:</span> <span class="token number">2</span></span>
-<span class="code-line">	      <span class="token punctuation">}</span></span>
-<span class="code-line">	    <span class="token punctuation">}</span></span>
-<span class="code-line">	  <span class="token punctuation">}</span></span>
-<span class="code-line">	<span class="token punctuation">}</span></span></code></pre>
+      <pre><code>	{
+	  "script": {
+	    "lang": "painless",
+	    "inline": " if (ctx._source.redu!=null) {ctx._source.redu.add(params.object);} else {Object[] temp= new Object[]{params.object};ctx._source.redu= temp;}",
+	    "params": {
+	      "object": {
+	        "visit_time": "2020-03-15 22:00:00",
+	        "visit_cnt": 1000,
+	        "visit_scene": 2
+	      }
+	    }
+	  }
+	}</code></pre>
 
 <p data-lines="1" data-type="p" data-sign="1d464bbcf875bcda790fb78484acea8b">16 . mustache小胡子脚本,用于把一个数组类型的字段复制到另外一个字段，高版本7.x可以使用set processor的copy_from， 低版本不支持copy_from</p><div data-sign="59ce2446a2152e94d396b705318ef673" data-type="codeBlock" data-lines="37">
-      <pre class="language-javascript" style="position: relative; z-index: 2;"><code class="language-javascript"><span class="code-line">	<span class="token punctuation">{</span></span>
-<span class="code-line">  <span class="token string">"pipeline"</span><span class="token operator">:</span> <span class="token punctuation">{</span></span>
-<span class="code-line">    <span class="token string">"processors"</span><span class="token operator">:</span> <span class="token punctuation">[</span></span>
-<span class="code-line">      <span class="token punctuation">{</span></span>
-<span class="code-line">        <span class="token string">"set"</span><span class="token operator">:</span> <span class="token punctuation">{</span></span>
-<span class="code-line">          <span class="token string">"field"</span><span class="token operator">:</span> <span class="token string">"a"</span><span class="token punctuation">,</span></span>
-<span class="code-line">          <span class="token string">"value"</span><span class="token operator">:</span> <span class="token string">"{{#b}}{{.}},{{/b}}"</span></span>
-<span class="code-line">        <span class="token punctuation">}</span></span>
-<span class="code-line">      <span class="token punctuation">}</span><span class="token punctuation">,</span></span>
-<span class="code-line">      <span class="token punctuation">{</span></span>
-<span class="code-line">        <span class="token string">"split"</span><span class="token operator">:</span> <span class="token punctuation">{</span></span>
-<span class="code-line">          <span class="token string">"field"</span><span class="token operator">:</span> <span class="token string">"a"</span><span class="token punctuation">,</span></span>
-<span class="code-line">          <span class="token string">"separator"</span><span class="token operator">:</span> <span class="token string">","</span></span>
-<span class="code-line">        <span class="token punctuation">}</span></span>
-<span class="code-line">      <span class="token punctuation">}</span><span class="token punctuation">,</span></span>
-<span class="code-line">      <span class="token punctuation">{</span></span>
-<span class="code-line">        <span class="token string">"convert"</span><span class="token operator">:</span> <span class="token punctuation">{</span></span>
-<span class="code-line">          <span class="token string">"field"</span><span class="token operator">:</span> <span class="token string">"a"</span><span class="token punctuation">,</span></span>
-<span class="code-line">          <span class="token string">"type"</span><span class="token operator">:</span> <span class="token string">"integer"</span></span>
-<span class="code-line">        <span class="token punctuation">}</span></span>
-<span class="code-line">      <span class="token punctuation">}</span></span>
-<span class="code-line">    <span class="token punctuation">]</span></span>
-<span class="code-line">  <span class="token punctuation">}</span><span class="token punctuation">,</span></span>
-<span class="code-line">  <span class="token string">"docs"</span><span class="token operator">:</span> <span class="token punctuation">[</span></span>
-<span class="code-line">    <span class="token punctuation">{</span></span>
-<span class="code-line">      <span class="token string">"_source"</span><span class="token operator">:</span> <span class="token punctuation">{</span></span>
-<span class="code-line">        <span class="token string">"b"</span><span class="token operator">:</span> <span class="token punctuation">[</span></span>
-<span class="code-line">          <span class="token number">1</span><span class="token punctuation">,</span></span>
-<span class="code-line">          <span class="token number">2</span></span>
-<span class="code-line">        <span class="token punctuation">]</span></span>
-<span class="code-line">      <span class="token punctuation">}</span></span>
-<span class="code-line">    <span class="token punctuation">}</span></span>
-<span class="code-line">  <span class="token punctuation">]</span></span>
-<span class="code-line"><span class="token punctuation">}</span></span></code></pre>
+      <pre><code>	{
+  "pipeline": {
+    "processors": [
+      {
+        "set": {
+          "field": "a",
+          "value": "{{#b}}{{.}},{{/b}}"
+        }
+      },
+      {
+        "split": {
+          "field": "a",
+          "separator": ","
+        }
+      },
+      {
+        "convert": {
+          "field": "a",
+          "type": "integer"
+        }
+      }
+    ]
+  },
+  "docs": [
+    {
+      "_source": {
+        "b": [
+          1,
+          2
+        ]
+      }
+    }
+  ]
+}</code></pre>
 
 <p data-lines="2" data-type="p" data-sign="5c7a53606bb5b48d1da4438eb8268982">17 . 查询时对结果进行排序，如果文档的分值相同，需要返回顺序是随机的，可以通过script来进行处理</p><div data-sign="26feef242eb5652186859bcd9a7ef1ea" data-type="codeBlock" data-lines="10">
-      <pre class="language-javascript" style="position: relative; z-index: 2;"><code class="language-javascript"><span class="code-line">	<span class="token punctuation">{</span></span>
-<span class="code-line">      <span class="token string">"_script"</span><span class="token operator">:</span> <span class="token punctuation">{</span></span>
-<span class="code-line">        <span class="token string">"script"</span><span class="token operator">:</span> <span class="token string">"Math.random()"</span><span class="token punctuation">,</span></span>
-<span class="code-line">        <span class="token string">"type"</span><span class="token operator">:</span> <span class="token string">"number"</span><span class="token punctuation">,</span></span>
-<span class="code-line">        <span class="token string">"order"</span><span class="token operator">:</span> <span class="token string">"asc"</span></span>
-<span class="code-line">      <span class="token punctuation">}</span></span>
-<span class="code-line">    <span class="token punctuation">}</span></span></code></pre>
+      <pre><code>	{
+      "_script": {
+        "script": "Math.random()",
+        "type": "number",
+        "order": "asc"
+      }
+    }</code></pre>
 
 <p data-lines="1" data-type="p" data-sign="bbebcd8c837ebe19db91384a9b7736aa">18 . 取消reindex任务</p><div data-sign="c5ef1386df5ab8ebc632e209e3abe19b" data-type="codeBlock" data-lines="10">
-      <pre class="language-javascript" style="position: relative; z-index: 2;"><code class="language-javascript"><span class="code-line">	列出运行中的任务</span>
-<span class="code-line">	_tasks</span>
-<span class="code-line">	_tasks<span class="token operator">?</span>nodes<span class="token operator">=</span>nodeId1<span class="token punctuation">,</span>nodeId2</span>
-<span class="code-line">	取消任务</span>
-<span class="code-line">	_tasks<span class="token operator">/</span>node_id<span class="token operator">:</span>task_id<span class="token operator">/</span>_cancel</span>
-<span class="code-line">	取消重建索引任务</span>
-<span class="code-line">	_tasks<span class="token operator">/</span>_cancel<span class="token operator">?</span>nodes<span class="token operator">=</span>nodeId1<span class="token punctuation">,</span>nodeId2<span class="token operator">&amp;</span>action<span class="token operator">=</span><span class="token operator">*</span>reindex</span></code></pre>
+      <pre><code>	列出运行中的任务
+	_tasks
+	_tasks?nodes=nodeId1,nodeId2
+	取消任务
+	_tasks/node_id:task_id/_cancel
+	取消重建索引任务
+	_tasks/_cancel?nodes=nodeId1,nodeId2&amp;action=*reindex</code></pre>
 
 <p data-lines="2" data-type="p" data-sign="32f920064387fe3b6bdfe8a1a970a2db">
 19 . 查看阻塞在队列中的索引</p><div data-sign="8e2a03257a1bb7b1b12d230c08fc479e" data-type="codeBlock" data-lines="4">
-      <pre class="language-javascript" style="position: relative; z-index: 2;"><code class="language-javascript"><span class="code-line">	<span class="token constant">GET</span>  _tasks<span class="token operator">?</span>pretty\<span class="token operator">&amp;</span>detailed  <span class="token operator">|</span> grep description <span class="token operator">|</span> awk <span class="token operator">-</span><span class="token constant">F</span> <span class="token string">'index'</span> <span class="token string">'{print $2}'</span> <span class="token operator">|</span> sort <span class="token operator">|</span> uniq <span class="token operator">-</span>c <span class="token operator">|</span> sort <span class="token operator">-</span>n</span></code></pre>
+      <pre><code>	GET  _tasks?pretty\&amp;detailed  | grep description | awk -F 'index' '{print $2}' | sort | uniq -c | sort -n</code></pre>
 
 <p data-lines="1" data-type="p" data-sign="f4b96011bc5445df6220d4ad0f6871c4">20 . cancel掉所有存量的查询，释放内存</p><div data-sign="0238abf372767b5965c694be79e9fdfb" data-type="codeBlock" data-lines="4">
-      <pre class="language-javascript" style="position: relative; z-index: 2;"><code class="language-javascript"><span class="code-line">	<span class="token constant">POST</span> _tasks<span class="token operator">/</span>_cancel<span class="token operator">?</span>actions<span class="token operator">=</span><span class="token string">'indices:data/read/search*'</span></span></code></pre>
+      <pre><code>	POST _tasks/_cancel?actions='indices:data/read/search*'</code></pre>
 
-<h2 data-lines="1" data-sign="2596997e22daea7f7e8751a651386a6a" id="%E4%B8%89%E3%80%81%E4%BC%98%E5%8C%96%E7%B1%BB%E7%9A%84%E9%97%AE%E9%A2%98%E8%AE%B0%E5%BD%95"><a href="https://km.woa.com/group/34177/articles/show/505564?kmref=search&amp;from_page=1&amp;no=7#%E4%B8%89%E3%80%81%E4%BC%98%E5%8C%96%E7%B1%BB%E7%9A%84%E9%97%AE%E9%A2%98%E8%AE%B0%E5%BD%95" class="anchor"></a>三、优化类的问题记录</h2><p data-lines="2" data-type="p" data-sign="754b0dc48067fe1bb0f00fe904206256">21 . 在需要批量拉取聚合结果时，可以使用index sorting + composite 聚合来代替term 聚合，composite聚合可以根据排序优化聚合提前结束并且支持分页。</p><p data-lines="2" data-type="p" data-sign="a5c6b7b9bdfbd8882e8532156350b54c">22 . 系统高阶内存不足导致的节点离线</p><p data-lines="8" data-type="p" data-sign="82287b9d2a97448f50679ee0f3d70fb6" style="">	<img alt="" src="./Elasticsearch 工作笔记 -  - KM平台_files/cos-file-url(2)" style="position: relative; z-index: 2;" class="amplify">
+<h2 data-lines="1" data-sign="2596997e22daea7f7e8751a651386a6a" id="%E4%B8%89%E3%80%81%E4%BC%98%E5%8C%96%E7%B1%BB%E7%9A%84%E9%97%AE%E9%A2%98%E8%AE%B0%E5%BD%95"><a href="https://km.woa.com/group/34177/articles/show/505564?kmref=search&amp;from_page=1&amp;no=7#%E4%B8%89%E3%80%81%E4%BC%98%E5%8C%96%E7%B1%BB%E7%9A%84%E9%97%AE%E9%A2%98%E8%AE%B0%E5%BD%95" class="anchor"></a>三、优化类的问题记录</h2><p data-lines="2" data-type="p" data-sign="754b0dc48067fe1bb0f00fe904206256">21 . 在需要批量拉取聚合结果时，可以使用index sorting + composite 聚合来代替term 聚合，composite聚合可以根据排序优化聚合提前结束并且支持分页。</p><p data-lines="2" data-type="p" data-sign="a5c6b7b9bdfbd8882e8532156350b54c">22 . 系统高阶内存不足导致的节点离线</p><p data-lines="8" data-type="p" data-sign="82287b9d2a97448f50679ee0f3d70fb6" style="">	
 	线上某个写入量比较大的集群，不定时的会出现某个节点离线又加回集群的情况。经过定位发现是虚拟机高阶内存不足，导致网卡收发包异常。
 
 	es和Lucene 会大量使用堆外内存，在应用层面的内存分配都是申请的低阶内存（0阶、1阶），会将高阶内存（3阶及以上）逐步拆分用掉。而系统内核层面的网卡驱动会优先分配高阶内存，如果高阶内存不足会再尝试分配低阶内存，这个过程会有一定延时，可能导致节点短暂收发包异常，短暂脱离集群。当应用层面将高阶内存拆分申请完毕后，就会出现这一高阶内存不足的现象。系统会有内存整理的过程但是不会那么及时。
@@ -149,35 +149,35 @@ categories:
 	解决办法是通过设定系统参数预留系统内存：
 
 	</p><div data-sign="ff3ae9d9836c83e889dfef1c245eeeac" data-type="codeBlock" data-lines="5">
-      <pre class="language-javascript" style="position: relative; z-index: 2;"><code class="language-javascript"><span class="code-line">	echo <span class="token operator">%</span><span class="token number">2</span>的系统总内存（单位kb） <span class="token operator">&gt;</span> <span class="token operator">/</span>proc<span class="token operator">/</span>sys<span class="token operator">/</span>vm<span class="token operator">/</span>min_free_kbytes</span>
-<span class="code-line">	</span>
-<span class="code-line">	echo <span class="token number">1</span> <span class="token operator">&gt;</span> <span class="token operator">/</span>proc<span class="token operator">/</span>sys<span class="token operator">/</span>vm<span class="token operator">/</span>compact_memory</span></code></pre>
+      <pre><code>	echo %2的系统总内存（单位kb） &gt; /proc/sys/vm/min_free_kbytes
+
+	echo 1 &gt; /proc/sys/vm/compact_memory</code></pre>
 
 <p data-lines="1" data-type="p" data-sign="6b0a19c3989965a5ef9e3ccccff6ab4a">23 . es节点上TCP全连接队列参数设置，防止节点数大于100的这种的集群中，节点异常重启时全连接队列在启动瞬间打满，造成节点hung住，导致集群响应迟滞：</p><div data-sign="2eff3756a60a01aa667c9bfea081cd4f" data-type="codeBlock" data-lines="5">
-      <pre class="language-javascript" style="position: relative; z-index: 2;"><code class="language-javascript"><span class="code-line">	echo <span class="token string">"net.ipv4.tcp_abort_on_overflow = 1"</span> <span class="token operator">&gt;&gt;</span><span class="token operator">/</span>etc<span class="token operator">/</span>sysctl<span class="token punctuation">.</span>conf</span>
-<span class="code-line">	echo <span class="token string">"net.core.somaxconn = 2048"</span> <span class="token operator">&gt;&gt;</span><span class="token operator">/</span>etc<span class="token operator">/</span>sysctl<span class="token punctuation">.</span>conf</span></code></pre>
+      <pre><code>	echo "net.ipv4.tcp_abort_on_overflow = 1" &gt;&gt;/etc/sysctl.conf
+	echo "net.core.somaxconn = 2048" &gt;&gt;/etc/sysctl.conf</code></pre>
 
 <p data-lines="1" data-type="p" data-sign="89eb48d58a0ea9150bd346b7f4e93387">24 . 查询时需要返回文档原文中的几个字段，从行存改为从列存读取，高压力查询场景性能可以提升 50%。从行存读取涉及到解压的开销，列存则可直接取对应字段的部分block，性能会更高：</p><p data-lines="3" data-type="p" data-sign="216d7eb1d30bdd35c7958de146ecdc37">	查询body 中的取source 部分：
 
 	</p><div data-sign="36e2a1fa61b2ca3e24cb616dd8ebad00" data-type="codeBlock" data-lines="9">
-      <pre class="language-javascript" style="position: relative; z-index: 2;"><code class="language-javascript"><span class="code-line">	<span class="token string">"_source"</span><span class="token operator">:</span> <span class="token punctuation">{</span></span>
-<span class="code-line">	    <span class="token string">"includes"</span><span class="token operator">:</span> <span class="token punctuation">[</span></span>
-<span class="code-line">	      <span class="token string">"a"</span><span class="token punctuation">,</span></span>
-<span class="code-line">	      <span class="token string">"b"</span><span class="token punctuation">,</span></span>
-<span class="code-line">	      <span class="token string">"c"</span></span>
-<span class="code-line">	    <span class="token punctuation">]</span></span>
-<span class="code-line">	  <span class="token punctuation">}</span>	</span></code></pre>
+      <pre><code>	"_source": {
+	    "includes": [
+	      "a",
+	      "b",
+	      "c"
+	    ]
+	  }	</code></pre>
 
 <p data-lines="4" data-type="p" data-sign="4dd08372ead8ee017a27eb32e506dff0">
 	调整为从列存读取字段：
 
 	</p><div data-sign="09d2daf3997049c515f596dc236b07af" data-type="codeBlock" data-lines="8">
-      <pre class="language-javascript" style="position: relative; z-index: 2;"><code class="language-javascript"><span class="code-line">	  <span class="token string">"docvalue_fields"</span><span class="token operator">:</span>  <span class="token punctuation">[</span></span>
-<span class="code-line">	      <span class="token string">"a"</span><span class="token punctuation">,</span></span>
-<span class="code-line">	      <span class="token string">"b"</span><span class="token punctuation">,</span></span>
-<span class="code-line">	      <span class="token string">"c"</span></span>
-<span class="code-line">	    <span class="token punctuation">]</span><span class="token punctuation">,</span></span>
-<span class="code-line">	  <span class="token string">"stored_fields"</span><span class="token operator">:</span> <span class="token string">"_none_"</span><span class="token punctuation">,</span> <span class="token comment">// 关闭行存读取</span></span></code></pre>
+      <pre><code>	  "docvalue_fields":  [
+	      "a",
+	      "b",
+	      "c"
+	    ],
+	  "stored_fields": "_none_", // 关闭行存读取</code></pre>
 
 <p data-lines="5" data-type="p" data-sign="568eeba1a116cb90d18e431871871614">25 . 部署es时磁盘挂载时的可选配置
 	* noatime：禁止记录访问时间戳，提高文件系统读写性能
@@ -204,8 +204,8 @@ terms聚合查询使用的Global Ordinals是shard级别的，把字符串转为�
 		* 最低优先级：-XX:NewRatio=2
 	es用的是CMS垃圾回收器，所以young区的大小是JVM根据系统的配置计算得到的，newRatio默认虽然为2但是不起作用;除非显式的配置-Xmn或者-XX:NewSize， young区大小的计算公式为：
 	</p><div data-sign="70d8d3057436cdd32fd8a136bc870044" data-type="codeBlock" data-lines="4">
-      <pre class="language-javascript" style="position: relative; z-index: 2;"><code class="language-javascript"><span class="code-line"><span class="token keyword">const</span> size_t preferred_max_new_size_unaligned <span class="token operator">=</span></span>
-<span class="code-line">    <span class="token constant">MIN2</span><span class="token punctuation">(</span>max_heap<span class="token operator">/</span><span class="token punctuation">(</span>NewRatio<span class="token operator">+</span><span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token function">ScaleForWordSize</span><span class="token punctuation">(</span>young_gen_per_worker <span class="token operator">*</span> parallel_gc_threads<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span></span></code></pre>
+      <pre><code>const size_t preferred_max_new_size_unaligned =
+    MIN2(max_heap/(NewRatio+1), ScaleForWordSize(young_gen_per_worker * parallel_gc_threads));</code></pre>
 
 <p data-lines="2" data-type="p" data-sign="3700f93fd01c8e81e3e8cc8e03ba7098">	其中ScaleForWordSize大约为64M (64位机器)<em> (机器cpu核数) </em> 13 / 10</p><span data-lines="2" data-type="br" data-sign="br2"></span><p data-lines="1" data-type="p" data-sign="2c8d407042cb8d37980494f660a30c16">44 . update操作不一定会触发refresh, 如果update的doc_id已经是可以被searcher检索到的，比如已经存在于某个segment里，就无需refresh。 但是如果update的doc_id存在于index writter buffer里，还未refresh，典型的就是同一个bulk操作里写入了多个重复的id， 实时GET就会触发refresh。</p><p data-lines="2" data-type="p" data-sign="d00c3f5a1c2c64c4ffaa28468a9a74f5">45 . 一般1 TB的磁盘数据，需要 2- 5GB 左右的 FST内存开销，这个只是FST的开销（常驻内存），一般FST占用50%左右的堆内内存。如果查询和写入压力稍微大一点，32GB Heap，内存很容易成为瓶颈。</p><p data-lines="2" data-type="p" data-sign="13cd66b2f096182f7307e0e0fe3ca80b">46 . zen2相比zen的优势？</p><p data-lines="5" data-type="p" data-sign="4ad3a95ba83082b276ff71302c406357">	* mininum_master_nodes被移除，es自己决定哪些节点作为candidate master nodes；而6.x版本的zen协议，可能会因为该参数配置错误导致集群无法选主，另外在扩缩容节点时也需要调整该参数
 	* 典型的主节点选举可以在1s内完成，相比6.x, es通过延迟几秒钟的时间再进行选举防止各种各样的配置错误，意味着有几秒钟的时间集群不可用

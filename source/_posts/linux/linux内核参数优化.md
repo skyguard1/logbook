@@ -12,11 +12,11 @@ categories:
 <p style="text-indent: 21.0pt; line-height: 150%;"><span lang="EN-US">Linux</span><span style="font-family: 宋体;">内核采用的是模块化技术，这样的设计使得系统内核可以保持最小化，同时确保了内核的可扩展性与可维护性，模块化设计允许我们在需要时才将模块加载至内核，实现动态内核调整。系统所加载的内核模块不同，系统所打印的内核变量也不一样。</span></p>
 <p style="line-height: 150%;"><span style="font-family: 宋体;">可以用</span><span lang="EN-US">sysctlvariable</span><span style="font-family: 宋体;">查具体内核参数</span></p>
 <p style="line-height: 150%;"><span lang="EN-US">sysctl –a </span><span style="font-family: 宋体;">查看所有参数</span></p>
-<p style="line-height: 150%;"><span lang="EN-US" style=""><img width="490" height="177" id="图片 3" src="./linux内核参数优化 - 云架构平台部 - KM平台_files/cos-file-url(2)" style="position: relative; z-index: 2;"></span></p>
+<p style="line-height: 150%;"><span lang="EN-US" style=""><img width="490" height="177" id="图片 3" src="/logbook/images/linux/linux内核参数优化/b77f02ab1ae6.png" style="position: relative; z-index: 2;"></span></p>
 <p style="line-height: 150%;"><span style="font-family: 宋体;">打印出来的内核变量及参数，在</span><span lang="EN-US">/proc</span><span style="font-family: 宋体;">目录下有对应的虚拟文件保存参数，应用程序在运行过程从这些文件拉取对应参数，一个内核变量对应一个虚拟文件，如</span></p>
 <p style="line-height: 150%;"><span style="font-family: 宋体;">文件</span><span lang="EN-US"> /proc/sys/vm/swappiness</span></p>
 <p style="line-height: 150%;"><span style="font-family: 宋体;">对应变量</span><span lang="EN-US">vm.swappiness</span></p>
-<p style="line-height: 150%;"><span lang="EN-US" style=""><img width="460" height="66" src="./linux内核参数优化 - 云架构平台部 - KM平台_files/cos-file-url(3)" style="position: relative; z-index: 2;"></span></p>
+<p style="line-height: 150%;"><span lang="EN-US" style=""><img width="460" height="66" src="/logbook/images/linux/linux内核参数优化/689db5824340.png" style="position: relative; z-index: 2;"></span></p>
 <p style="line-height: 150%;"><span style="font-family: 宋体;">上面拉取变量值的的方法是等价的</span></p>
 <p style="line-height: 150%;"><span style="font-family: 宋体;">内核相关变量命名规则</span></p>
 <p style="line-height: 150%;"><span style="font-family: 宋体;">一般是把参数文件的完整路径，去掉</span><span lang="EN-US">/proc/sys</span><span style="font-family: 宋体;">，把“</span><span lang="EN-US">/</span><span style="font-family: 宋体;">”变成“</span><span lang="EN-US">.</span><span style="font-family: 宋体;">”，作为变量名</span></p>
@@ -107,18 +107,18 @@ categories:
 <p style="line-height: 150%;"><span style="font-family: 宋体;">如：将</span><span lang="EN-US">timeout_timewait</span><span style="font-family: 宋体;">参数设置为</span><span lang="EN-US">30</span><span style="font-family: 宋体;">秒：</span></p>
 <p style="line-height: 150%;"><span lang="EN-US"># echo 30 &gt; /proc/sys/net/ipv4/tcp_fin_timeout</span></p>
 <p style="line-height: 150%;"><span style="font-family: 宋体;">参数修改后立即生效，但是重启系统后，该参数又恢复成默认值。因此，想永久更改内核参数，需要修改</span><span lang="EN-US">/etc/sysctl.conf</span><span style="font-family: 宋体;">文件</span></p>
-<p style="line-height: 150%;"><span lang="EN-US" style=""><img width="554" height="51" src="./linux内核参数优化 - 云架构平台部 - KM平台_files/cos-file-url(4)" style="position: relative; z-index: 2;"></span></p>
+<p style="line-height: 150%;"><span lang="EN-US" style=""><img width="554" height="51" src="/logbook/images/linux/linux内核参数优化/222e40278106.png" style="position: relative; z-index: 2;"></span></p>
 <p style="line-height: 150%;"><span style="font-family: 宋体;">方法二：直接给内核变量赋值，临时改变系统内核参数值，内核参数是通过</span><span lang="EN-US">variable=value </span><span style="font-family: 宋体;">的形式来设定值，可以用</span><span lang="EN-US">sysctl -w </span></p>
 <p style="line-height: 150%;"><span style="font-family: 宋体;">临时调整参数，如：</span></p>
 <p style="line-height: 150%;"><span lang="EN-US">#sysctl -w net.ipv4.tcp_fin_timeout = 30 </span></p>
 <p style="line-height: 150%;"><span style="font-family: 宋体;">这样修改是暂时的，系统重启后，内核参数将被重新加载</span></p>
-<p style="line-height: 150%;"><span lang="EN-US" style=""><img width="541" height="79" src="./linux内核参数优化 - 云架构平台部 - KM平台_files/cos-file-url(5)" style="position: relative; z-index: 2;"></span></p>
+<p style="line-height: 150%;"><span lang="EN-US" style=""><img width="541" height="79" src="/logbook/images/linux/linux内核参数优化/e024c193a638.png" style="position: relative; z-index: 2;"></span></p>
 <p style="line-height: 150%;"><span style="font-family: 宋体;">方法三：修改</span><span lang="EN-US">/etc/sysctl.conf</span><span style="font-family: 宋体;">文件。检查</span><span lang="EN-US">sysctl.conf</span><span style="font-family: 宋体;">文件，如果已经包含需要修改的参数，则修改该参数的值，如果没有</span></p>
 <p style="line-height: 150%;"><span style="font-family: 宋体;">需要修改的参数，在</span><span lang="EN-US">sysctl.conf</span><span style="font-family: 宋体;">文件中添加参数。如：</span></p>
 <p style="line-height: 150%;"><span lang="EN-US">&nbsp;&nbsp; net.ipv4.tcp_fin_timeout=30</span></p>
 <p style="line-height: 150%;"><span style="font-family: 宋体;">保存退出后，可以重启机器使参数生效，如果想使参数马上生效，也可以执行如下命令：</span></p>
 <p style="line-height: 150%;"><span lang="EN-US">&nbsp;&nbsp; # sysctl&nbsp; -p</span></p>
-<p style="line-height: 150%;"><span lang="EN-US" style=""><img width="470" height="240" src="./linux内核参数优化 - 云架构平台部 - KM平台_files/cos-file-url(6)" style="position: relative; z-index: 2;"></span></p>
+<p style="line-height: 150%;"><span lang="EN-US" style=""><img width="470" height="240" src="/logbook/images/linux/linux内核参数优化/d6fcec53151d.png" style="position: relative; z-index: 2;"></span></p>
 <p style="line-height: 150%;"><span lang="EN-US">/etc/sysctl.conf</span><span style="font-family: 宋体;">有可能是空的，即当前系统内核参数都是默认参数，把所需要的参数以</span><span lang="EN-US">variable=value </span><span style="font-family: 宋体;">的形式写进配置文件，重新加载即可。注意写内核变量的对应模块必须已加载，另外非内核变量不可出现在文件中。因为内核控制系统最核心的操作行为，在修改之前务必了解每个参数表示的含义，建议先临时修改测试效果，再写到配置文件中，以免引发故障。</span></p>
 <h1 style="line-height: 150%;"><span style="font-family: 宋体;">四、具体参数优化</span></h1>
 <p style="line-height: 150%;"><span lang="EN-US">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span><span style="font-family: 宋体;">内核参数有很多，内核版本不同，加载的数量也不一样，大部分都是可以保持默认值，这里只拿了少数常用参数讲解。</span></p>
@@ -130,7 +130,7 @@ categories:
 <p style="line-height: 150%;"><span style="font-family: 宋体;">内核向远程主机发送的保活探测的时间间隔</span></p>
 <p style="line-height: 150%;"><span style="font-family: 宋体;">（</span><span lang="EN-US">3</span><span style="font-family: 宋体;">）</span><span lang="EN-US">net.ipv4.tcp_keepalive_probes = 9 </span></p>
 <p style="line-height: 150%;"><span style="font-family: 宋体;">内核发送保活探测的最大次数，如果探测次数大于这个数，则断定远程主机不可达，则关闭该连接并释放本地资源。一个连接</span><span lang="EN-US">7200s</span><span style="font-family: 宋体;">空闲后，内核会每隔</span><span lang="EN-US">75</span><span style="font-family: 宋体;">秒去重试，若连续</span><span lang="EN-US">9</span><span style="font-family: 宋体;">次则放弃。这样就导致一个连接经过</span><span lang="EN-US">2h11min</span><span style="font-family: 宋体;">的时间才能被丢弃，降低该值能够尽量减小失效连接所占用的资源，而被新的连接所使用。</span></p>
-<p style="line-height: 150%;"><span lang="EN-US" style=""><img width="553" height="41" id="图片 12" src="./linux内核参数优化 - 云架构平台部 - KM平台_files/cos-file-url(7)" style="position: relative; z-index: 2;"></span></p>
+<p style="line-height: 150%;"><span lang="EN-US" style=""><img width="553" height="41" id="图片 12" src="/logbook/images/linux/linux内核参数优化/af28bf8dbe3a.jpg" style="position: relative; z-index: 2;"></span></p>
 <p style="line-height: 150%;"><span style="font-family: 宋体;">当</span><span lang="EN-US">keepalive</span><span style="font-family: 宋体;">打开的情况下</span><span lang="EN-US">,</span><span style="font-family: 宋体;">默认参数偏大，特别是</span><span lang="EN-US">web</span><span style="font-family: 宋体;">服务器容易被网络攻击，说如果</span><span lang="EN-US">2</span><span style="font-family: 宋体;">边建立了连接</span><span lang="EN-US">,</span><span style="font-family: 宋体;">然后不发送任何数据</span><span lang="EN-US">,</span><span style="font-family: 宋体;">那么持续的时间就是</span><span lang="EN-US">2</span><span style="font-family: 宋体;">小时</span><span lang="EN-US">11</span><span style="font-family: 宋体;">分钟</span><span lang="EN-US">,</span><span style="font-family: 宋体;">形成空连接攻击，上面三个参数就是预防此情形的，一般负载的</span><span lang="EN-US">web</span><span style="font-family: 宋体;">建议分别改为</span><span lang="EN-US">1800 15 5 </span><span style="font-family: 宋体;">，规避等待连接太多，及时释放资源。</span></p>
 <p style="line-height: 150%;"><b><span lang="EN-US">tcp</span></b><b><span style="font-family: 宋体;">连接管理</span></b></p>
 <p style="line-height: 150%;"><span lang="EN-US">1</span><span style="font-family: 宋体;">）</span><span lang="EN-US">net.ipv4.tcp_syncookies = 1</span></p>
@@ -142,12 +142,12 @@ categories:
 <p style="line-height: 150%;"><span style="font-family: 宋体;">的</span><span lang="EN-US">TIME_WAIT</span><span style="font-family: 宋体;">数量</span></p>
 <p style="line-height: 150%;"><span lang="EN-US">4</span><span style="font-family: 宋体;">）</span><span lang="EN-US">net.ipv4.tcp_fin_timeout = 60&nbsp; </span></p>
 <p style="line-height: 150%;"><span style="font-family: 宋体;">对于本端断开的</span><span lang="EN-US">socket</span><span style="font-family: 宋体;">连接，</span><span lang="EN-US">TCP</span><span style="font-family: 宋体;">保持在</span><span lang="EN-US">FIN_WAIT_2</span><span style="font-family: 宋体;">状态的时间。对方可能会断开连接或一直不结束连接或不可预料的进程死亡。默认值为</span><span lang="EN-US"> 60 </span><span style="font-family: 宋体;">秒。可以改为</span><span lang="EN-US">30</span><span style="font-family: 宋体;">﹐但需要注意﹐如果您的机器为负载很重的</span><span lang="EN-US">web</span><span style="font-family: 宋体;">服务器﹐您可能要冒内存被大量无效数据报填满的风险﹐</span><span lang="EN-US">FIN-WAIT-2 sockets </span><span style="font-family: 宋体;">的危险性低于</span><span lang="EN-US"> FIN-WAIT-1 </span><span style="font-family: 宋体;">﹐因为它们最多只吃</span><span lang="EN-US"> 1.5K </span><span style="font-family: 宋体;">的内存﹐但是它们存在时间更长。可以用命令</span><span lang="EN-US"># netstat -n | awk '/^tcp/ {++S[$NF]} END {for(a in S) print a,S[a]}'</span><span style="font-family: 宋体;">查看系统当前</span><span lang="EN-US">tcp</span><span style="font-family: 宋体;">连接状态</span><a name="_GoBack"></a></p>
-<p style="line-height: 150%;"><span lang="EN-US" style=""><img width="554" height="96" id="图片 7" src="./linux内核参数优化 - 云架构平台部 - KM平台_files/cos-file-url(8)" style="position: relative; z-index: 2;"></span></p>
+<p style="line-height: 150%;"><span lang="EN-US" style=""><img width="554" height="96" id="图片 7" src="/logbook/images/linux/linux内核参数优化/8107872823df.jpg" style="position: relative; z-index: 2;"></span></p>
 <p style="line-height: 150%;"><span style="font-family: 宋体;">里面各种状态连接的生成原因是多种多样的，以实例可以说说</span><span lang="EN-US">CLOSE_WAIT</span><span style="font-family: 宋体;">、</span><span lang="EN-US"> FIN_WAIT_2</span><span style="font-family: 宋体;">状态的生成原因</span></p>
 <p style="line-height: 150%;"><span style="font-family: 宋体;">如果服务器程序</span><span lang="EN-US">APACHE</span><span style="font-family: 宋体;">处于</span><span lang="EN-US">CLOSE_WAIT</span><span style="font-family: 宋体;">状态的话，说明套接字是被动关闭的！</span><span lang="EN-US"><br> </span><span style="font-family: 宋体;">假设</span><span lang="EN-US">CLIENT</span><span style="font-family: 宋体;">端主动断掉当前连接，那么双方关闭这个</span><span lang="EN-US">TCP</span><span style="font-family: 宋体;">连接共需要四个</span><span lang="EN-US">packet</span><span style="font-family: 宋体;">：</span></p>
-<p style="line-height: 150%;"><span lang="EN-US" style=""><img width="554" height="78" id="图片 1" src="./linux内核参数优化 - 云架构平台部 - KM平台_files/cos-file-url(9)" style="position: relative; z-index: 2;"></span></p>
+<p style="line-height: 150%;"><span lang="EN-US" style=""><img width="554" height="78" id="图片 1" src="/logbook/images/linux/linux内核参数优化/c52c4d7c0b00.jpg" style="position: relative; z-index: 2;"></span></p>
 <p style="line-height: 150%;"><span style="font-family: 宋体;">这时候</span><span lang="EN-US">Client</span><span style="font-family: 宋体;">端处于</span><span lang="EN-US">FIN_WAIT_2</span><span style="font-family: 宋体;">状态；而</span><span lang="EN-US">Server </span><span style="font-family: 宋体;">程序处于</span><span lang="EN-US">CLOSE_WAIT</span><span style="font-family: 宋体;">状态。</span></p>
-<p style="line-height: 150%;"><span lang="EN-US" style=""><img width="554" height="80" src="./linux内核参数优化 - 云架构平台部 - KM平台_files/cos-file-url(10)" style="position: relative; z-index: 2;"></span></p>
+<p style="line-height: 150%;"><span lang="EN-US" style=""><img width="554" height="80" src="/logbook/images/linux/linux内核参数优化/d4938d3d5968.jpg" style="position: relative; z-index: 2;"></span></p>
 <p style="line-height: 150%;"><span style="font-family: 宋体;">这时</span><span lang="EN-US">Server </span><span style="font-family: 宋体;">发送</span><span lang="EN-US">FIN</span><span style="font-family: 宋体;">给</span><span lang="EN-US">Client</span><span style="font-family: 宋体;">，</span><span lang="EN-US">Server </span><span style="font-family: 宋体;">就置为</span><span lang="EN-US">LAST_ACK</span><span style="font-family: 宋体;">状态。</span><span lang="EN-US">Client</span><span style="font-family: 宋体;">回应了</span><span lang="EN-US">ACK</span><span style="font-family: 宋体;">，那么</span><span lang="EN-US">Server </span><span style="font-family: 宋体;">的套接字才会真正置为</span><span lang="EN-US">CLOSED</span><span style="font-family: 宋体;">状态。</span></p>
 <p style="line-height: 150%;"><span lang="EN-US">Server </span><span style="font-family: 宋体;">程序处于</span><span lang="EN-US">CLOSE_WAIT</span><span style="font-family: 宋体;">状态，而不是</span><span lang="EN-US">LAST_ACK</span><span style="font-family: 宋体;">状态，说明还没有发</span><span lang="EN-US">FIN</span><span style="font-family: 宋体;">给</span><span lang="EN-US">Client</span><span style="font-family: 宋体;">，那么可能是在关闭连接之前还有许多数据要发送或者其他事要做，导致没有发这个</span><span lang="EN-US">FIN packet</span><span style="font-family: 宋体;">。</span><span lang="EN-US"><br> </span><span style="font-family: 宋体;">通常来说，一个</span><span lang="EN-US">CLOSE_WAIT</span><span style="font-family: 宋体;">会维持至少</span><span lang="EN-US">2</span><span style="font-family: 宋体;">个小时的时间。如果有个流氓特地写了个程序，给你造成一堆的</span><span lang="EN-US">CLOSE_WAIT</span><span style="font-family: 宋体;">，消耗资源，那么通常是等不到释放那一刻，系统就已经解决崩溃了。</span></p>
 <p style="line-height: 150%;"><span lang="EN-US">5</span><span style="font-family: 宋体;">）</span><span lang="EN-US">net.ipv4.tcp_max_syn_backlog = 1024 &nbsp;</span></p>
@@ -186,7 +186,7 @@ categories:
 <p style="line-height: 150%;"><span lang="EN-US">1</span><span style="font-family: 宋体;">：只释放</span><span lang="EN-US">page_cache</span></p>
 <p style="line-height: 150%;"><span lang="EN-US">2</span><span style="font-family: 宋体;">：只释放</span><span lang="EN-US">dentries</span><span style="font-family: 宋体;">和</span><span lang="EN-US">inodes</span><span style="font-family: 宋体;">缓存</span></p>
 <p style="line-height: 150%;"><span lang="EN-US">3</span><span style="font-family: 宋体;">：释放</span><span lang="EN-US">page_cache</span><span style="font-family: 宋体;">、</span><span lang="EN-US">dentries</span><span style="font-family: 宋体;">和</span><span lang="EN-US">inodes</span><span style="font-family: 宋体;">缓存</span></p>
-<p style="line-height: 150%;"><span lang="EN-US" style=""><img width="554" height="119" id="图片 5" src="./linux内核参数优化 - 云架构平台部 - KM平台_files/cos-file-url(11)" style="position: relative; z-index: 2;"></span></p>
+<p style="line-height: 150%;"><span lang="EN-US" style=""><img width="554" height="119" id="图片 5" src="/logbook/images/linux/linux内核参数优化/8288ed6304c3.jpg" style="position: relative; z-index: 2;"></span></p>
 <p style="line-height: 150%;"><span style="font-family: 宋体;">我们在查看系统内存时都会发现</span><span lang="EN-US"> cached</span><span style="font-family: 宋体;">占用的内存都比较高，其实这是为了提高文件读取效率的做法。可以通地修改参数的方法回收内存。注意这里释放</span><span lang="EN-US">cache</span><span style="font-family: 宋体;">可能会造成内存数据丢失，修改之前最好用</span><span lang="EN-US">sync</span><span style="font-family: 宋体;">命令把数据刷到硬盘。</span></p>
 <p style="line-height: 150%;"><span lang="EN-US">3</span><span style="font-family: 宋体;">）</span><span lang="EN-US">vm.dirty_ratio = 40</span></p>
 <p style="line-height: 150%;"><span style="font-family: 宋体;">这个参数则指定了当文件系统缓存脏页数量达到系统内存百分之多少时（缺省值</span><span lang="EN-US">40%</span><span style="font-family: 宋体;">），系统必须开始处理缓存脏页。</span></p>
@@ -198,7 +198,7 @@ categories:
 </tr>
 <tr>
 <td></td>
-<td style=""><img width="554" height="71" src="./linux内核参数优化 - 云架构平台部 - KM平台_files/cos-file-url(12)" style="position: relative; z-index: 2;"></td>
+<td style=""><img width="554" height="71" src="/logbook/images/linux/linux内核参数优化/d6de2598ae45.jpg" style="position: relative; z-index: 2;"></td>
 </tr>
 </tbody>
 </table>
@@ -209,7 +209,7 @@ categories:
 </tr>
 <tr>
 <td></td>
-<td style=""><img width="401" height="225" src="./linux内核参数优化 - 云架构平台部 - KM平台_files/cos-file-url(13)" style="position: relative; z-index: 2;"></td>
+<td style=""><img width="401" height="225" src="/logbook/images/linux/linux内核参数优化/e5293c633d31.jpg" style="position: relative; z-index: 2;"></td>
 </tr>
 </tbody>
 </table>
@@ -222,7 +222,7 @@ categories:
 <p style="line-height: 150%;"><span lang="EN-US">dirty_ratio</span><span style="font-family: 宋体;">这个参数所设定的值，此时操作系统会转入同步地处理脏页的过程，阻塞应用进程。</span></p>
 <p style="line-height: 150%;"><span lang="EN-US">5</span><span style="font-family: 宋体;">）</span><span lang="EN-US">vm.dirty_writeback_centisecs = 500</span></p>
 <p style="line-height: 150%;"><span style="font-family: 宋体;">该参数控制内核的脏数据刷新进程</span><span lang="EN-US">pdflush</span><span style="font-family: 宋体;">的运行间隔。单位是</span><span lang="EN-US"> 1/100 </span><span style="font-family: 宋体;">秒。缺省数值是</span><span lang="EN-US">500</span><span style="font-family: 宋体;">，也就是</span><span lang="EN-US"> 5 </span><span style="font-family: 宋体;">秒。如果你的系统是</span><span style="font-family: 宋体;">持续地写入动作，那么实际上还是降低这个数值比较好，这样可以把尖峰的写操作削平成多次写操作。如果你的系统是短期</span><span style="font-family: 宋体;">地尖峰式的写操作，并且写入数据不大（几十</span><span lang="EN-US">M/</span><span style="font-family: 宋体;">次）且内存有比较多富裕，那么应该增大此数值</span></p>
-<p style="line-height: 150%;"><span lang="EN-US" style=""><img width="554" height="45" id="图片 2" src="./linux内核参数优化 - 云架构平台部 - KM平台_files/cos-file-url(14)" style="position: relative; z-index: 2;"></span></p>
+<p style="line-height: 150%;"><span lang="EN-US" style=""><img width="554" height="45" id="图片 2" src="/logbook/images/linux/linux内核参数优化/dba958c62393.jpg" style="position: relative; z-index: 2;"></span></p>
 <p style="line-height: 150%;"><span style="font-family: 宋体;">可以查</span><span lang="EN-US">io</span><span style="font-family: 宋体;">压力，如果压力大适当调小该参数</span></p>
 <p style="line-height: 150%;"><span lang="EN-US">6</span><span style="font-family: 宋体;">）</span><span lang="EN-US">vm.dirty_expire_centisecs = 3000</span></p>
 <p style="line-height: 150%;"><span style="font-family: 宋体;">该参数声明</span><span lang="EN-US">Linux</span><span style="font-family: 宋体;">内核写缓冲区里面的数据多“旧”了之后，</span><span lang="EN-US">pdflush</span><span style="font-family: 宋体;">进程就开始考虑写到磁盘中去。单位是</span><span lang="EN-US"> 1/100</span><span style="font-family: 宋体;">秒。</span><span style="font-family: 宋体;">缺省是</span><span lang="EN-US"> 30000</span><span style="font-family: 宋体;">，也就是</span><span lang="EN-US"> 30 </span><span style="font-family: 宋体;">秒的数据就算旧了，将会落地磁盘。对于特别重载的写操作来说，这个值适当缩小也是好的，</span><span style="font-family: 宋体;">但也不能缩小太多，因为缩小太多也会导致</span><span lang="EN-US">IO</span><span style="font-family: 宋体;">提交太快。当然，如果你的系统内存比较大，可以任性一些，并且写入模式是间歇式的，</span><span style="font-family: 宋体;">并且每次写入的数据不大（比如几十</span><span lang="EN-US">M</span><span style="font-family: 宋体;">），那么这个值还是大些的好。</span></p>

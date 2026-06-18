@@ -19,16 +19,16 @@ categories:
 
 <p>先来看个强反亲和的示例，将 dns 服务强制打散调度到不同节点上:</p>
 
-<pre class="  language-yaml" style="position: relative; z-index: 2;"><code class="prism  language-yaml"><span class="token key atrule">affinity</span><span class="token punctuation">:</span>
- <span class="token key atrule">podAntiAffinity</span><span class="token punctuation">:</span>
-   <span class="token key atrule">requiredDuringSchedulingIgnoredDuringExecution</span><span class="token punctuation">:</span>
-   <span class="token punctuation">-</span> <span class="token key atrule">labelSelector</span><span class="token punctuation">:</span>
-       <span class="token key atrule">matchExpressions</span><span class="token punctuation">:</span>
-       <span class="token punctuation">-</span> <span class="token key atrule">key</span><span class="token punctuation">:</span> k8s<span class="token punctuation">-</span>app
-         <span class="token key atrule">operator</span><span class="token punctuation">:</span> In
-         <span class="token key atrule">values</span><span class="token punctuation">:</span>
-         <span class="token punctuation">-</span> kube<span class="token punctuation">-</span>dns
-     <span class="token key atrule">topologyKey</span><span class="token punctuation">:</span> kubernetes.io/hostname
+<pre><code>affinity:
+ podAntiAffinity:
+   requiredDuringSchedulingIgnoredDuringExecution:
+   - labelSelector:
+       matchExpressions:
+       - key: k8s-app
+         operator: In
+         values:
+         - kube-dns
+     topologyKey: kubernetes.io/hostname
 </code></pre>
 
 <ul>
@@ -41,18 +41,18 @@ categories:
 
 <p>我们再来看个弱反亲和的示例:</p>
 
-<pre class="  language-yaml" style="position: relative; z-index: 2;"><code class="prism  language-yaml"><span class="token key atrule">affinity</span><span class="token punctuation">:</span>
-  <span class="token key atrule">podAntiAffinity</span><span class="token punctuation">:</span>
-    <span class="token key atrule">preferredDuringSchedulingIgnoredDuringExecution</span><span class="token punctuation">:</span>
-    <span class="token punctuation">-</span> <span class="token key atrule">weight</span><span class="token punctuation">:</span> <span class="token number">100</span>
-      <span class="token key atrule">podAffinityTerm</span><span class="token punctuation">:</span>
-        <span class="token key atrule">labelSelector</span><span class="token punctuation">:</span>
-          <span class="token key atrule">matchExpressions</span><span class="token punctuation">:</span>
-          <span class="token punctuation">-</span> <span class="token key atrule">key</span><span class="token punctuation">:</span> k8s<span class="token punctuation">-</span>app
-            <span class="token key atrule">operator</span><span class="token punctuation">:</span> In
-            <span class="token key atrule">values</span><span class="token punctuation">:</span>
-            <span class="token punctuation">-</span> kube<span class="token punctuation">-</span>dns
-      <span class="token key atrule">topologyKey</span><span class="token punctuation">:</span> kubernetes.io/hostname
+<pre><code>affinity:
+  podAntiAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+    - weight: 100
+      podAffinityTerm:
+        labelSelector:
+          matchExpressions:
+          - key: k8s-app
+            operator: In
+            values:
+            - kube-dns
+      topologyKey: kubernetes.io/hostname
 </code></pre>
 
 <p>注意到了吗？相比强反亲和有些不同哦，多了一个 <code>weight</code>，表示此匹配条件的权重，而匹配条件被挪到了 <code>podAffinityTerm</code> 下面。</p>
@@ -85,28 +85,28 @@ categories:
 
 <p>示例一 (保证驱逐时 nginx 至少有 90% 的副本可用):</p>
 
-<pre class="  language-yaml" style="position: relative; z-index: 2;"><code class="prism  language-yaml"><span class="token key atrule">apiVersion</span><span class="token punctuation">:</span> policy/v1beta1
-<span class="token key atrule">kind</span><span class="token punctuation">:</span> PodDisruptionBudget
-<span class="token key atrule">metadata</span><span class="token punctuation">:</span>
-  <span class="token key atrule">name</span><span class="token punctuation">:</span> zk<span class="token punctuation">-</span>pdb
-<span class="token key atrule">spec</span><span class="token punctuation">:</span>
-  <span class="token key atrule">minAvailable</span><span class="token punctuation">:</span> 90%
-  <span class="token key atrule">selector</span><span class="token punctuation">:</span>
-    <span class="token key atrule">matchLabels</span><span class="token punctuation">:</span>
-      <span class="token key atrule">app</span><span class="token punctuation">:</span> zookeeper
+<pre><code>apiVersion: policy/v1beta1
+kind: PodDisruptionBudget
+metadata:
+  name: zk-pdb
+spec:
+  minAvailable: 90%
+  selector:
+    matchLabels:
+      app: zookeeper
 </code></pre>
 
 <p>示例二 (保证驱逐时 zookeeper 最多有一个副本不可用，相当于逐个删除并等待在其它节点完成重建):</p>
 
-<pre class="  language-yaml" style="position: relative; z-index: 2;"><code class="prism  language-yaml"><span class="token key atrule">apiVersion</span><span class="token punctuation">:</span> policy/v1beta1
-<span class="token key atrule">kind</span><span class="token punctuation">:</span> PodDisruptionBudget
-<span class="token key atrule">metadata</span><span class="token punctuation">:</span>
-  <span class="token key atrule">name</span><span class="token punctuation">:</span> zk<span class="token punctuation">-</span>pdb
-<span class="token key atrule">spec</span><span class="token punctuation">:</span>
-  <span class="token key atrule">maxUnavailable</span><span class="token punctuation">:</span> <span class="token number">1</span>
-  <span class="token key atrule">selector</span><span class="token punctuation">:</span>
-    <span class="token key atrule">matchLabels</span><span class="token punctuation">:</span>
-      <span class="token key atrule">app</span><span class="token punctuation">:</span> zookeeper
+<pre><code>apiVersion: policy/v1beta1
+kind: PodDisruptionBudget
+metadata:
+  name: zk-pdb
+spec:
+  maxUnavailable: 1
+  selector:
+    matchLabels:
+      app: zookeeper
 </code></pre>
 
 <h2 id="如何让服务进行平滑更新-">如何让服务进行平滑更新？</h2>
@@ -134,19 +134,19 @@ categories:
 
 <p>最佳实践 yaml 示例:</p>
 
-<pre class="  language-yaml" style="position: relative; z-index: 2;"><code class="prism  language-yaml">        <span class="token key atrule">readinessProbe</span><span class="token punctuation">:</span>
-          <span class="token key atrule">httpGet</span><span class="token punctuation">:</span>
-            <span class="token key atrule">path</span><span class="token punctuation">:</span> /healthz
-            <span class="token key atrule">port</span><span class="token punctuation">:</span> <span class="token number">80</span>
-            <span class="token key atrule">httpHeaders</span><span class="token punctuation">:</span>
-            <span class="token punctuation">-</span> <span class="token key atrule">name</span><span class="token punctuation">:</span> X<span class="token punctuation">-</span>Custom<span class="token punctuation">-</span>Header
-              <span class="token key atrule">value</span><span class="token punctuation">:</span> Awesome
-          <span class="token key atrule">initialDelaySeconds</span><span class="token punctuation">:</span> <span class="token number">10</span>
-          <span class="token key atrule">timeoutSeconds</span><span class="token punctuation">:</span> <span class="token number">1</span>
-        <span class="token key atrule">lifecycle</span><span class="token punctuation">:</span>
-          <span class="token key atrule">preStop</span><span class="token punctuation">:</span>
-            <span class="token key atrule">exec</span><span class="token punctuation">:</span>
-              <span class="token key atrule">command</span><span class="token punctuation">:</span> <span class="token punctuation">[</span><span class="token string">"/bin/bash"</span><span class="token punctuation">,</span> <span class="token string">"-c"</span><span class="token punctuation">,</span> <span class="token string">"sleep 10"</span><span class="token punctuation">]</span>
+<pre><code>        readinessProbe:
+          httpGet:
+            path: /healthz
+            port: 80
+            httpHeaders:
+            - name: X-Custom-Header
+              value: Awesome
+          initialDelaySeconds: 10
+          timeoutSeconds: 1
+        lifecycle:
+          preStop:
+            exec:
+              command: ["/bin/bash", "-c", "sleep 10"]
 </code></pre>
 
 <h2 id="健康检查怎么配才好-">健康检查怎么配才好？</h2>
