@@ -16,12 +16,24 @@
         <% } %>
       </header>
     <% } %>
-    <% if (index && (post.excerpt || post.description)){ %>
-      <div class="article-entry article-excerpt" itemprop="description">
-        <%- post.description || post.excerpt %>
-        <p class="article-more-link">
-          <a href="<%- url_for(post.path) %>"><%= __('read_more') || 'Read More' %> &raquo;</a>
-        </p>
+    <% if (index){ %>
+      <%
+        // Build a short summary from the post content if no explicit excerpt
+        // / description was provided in the front-matter. Strip HTML tags,
+        // collapse whitespace, take the first ~180 characters.
+        var summary = post.description || post.excerpt;
+        if (!summary && post.content) {
+          var raw = post.content.replace(/<[^>]+>/g, ' ').replace(/&[#a-zA-Z0-9]+;/g, ' ').replace(/\s+/g, ' ').trim();
+          summary = raw.length > 180 ? raw.slice(0, 180) + '…' : raw;
+        }
+      %>
+      <% if (summary){ %>
+        <div class="article-entry article-excerpt" itemprop="description">
+          <p><%= summary %></p>
+        </div>
+      <% } %>
+      <div class="article-list-footer">
+        <a class="article-more-link-btn" href="<%- url_for(post.path) %>">阅读全文 &raquo;</a>
       </div>
     <% } %>
     <% if (!index){ %>
