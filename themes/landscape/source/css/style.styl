@@ -56,18 +56,10 @@ body
   .mobile-nav-on &
     left: mobile-nav-width
 
-if sidebar and sidebar isnt bottom
-  #main
-    @media mq-normal
-      column(main-column)
+// Legacy float-based column rules removed. The flex block below is the
+// single source of truth for main + sidebar layout.
 
-if sidebar is left
-  @media mq-normal
-    #main
-      float: right
-
-// Flex layout for main + sidebar so the sidebar always sits beside main
-// instead of falling to the bottom when float/media-query rules don't apply.
+// Flex layout for main + sidebar.
 .main-outer
   @media screen and (min-width: 480px)
     display: flex
@@ -75,15 +67,19 @@ if sidebar is left
     align-items: flex-start
     gap: 20px
     #main
-      flex: 1 1 auto
+      display: block
+      flex: 1 1 0%
       min-width: 0
+      max-width: 100%
       float: none
       width: auto
       margin: 0
+      overflow: hidden
     #sidebar
-      flex: 0 0 260px
+      display: block
+      flex: 0 0 240px
       float: none
-      width: auto
+      width: 240px
       margin: 0
   if sidebar is left
     @media screen and (min-width: 480px)

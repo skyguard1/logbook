@@ -7,58 +7,58 @@ categories:
 
 <h1 style="box-sizing:border-box;font-size:2.25em;margin:24px 0px 16px;font-weight:600;line-height:1.25;padding-bottom:.3em;border-bottom:1px solid #eaecef;color:#24292e;font-family:&#39;-apple-system&#39;, BlinkMacSystemFont, &#39;微软雅黑&#39;, &#39;PingFang SC&#39;, Helvetica, Arial, &#39;Hiragino Sans GB&#39;, &#39;Microsoft YaHei&#39;, SimSun, &#39;宋体&#39;, Heiti, &#39;黑体&#39;, sans-serif;font-style:normal;letter-spacing:normal;text-indent:0px;text-transform:none;white-space:normal;word-spacing:0px;">Elasticsearch Node 启动过程源码解析</h1>
 <h2 style="box-sizing:border-box;margin-top:24px;margin-bottom:16px;font-size:1.75em;font-weight:600;line-height:1.25;padding-bottom:.3em;border-bottom:1px solid #eaecef;color:#24292e;font-family:&#39;-apple-system&#39;, BlinkMacSystemFont, &#39;微软雅黑&#39;, &#39;PingFang SC&#39;, Helvetica, Arial, &#39;Hiragino Sans GB&#39;, &#39;Microsoft YaHei&#39;, SimSun, &#39;宋体&#39;, Heiti, &#39;黑体&#39;, sans-serif;font-style:normal;letter-spacing:normal;text-indent:0px;text-transform:none;white-space:normal;word-spacing:0px;"><a href="https://note.youdao.com/md/preview.html?file=%2Fyws%2Fapi%2Fpersonal%2Ffile%2F7C63765EE638477195831E83CB80CE2B%3Fmethod%3Ddownload%26read%3Dtrue%26shareKey%3D35d14b1c03d89b5088acd1b34a720a7c#elasticsearch-%E7%AE%80%E4%BB%8B" style="box-sizing:border-box;background-color:transparent;color:#0366d6;text-decoration:none;"></a>Elasticsearch 简介</h2>
-<p style="box-sizing: border-box; margin-top: 0px; margin-bottom: 16px; color: rgb(36, 41, 46); font-family: -apple-system, BlinkMacSystemFont, 微软雅黑, &quot;PingFang SC&quot;, Helvetica, Arial, &quot;Hiragino Sans GB&quot;, &quot;Microsoft YaHei&quot;, SimSun, 宋体, Heiti, 黑体, sans-serif; font-size: 14px; font-style: normal; font-weight: 400; letter-spacing: normal; text-indent: 0px; text-transform: none; white-space: normal; word-spacing: 0px;"><img alt="" src="./Elasticsearch 底层系列之 Node 启动过程源码解析 -  - KM平台_files/cos-file-url(2)" style="border-style: none; background-color: rgb(255, 255, 255); position: relative; z-index: 2;" class="amplify"></p>
+<p style="box-sizing: border-box; margin-top: 0px; margin-bottom: 16px; color: rgb(36, 41, 46); font-family: -apple-system, BlinkMacSystemFont, 微软雅黑, &quot;PingFang SC&quot;, Helvetica, Arial, &quot;Hiragino Sans GB&quot;, &quot;Microsoft YaHei&quot;, SimSun, 宋体, Heiti, 黑体, sans-serif; font-size: 14px; font-style: normal; font-weight: 400; letter-spacing: normal; text-indent: 0px; text-transform: none; white-space: normal; word-spacing: 0px;"></p>
 <p style="box-sizing:border-box;margin-top:0px;margin-bottom:16px;color:#24292e;font-family:&#39;-apple-system&#39;, BlinkMacSystemFont, &#39;微软雅黑&#39;, &#39;PingFang SC&#39;, Helvetica, Arial, &#39;Hiragino Sans GB&#39;, &#39;Microsoft YaHei&#39;, SimSun, &#39;宋体&#39;, Heiti, &#39;黑体&#39;, sans-serif;font-size:14px;font-style:normal;font-weight:400;letter-spacing:normal;text-indent:0px;text-transform:none;white-space:normal;word-spacing:0px;">Elasticsearch 是一款开源的分布式搜索引擎，提供了近实时的查询能力和强大的聚合分析能力。与Elastic官方提供的其他组件（Beats、Logstash、Kibana）组合成Elastic Stack，提供了多种使用场景下数据摄入、清洗、存储、查询、可视化的完整解决方案，在搜索、日志分析、统计分析等领域有广泛应用。</p>
-<p style="box-sizing: border-box; margin-top: 0px; margin-bottom: 16px; color: rgb(36, 41, 46); font-family: -apple-system, BlinkMacSystemFont, 微软雅黑, &quot;PingFang SC&quot;, Helvetica, Arial, &quot;Hiragino Sans GB&quot;, &quot;Microsoft YaHei&quot;, SimSun, 宋体, Heiti, 黑体, sans-serif; font-size: 14px; font-style: normal; font-weight: 400; letter-spacing: normal; text-indent: 0px; text-transform: none; white-space: normal; word-spacing: 0px;"><img alt="" src="./Elasticsearch 底层系列之 Node 启动过程源码解析 -  - KM平台_files/cos-file-url(3)" style="border-style: none; background-color: rgb(255, 255, 255); display: block; margin-left: auto; margin-right: auto; position: relative; z-index: 2;"></p>
+<p style="box-sizing: border-box; margin-top: 0px; margin-bottom: 16px; color: rgb(36, 41, 46); font-family: -apple-system, BlinkMacSystemFont, 微软雅黑, &quot;PingFang SC&quot;, Helvetica, Arial, &quot;Hiragino Sans GB&quot;, &quot;Microsoft YaHei&quot;, SimSun, 宋体, Heiti, 黑体, sans-serif; font-size: 14px; font-style: normal; font-weight: 400; letter-spacing: normal; text-indent: 0px; text-transform: none; white-space: normal; word-spacing: 0px;"></p>
 <p style="box-sizing:border-box;margin-top:0px;margin-bottom:16px;color:#24292e;font-family:&#39;-apple-system&#39;, BlinkMacSystemFont, &#39;微软雅黑&#39;, &#39;PingFang SC&#39;, Helvetica, Arial, &#39;Hiragino Sans GB&#39;, &#39;Microsoft YaHei&#39;, SimSun, &#39;宋体&#39;, Heiti, &#39;黑体&#39;, sans-serif;font-size:14px;font-style:normal;font-weight:400;letter-spacing:normal;text-indent:0px;text-transform:none;white-space:normal;word-spacing:0px;">Elasticsearch由多个节点组成一个分布式集群，一个节点被称为一个Node。本文将基于 Elasticsearch v6.4.3版本着重介绍Node的启动过程，也会简要概述ES内部的主要模块、线程池等。</p>
 <h2 style="box-sizing:border-box;margin-top:24px;margin-bottom:16px;font-size:1.75em;font-weight:600;line-height:1.25;padding-bottom:.3em;border-bottom:1px solid #eaecef;color:#24292e;font-family:&#39;-apple-system&#39;, BlinkMacSystemFont, &#39;微软雅黑&#39;, &#39;PingFang SC&#39;, Helvetica, Arial, &#39;Hiragino Sans GB&#39;, &#39;Microsoft YaHei&#39;, SimSun, &#39;宋体&#39;, Heiti, &#39;黑体&#39;, sans-serif;font-style:normal;letter-spacing:normal;text-indent:0px;text-transform:none;white-space:normal;word-spacing:0px;"><a href="https://note.youdao.com/md/preview.html?file=%2Fyws%2Fapi%2Fpersonal%2Ffile%2F7C63765EE638477195831E83CB80CE2B%3Fmethod%3Ddownload%26read%3Dtrue%26shareKey%3D35d14b1c03d89b5088acd1b34a720a7c#elasticsearch-%E5%90%AF%E5%8A%A8%E8%BF%87%E7%A8%8B" style="box-sizing:border-box;background-color:transparent;color:#0366d6;text-decoration:none;"></a>Elasticsearch 启动过程</h2>
 <p style="box-sizing:border-box;margin-top:0px;margin-bottom:16px;color:#24292e;font-family:&#39;-apple-system&#39;, BlinkMacSystemFont, &#39;微软雅黑&#39;, &#39;PingFang SC&#39;, Helvetica, Arial, &#39;Hiragino Sans GB&#39;, &#39;Microsoft YaHei&#39;, SimSun, &#39;宋体&#39;, Heiti, &#39;黑体&#39;, sans-serif;font-size:14px;font-style:normal;font-weight:400;letter-spacing:normal;text-indent:0px;text-transform:none;white-space:normal;word-spacing:0px;">Elasticsearch的启动流程主要涉及Elasticsearch、Bootstrap和Node三个类。主要包括加载三个步骤：</p>
 <ul style="box-sizing:border-box;padding-left:2em;margin-top:0px;margin-bottom:16px;color:#24292e;font-family:&#39;-apple-system&#39;, BlinkMacSystemFont, &#39;微软雅黑&#39;, &#39;PingFang SC&#39;, Helvetica, Arial, &#39;Hiragino Sans GB&#39;, &#39;Microsoft YaHei&#39;, SimSun, &#39;宋体&#39;, Heiti, &#39;黑体&#39;, sans-serif;font-size:14px;font-style:normal;font-weight:400;letter-spacing:normal;text-indent:0px;text-transform:none;white-space:normal;word-spacing:0px;"><li style="box-sizing:border-box;">加载本地环境：读取命令行参数和配置文件，生成本地环境配置</li>
 <li style="box-sizing:border-box;margin-top:.25em;">创建Node：创建节点实例，创建各种服务类对象，注入各种功能模块</li>
 <li style="box-sizing:border-box;margin-top:.25em;">启动Node：启动各种服务，加入集群</li>
-</ul><p style="box-sizing: border-box; margin-top: 0px; margin-bottom: 16px; color: rgb(36, 41, 46); font-family: -apple-system, BlinkMacSystemFont, 微软雅黑, &quot;PingFang SC&quot;, Helvetica, Arial, &quot;Hiragino Sans GB&quot;, &quot;Microsoft YaHei&quot;, SimSun, 宋体, Heiti, 黑体, sans-serif; font-size: 14px; font-style: normal; font-weight: 400; letter-spacing: normal; text-indent: 0px; text-transform: none; white-space: normal; word-spacing: 0px;"><img alt="" src="./Elasticsearch 底层系列之 Node 启动过程源码解析 -  - KM平台_files/cos-file-url(4)" style="border-style: none; background-color: rgb(255, 255, 255); position: relative; z-index: 2;" class="amplify"></p>
+</ul><p style="box-sizing: border-box; margin-top: 0px; margin-bottom: 16px; color: rgb(36, 41, 46); font-family: -apple-system, BlinkMacSystemFont, 微软雅黑, &quot;PingFang SC&quot;, Helvetica, Arial, &quot;Hiragino Sans GB&quot;, &quot;Microsoft YaHei&quot;, SimSun, 宋体, Heiti, 黑体, sans-serif; font-size: 14px; font-style: normal; font-weight: 400; letter-spacing: normal; text-indent: 0px; text-transform: none; white-space: normal; word-spacing: 0px;"></p>
 <p style="box-sizing:border-box;margin-top:0px;margin-bottom:16px;color:#24292e;font-family:&#39;-apple-system&#39;, BlinkMacSystemFont, &#39;微软雅黑&#39;, &#39;PingFang SC&#39;, Helvetica, Arial, &#39;Hiragino Sans GB&#39;, &#39;Microsoft YaHei&#39;, SimSun, &#39;宋体&#39;, Heiti, &#39;黑体&#39;, sans-serif;font-size:14px;font-style:normal;font-weight:400;letter-spacing:normal;text-indent:0px;text-transform:none;white-space:normal;word-spacing:0px;">在详细解读这三个步骤前，这里先介绍下Elasticsearch的主程序入口。</p>
 <h3 style="box-sizing:border-box;margin-top:24px;margin-bottom:16px;font-size:1.5em;font-weight:600;line-height:1.25;color:#24292e;font-family:&#39;-apple-system&#39;, BlinkMacSystemFont, &#39;微软雅黑&#39;, &#39;PingFang SC&#39;, Helvetica, Arial, &#39;Hiragino Sans GB&#39;, &#39;Microsoft YaHei&#39;, SimSun, &#39;宋体&#39;, Heiti, &#39;黑体&#39;, sans-serif;font-style:normal;letter-spacing:normal;text-indent:0px;text-transform:none;white-space:normal;word-spacing:0px;"><a href="https://note.youdao.com/md/preview.html?file=%2Fyws%2Fapi%2Fpersonal%2Ffile%2F7C63765EE638477195831E83CB80CE2B%3Fmethod%3Ddownload%26read%3Dtrue%26shareKey%3D35d14b1c03d89b5088acd1b34a720a7c#%E4%B8%BB%E7%A8%8B%E5%BA%8F%E5%85%A5%E5%8F%A3" style="box-sizing:border-box;background-color:transparent;color:#0366d6;text-decoration:none;"></a>主程序入口</h3>
 <p style="box-sizing:border-box;margin-top:0px;margin-bottom:16px;color:#24292e;font-family:&#39;-apple-system&#39;, BlinkMacSystemFont, &#39;微软雅黑&#39;, &#39;PingFang SC&#39;, Helvetica, Arial, &#39;Hiragino Sans GB&#39;, &#39;Microsoft YaHei&#39;, SimSun, &#39;宋体&#39;, Heiti, &#39;黑体&#39;, sans-serif;font-size:14px;font-style:normal;font-weight:400;letter-spacing:normal;text-indent:0px;text-transform:none;white-space:normal;word-spacing:0px;">从elasticsearch的启动脚本（bin/elastisearch）中，可以看到主程序的入口是 org.elasticsearch.bootstrap.Elasticsearch。</p>
 <h4 style="box-sizing:border-box;margin-top:24px;margin-bottom:16px;font-size:1.25em;font-weight:600;line-height:1.25;color:#24292e;font-family:&#39;-apple-system&#39;, BlinkMacSystemFont, &#39;微软雅黑&#39;, &#39;PingFang SC&#39;, Helvetica, Arial, &#39;Hiragino Sans GB&#39;, &#39;Microsoft YaHei&#39;, SimSun, &#39;宋体&#39;, Heiti, &#39;黑体&#39;, sans-serif;font-style:normal;letter-spacing:normal;text-indent:0px;text-transform:none;white-space:normal;word-spacing:0px;"><a href="https://note.youdao.com/md/preview.html?file=%2Fyws%2Fapi%2Fpersonal%2Ffile%2F7C63765EE638477195831E83CB80CE2B%3Fmethod%3Ddownload%26read%3Dtrue%26shareKey%3D35d14b1c03d89b5088acd1b34a720a7c#%E5%90%AF%E5%8A%A8%E8%84%9A%E6%9C%AC" style="box-sizing:border-box;background-color:transparent;color:#0366d6;text-decoration:none;"></a>启动脚本</h4>
-<pre style="box-sizing: border-box; font: 400 11.9px / 1.45 SFMono-Regular, Consolas, &quot;Liberation Mono&quot;, Menlo, Courier, monospace; margin-top: 0px; margin-bottom: 16px; padding: 16px; overflow: auto; background-color: rgb(246, 248, 250); border-radius: 3px; color: rgb(36, 41, 46); letter-spacing: normal; text-indent: 0px; text-transform: none; word-spacing: 0px; position: relative; z-index: 2;"><code style="box-sizing:border-box;display:inline;overflow:visible;padding:0px;color:#333333;background:transparent;font-family:&#39;SFMono-Regular&#39;, Consolas, &#39;Liberation Mono&#39;, Menlo, Courier, monospace, sans-serif;font-size:11.9px;margin:0px;border-radius:3px;white-space:pre;border:0px;line-height:inherit;">  exec \
-    <span style="box-sizing:border-box;color:#dd1144;">"<span style="box-sizing:border-box;color:#008080;">$JAVA</span>"</span> \
-    <span style="box-sizing:border-box;color:#008080;">$ES_JAVA_OPTS</span> \
-    -Des.path.home=<span style="box-sizing:border-box;color:#dd1144;">"<span style="box-sizing:border-box;color:#008080;">$ES_HOME</span>"</span> \
-    -Des.path.conf=<span style="box-sizing:border-box;color:#dd1144;">"<span style="box-sizing:border-box;color:#008080;">$ES_PATH_CONF</span>"</span> \
-    -Des.distribution.flavor=<span style="box-sizing:border-box;color:#dd1144;">"<span style="box-sizing:border-box;color:#008080;">$ES_DISTRIBUTION_FLAVOR</span>"</span> \
-    -Des.distribution.type=<span style="box-sizing:border-box;color:#dd1144;">"<span style="box-sizing:border-box;color:#008080;">$ES_DISTRIBUTION_TYPE</span>"</span> \
-    -cp <span style="box-sizing:border-box;color:#dd1144;">"<span style="box-sizing:border-box;color:#008080;">$ES_CLASSPATH</span>"</span> \
+<pre><code>  exec \
+    "$JAVA" \
+    $ES_JAVA_OPTS \
+    -Des.path.home="$ES_HOME" \
+    -Des.path.conf="$ES_PATH_CONF" \
+    -Des.distribution.flavor="$ES_DISTRIBUTION_FLAVOR" \
+    -Des.distribution.type="$ES_DISTRIBUTION_TYPE" \
+    -cp "$ES_CLASSPATH" \
     org.elasticsearch.bootstrap.Elasticsearch \
-    <span style="box-sizing:border-box;color:#dd1144;">"$@"</span>
+    "$@"
 </code></pre>
 <h4 style="box-sizing:border-box;margin-top:24px;margin-bottom:16px;font-size:1.25em;font-weight:600;line-height:1.25;color:#24292e;font-family:&#39;-apple-system&#39;, BlinkMacSystemFont, &#39;微软雅黑&#39;, &#39;PingFang SC&#39;, Helvetica, Arial, &#39;Hiragino Sans GB&#39;, &#39;Microsoft YaHei&#39;, SimSun, &#39;宋体&#39;, Heiti, &#39;黑体&#39;, sans-serif;font-style:normal;letter-spacing:normal;text-indent:0px;text-transform:none;white-space:normal;word-spacing:0px;"><a href="https://note.youdao.com/md/preview.html?file=%2Fyws%2Fapi%2Fpersonal%2Ffile%2F7C63765EE638477195831E83CB80CE2B%3Fmethod%3Ddownload%26read%3Dtrue%26shareKey%3D35d14b1c03d89b5088acd1b34a720a7c#%E4%B8%BB%E7%A8%8B%E5%BA%8F%E5%85%A5%E5%8F%A3-2" style="box-sizing:border-box;background-color:transparent;color:#0366d6;text-decoration:none;"></a>主程序入口</h4>
 <p style="box-sizing:border-box;margin-top:0px;margin-bottom:16px;color:#24292e;font-family:&#39;-apple-system&#39;, BlinkMacSystemFont, &#39;微软雅黑&#39;, &#39;PingFang SC&#39;, Helvetica, Arial, &#39;Hiragino Sans GB&#39;, &#39;Microsoft YaHei&#39;, SimSun, &#39;宋体&#39;, Heiti, &#39;黑体&#39;, sans-serif;font-size:14px;font-style:normal;font-weight:400;letter-spacing:normal;text-indent:0px;text-transform:none;white-space:normal;word-spacing:0px;"><strong style="box-sizing:border-box;font-weight:600;">PATH</strong></p>
 <p style="box-sizing:border-box;margin-top:0px;margin-bottom:16px;color:#24292e;font-family:&#39;-apple-system&#39;, BlinkMacSystemFont, &#39;微软雅黑&#39;, &#39;PingFang SC&#39;, Helvetica, Arial, &#39;Hiragino Sans GB&#39;, &#39;Microsoft YaHei&#39;, SimSun, &#39;宋体&#39;, Heiti, &#39;黑体&#39;, sans-serif;font-size:14px;font-style:normal;font-weight:400;letter-spacing:normal;text-indent:0px;text-transform:none;white-space:normal;word-spacing:0px;">org.elasticsearch.bootstrap.Elasticsearch#main</p>
 <p style="box-sizing:border-box;margin-top:0px;margin-bottom:16px;color:#24292e;font-family:&#39;-apple-system&#39;, BlinkMacSystemFont, &#39;微软雅黑&#39;, &#39;PingFang SC&#39;, Helvetica, Arial, &#39;Hiragino Sans GB&#39;, &#39;Microsoft YaHei&#39;, SimSun, &#39;宋体&#39;, Heiti, &#39;黑体&#39;, sans-serif;font-size:14px;font-style:normal;font-weight:400;letter-spacing:normal;text-indent:0px;text-transform:none;white-space:normal;word-spacing:0px;"><strong style="box-sizing:border-box;font-weight:600;">CODE</strong></p>
-<pre style="box-sizing: border-box; font: 400 11.9px / 1.45 SFMono-Regular, Consolas, &quot;Liberation Mono&quot;, Menlo, Courier, monospace; margin-top: 0px; margin-bottom: 16px; padding: 16px; overflow: auto; background-color: rgb(246, 248, 250); border-radius: 3px; color: rgb(36, 41, 46); letter-spacing: normal; text-indent: 0px; text-transform: none; word-spacing: 0px; position: relative; z-index: 2;"><code style="box-sizing:border-box;display:inline;overflow:visible;padding:0px;color:#333333;background:transparent;font-family:&#39;SFMono-Regular&#39;, Consolas, &#39;Liberation Mono&#39;, Menlo, Courier, monospace, sans-serif;font-size:11.9px;margin:0px;border-radius:3px;white-space:pre;border:0px;line-height:inherit;">    <span style="box-sizing:border-box;color:#999988;font-style:italic;">/**
+<pre><code>    /**
      * Main entry point for starting elasticsearch
-     */</span>
-    <span style="box-sizing:border-box;"><span style="box-sizing:border-box;color:#333333;font-weight:bold;">public</span> <span style="box-sizing:border-box;color:#333333;font-weight:bold;">static</span> <span style="box-sizing:border-box;color:#333333;font-weight:bold;">void</span> <span style="box-sizing:border-box;color:#990000;font-weight:bold;">main</span><span style="box-sizing:border-box;">(<span style="box-sizing:border-box;color:#333333;font-weight:bold;">final</span> String[] args)</span> <span style="box-sizing:border-box;color:#333333;font-weight:bold;">throws</span> Exception </span>{
-        <span style="box-sizing:border-box;color:#999988;font-style:italic;">// 1. <span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">创建安全管理器，授权所有操作</span></span>
-        System.setSecurityManager(<span style="box-sizing:border-box;color:#333333;font-weight:bold;">new</span> SecurityManager() {
-            <span style="box-sizing:border-box;color:#999999;font-weight:bold;">@Override</span>
-            <span style="box-sizing:border-box;"><span style="box-sizing:border-box;color:#333333;font-weight:bold;">public</span> <span style="box-sizing:border-box;color:#333333;font-weight:bold;">void</span> <span style="box-sizing:border-box;color:#990000;font-weight:bold;">checkPermission</span><span style="box-sizing:border-box;">(Permission perm)</span> </span>{
-                <span style="box-sizing:border-box;color:#999988;font-style:italic;">// grant all permissions so that we can later set the security manager to the one that we want</span>
+     */
+    public static void main(final String[] args) throws Exception {
+        // 1. 创建安全管理器，授权所有操作
+        System.setSecurityManager(new SecurityManager() {
+            @Override
+            public void checkPermission(Permission perm) {
+                // grant all permissions so that we can later set the security manager to the one that we want
             }
         });
-        <span style="box-sizing:border-box;color:#999988;font-style:italic;">// 2. <span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">注册</span>log<span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">侦听器</span></span>
+        // 2. 注册log侦听器
         LogConfigurator.registerErrorListener();
-        <span style="box-sizing:border-box;color:#999988;font-style:italic;">// 3. <span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">创建</span>Elasticsearch<span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">类对象</span></span>
-        <span style="box-sizing:border-box;color:#333333;font-weight:bold;">final</span> Elasticsearch elasticsearch = <span style="box-sizing:border-box;color:#333333;font-weight:bold;">new</span> Elasticsearch();
-        <span style="box-sizing:border-box;color:#333333;font-weight:bold;">int</span> status = main(args, elasticsearch, Terminal.DEFAULT);
-        <span style="box-sizing:border-box;color:#333333;font-weight:bold;">if</span> (status != ExitCodes.OK) {
+        // 3. 创建Elasticsearch类对象
+        final Elasticsearch elasticsearch = new Elasticsearch();
+        int status = main(args, elasticsearch, Terminal.DEFAULT);
+        if (status != ExitCodes.OK) {
             exit(status);
         }
     }
 
-    <span style="box-sizing:border-box;"><span style="box-sizing:border-box;color:#333333;font-weight:bold;">static</span> <span style="box-sizing:border-box;color:#333333;font-weight:bold;">int</span> <span style="box-sizing:border-box;color:#990000;font-weight:bold;">main</span><span style="box-sizing:border-box;">(<span style="box-sizing:border-box;color:#333333;font-weight:bold;">final</span> String[] args, <span style="box-sizing:border-box;color:#333333;font-weight:bold;">final</span> Elasticsearch elasticsearch, <span style="box-sizing:border-box;color:#333333;font-weight:bold;">final</span> Terminal terminal)</span> <span style="box-sizing:border-box;color:#333333;font-weight:bold;">throws</span> Exception </span>{
-        <span style="box-sizing:border-box;color:#333333;font-weight:bold;">return</span> elasticsearch.main(args, terminal);
+    static int main(final String[] args, final Elasticsearch elasticsearch, final Terminal terminal) throws Exception {
+        return elasticsearch.main(args, terminal);
     }
 </code></pre>
 <p style="box-sizing:border-box;margin-top:0px;margin-bottom:16px;color:#24292e;font-family:&#39;-apple-system&#39;, BlinkMacSystemFont, &#39;微软雅黑&#39;, &#39;PingFang SC&#39;, Helvetica, Arial, &#39;Hiragino Sans GB&#39;, &#39;Microsoft YaHei&#39;, SimSun, &#39;宋体&#39;, Heiti, &#39;黑体&#39;, sans-serif;font-size:14px;font-style:normal;font-weight:400;letter-spacing:normal;text-indent:0px;text-transform:none;white-space:normal;word-spacing:0px;"><strong style="box-sizing:border-box;font-weight:600;">解析</strong></p>
@@ -66,84 +66,84 @@ categories:
 <ol style="box-sizing:border-box;padding-left:2em;margin-top:0px;margin-bottom:16px;color:#24292e;font-family:&#39;-apple-system&#39;, BlinkMacSystemFont, &#39;微软雅黑&#39;, &#39;PingFang SC&#39;, Helvetica, Arial, &#39;Hiragino Sans GB&#39;, &#39;Microsoft YaHei&#39;, SimSun, &#39;宋体&#39;, Heiti, &#39;黑体&#39;, sans-serif;font-size:14px;font-style:normal;font-weight:400;letter-spacing:normal;text-indent:0px;text-transform:none;white-space:normal;word-spacing:0px;"><li style="box-sizing:border-box;">设置安全管理器，授权所有操作：SecurityManager在Java中被用来检查应用程序是否能访问一些有限的资源，例如文件、套接字(socket)等。这里的checkPermission函数授权了所有操作。</li>
 <li style="box-sizing:border-box;margin-top:.25em;">注册log侦听器：这里尽早启用日志侦听，防止有些日志无法被记录。</li>
 <li style="box-sizing:border-box;margin-top:.25em;">创建Elasticsearch类对象，如下图所示，Elasticsearch的顺序继承至EnvironmentAwareCommand，Command。Elasticsearch()会调用父类构造函数，注册命令行的解析规则，后续解析命令行参数时使用。</li>
-</ol><p style="box-sizing: border-box; margin-top: 0px; margin-bottom: 16px; color: rgb(36, 41, 46); font-family: -apple-system, BlinkMacSystemFont, 微软雅黑, &quot;PingFang SC&quot;, Helvetica, Arial, &quot;Hiragino Sans GB&quot;, &quot;Microsoft YaHei&quot;, SimSun, 宋体, Heiti, 黑体, sans-serif; font-size: 14px; font-style: normal; font-weight: 400; letter-spacing: normal; text-indent: 0px; text-transform: none; white-space: normal; word-spacing: 0px;"><img alt="" src="./Elasticsearch 底层系列之 Node 启动过程源码解析 -  - KM平台_files/cos-file-url(5)" style="border-style: none; background-color: rgb(255, 255, 255); display: block; margin-left: auto; margin-right: auto; position: relative; z-index: 2;"></p>
+</ol><p style="box-sizing: border-box; margin-top: 0px; margin-bottom: 16px; color: rgb(36, 41, 46); font-family: -apple-system, BlinkMacSystemFont, 微软雅黑, &quot;PingFang SC&quot;, Helvetica, Arial, &quot;Hiragino Sans GB&quot;, &quot;Microsoft YaHei&quot;, SimSun, 宋体, Heiti, 黑体, sans-serif; font-size: 14px; font-style: normal; font-weight: 400; letter-spacing: normal; text-indent: 0px; text-transform: none; white-space: normal; word-spacing: 0px;"></p>
 <ol style="box-sizing:border-box;padding-left:2em;margin-top:0px;margin-bottom:16px;color:#24292e;font-family:&#39;-apple-system&#39;, BlinkMacSystemFont, &#39;微软雅黑&#39;, &#39;PingFang SC&#39;, Helvetica, Arial, &#39;Hiragino Sans GB&#39;, &#39;Microsoft YaHei&#39;, SimSun, &#39;宋体&#39;, Heiti, &#39;黑体&#39;, sans-serif;font-size:14px;font-style:normal;font-weight:400;letter-spacing:normal;text-indent:0px;text-transform:none;white-space:normal;word-spacing:0px;"><li style="box-sizing:border-box;">调用elasticsearch.main()来做进一步的初始化操作（实际是Command#main）。如果初始化报错，则退出进程。</li>
 </ol><h3 style="box-sizing:border-box;margin-top:24px;margin-bottom:16px;font-size:1.5em;font-weight:600;line-height:1.25;color:#24292e;font-family:&#39;-apple-system&#39;, BlinkMacSystemFont, &#39;微软雅黑&#39;, &#39;PingFang SC&#39;, Helvetica, Arial, &#39;Hiragino Sans GB&#39;, &#39;Microsoft YaHei&#39;, SimSun, &#39;宋体&#39;, Heiti, &#39;黑体&#39;, sans-serif;font-style:normal;letter-spacing:normal;text-indent:0px;text-transform:none;white-space:normal;word-spacing:0px;"><a href="https://note.youdao.com/md/preview.html?file=%2Fyws%2Fapi%2Fpersonal%2Ffile%2F7C63765EE638477195831E83CB80CE2B%3Fmethod%3Ddownload%26read%3Dtrue%26shareKey%3D35d14b1c03d89b5088acd1b34a720a7c#%E7%AC%AC%E4%B8%80%E6%AD%A5%E5%8A%A0%E8%BD%BD%E6%9C%AC%E5%9C%B0%E7%8E%AF%E5%A2%83elasticserach%E5%88%9D%E5%A7%8B%E5%8C%96" style="box-sizing:border-box;background-color:transparent;color:#0366d6;text-decoration:none;"></a>第一步：加载本地环境：Elasticserach初始化</h3>
 <p style="box-sizing:border-box;margin-top:0px;margin-bottom:16px;color:#24292e;font-family:&#39;-apple-system&#39;, BlinkMacSystemFont, &#39;微软雅黑&#39;, &#39;PingFang SC&#39;, Helvetica, Arial, &#39;Hiragino Sans GB&#39;, &#39;Microsoft YaHei&#39;, SimSun, &#39;宋体&#39;, Heiti, &#39;黑体&#39;, sans-serif;font-size:14px;font-style:normal;font-weight:400;letter-spacing:normal;text-indent:0px;text-transform:none;white-space:normal;word-spacing:0px;"><strong style="box-sizing:border-box;font-weight:600;">PATH</strong></p>
 <p style="box-sizing:border-box;margin-top:0px;margin-bottom:16px;color:#24292e;font-family:&#39;-apple-system&#39;, BlinkMacSystemFont, &#39;微软雅黑&#39;, &#39;PingFang SC&#39;, Helvetica, Arial, &#39;Hiragino Sans GB&#39;, &#39;Microsoft YaHei&#39;, SimSun, &#39;宋体&#39;, Heiti, &#39;黑体&#39;, sans-serif;font-size:14px;font-style:normal;font-weight:400;letter-spacing:normal;text-indent:0px;text-transform:none;white-space:normal;word-spacing:0px;">elasticsearch\libs\cli\src\main\java\org\elasticsearch\cli\Command.java</p>
 <p style="box-sizing:border-box;margin-top:0px;margin-bottom:16px;color:#24292e;font-family:&#39;-apple-system&#39;, BlinkMacSystemFont, &#39;微软雅黑&#39;, &#39;PingFang SC&#39;, Helvetica, Arial, &#39;Hiragino Sans GB&#39;, &#39;Microsoft YaHei&#39;, SimSun, &#39;宋体&#39;, Heiti, &#39;黑体&#39;, sans-serif;font-size:14px;font-style:normal;font-weight:400;letter-spacing:normal;text-indent:0px;text-transform:none;white-space:normal;word-spacing:0px;"><strong style="box-sizing:border-box;font-weight:600;">CODE</strong></p>
-<pre style="box-sizing: border-box; font: 400 11.9px / 1.45 SFMono-Regular, Consolas, &quot;Liberation Mono&quot;, Menlo, Courier, monospace; margin-top: 0px; margin-bottom: 16px; padding: 16px; overflow: auto; background-color: rgb(246, 248, 250); border-radius: 3px; color: rgb(36, 41, 46); letter-spacing: normal; text-indent: 0px; text-transform: none; word-spacing: 0px; position: relative; z-index: 2;"><code style="box-sizing:border-box;display:inline;overflow:visible;padding:0px;color:#333333;background:transparent;font-family:&#39;SFMono-Regular&#39;, Consolas, &#39;Liberation Mono&#39;, Menlo, Courier, monospace, sans-serif;font-size:11.9px;margin:0px;border-radius:3px;white-space:pre;border:0px;line-height:inherit;">
-   <span style="box-sizing:border-box;color:#999988;font-style:italic;">/** Parses options for this command from args and executes it. */</span>
-    <span style="box-sizing:border-box;"><span style="box-sizing:border-box;color:#333333;font-weight:bold;">public</span> <span style="box-sizing:border-box;color:#333333;font-weight:bold;">final</span> <span style="box-sizing:border-box;color:#333333;font-weight:bold;">int</span> <span style="box-sizing:border-box;color:#990000;font-weight:bold;">main</span><span style="box-sizing:border-box;">(String[] args, Terminal terminal)</span> <span style="box-sizing:border-box;color:#333333;font-weight:bold;">throws</span> Exception </span>{
-        <span style="box-sizing:border-box;color:#333333;font-weight:bold;">if</span> (addShutdownHook()) {
+<pre><code>
+   /** Parses options for this command from args and executes it. */
+    public final int main(String[] args, Terminal terminal) throws Exception {
+        if (addShutdownHook()) {
 
-            shutdownHookThread = <span style="box-sizing:border-box;color:#333333;font-weight:bold;">new</span> Thread(() -&gt; {
-                <span style="box-sizing:border-box;color:#333333;font-weight:bold;">try</span> {
-                    <span style="box-sizing:border-box;color:#999988;font-style:italic;">// Elasticsearch#close</span>
-                    <span style="box-sizing:border-box;color:#333333;font-weight:bold;">this</span>.close();
-                } <span style="box-sizing:border-box;color:#333333;font-weight:bold;">catch</span> (<span style="box-sizing:border-box;color:#333333;font-weight:bold;">final</span> IOException e) {
-                    <span style="box-sizing:border-box;color:#333333;font-weight:bold;">try</span> (
-                        StringWriter sw = <span style="box-sizing:border-box;color:#333333;font-weight:bold;">new</span> StringWriter();
-                        PrintWriter pw = <span style="box-sizing:border-box;color:#333333;font-weight:bold;">new</span> PrintWriter(sw)) {
-                        <span style="box-sizing:border-box;color:#999988;font-style:italic;">// <span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">异常关闭打印堆栈信息</span></span>
+            shutdownHookThread = new Thread(() -&gt; {
+                try {
+                    // Elasticsearch#close
+                    this.close();
+                } catch (final IOException e) {
+                    try (
+                        StringWriter sw = new StringWriter();
+                        PrintWriter pw = new PrintWriter(sw)) {
+                        // 异常关闭打印堆栈信息
                         e.printStackTrace(pw);
                         terminal.println(sw.toString());
                     }
                 }
             });
-            <span style="box-sizing:border-box;color:#999988;font-style:italic;">// 1. <span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">增加</span>shutdown<span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">时的</span>hook<span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">线程，在进程退出时调用</span></span>
+            // 1. 增加shutdown时的hook线程，在进程退出时调用
             Runtime.getRuntime().addShutdownHook(shutdownHookThread);
         }
 
-        <span style="box-sizing:border-box;color:#333333;font-weight:bold;">try</span> {
-            <span style="box-sizing:border-box;color:#999988;font-style:italic;">// 2. <span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">解析命令行参数</span></span>
+        try {
+            // 2. 解析命令行参数
             mainWithoutErrorHandling(args, terminal);
-        } <span style="box-sizing:border-box;color:#333333;font-weight:bold;">catch</span> (OptionException e) {
+        } catch (OptionException e) {
             printHelp(terminal);
-            terminal.println(Terminal.Verbosity.SILENT, <span style="box-sizing:border-box;color:#dd1144;">"ERROR: "</span> + e.getMessage());
-            <span style="box-sizing:border-box;color:#333333;font-weight:bold;">return</span> ExitCodes.USAGE;
+            terminal.println(Terminal.Verbosity.SILENT, "ERROR: " + e.getMessage());
+            return ExitCodes.USAGE;
         }
-        <span style="box-sizing:border-box;color:#333333;font-weight:bold;">return</span> ExitCodes.OK;
+        return ExitCodes.OK;
     }
 </code></pre>
 <p style="box-sizing:border-box;margin-top:0px;margin-bottom:16px;color:#24292e;font-family:&#39;-apple-system&#39;, BlinkMacSystemFont, &#39;微软雅黑&#39;, &#39;PingFang SC&#39;, Helvetica, Arial, &#39;Hiragino Sans GB&#39;, &#39;Microsoft YaHei&#39;, SimSun, &#39;宋体&#39;, Heiti, &#39;黑体&#39;, sans-serif;font-size:14px;font-style:normal;font-weight:400;letter-spacing:normal;text-indent:0px;text-transform:none;white-space:normal;word-spacing:0px;"><strong style="box-sizing:border-box;font-weight:600;">解析</strong></p>
 <p style="box-sizing:border-box;margin-top:0px;margin-bottom:16px;color:#24292e;font-family:&#39;-apple-system&#39;, BlinkMacSystemFont, &#39;微软雅黑&#39;, &#39;PingFang SC&#39;, Helvetica, Arial, &#39;Hiragino Sans GB&#39;, &#39;Microsoft YaHei&#39;, SimSun, &#39;宋体&#39;, Heiti, &#39;黑体&#39;, sans-serif;font-size:14px;font-style:normal;font-weight:400;letter-spacing:normal;text-indent:0px;text-transform:none;white-space:normal;word-spacing:0px;">Command#main的主要步骤两个：</p>
 <ol style="box-sizing:border-box;padding-left:2em;margin-top:0px;margin-bottom:16px;color:#24292e;font-family:&#39;-apple-system&#39;, BlinkMacSystemFont, &#39;微软雅黑&#39;, &#39;PingFang SC&#39;, Helvetica, Arial, &#39;Hiragino Sans GB&#39;, &#39;Microsoft YaHei&#39;, SimSun, &#39;宋体&#39;, Heiti, &#39;黑体&#39;, sans-serif;font-size:14px;font-style:normal;font-weight:400;letter-spacing:normal;text-indent:0px;text-transform:none;white-space:normal;word-spacing:0px;"><li style="box-sizing:border-box;">addShutdownHook：向runtime增加进程退出时的回调线程，在进程退出时调用Elasticsearch#close，如果异常关闭则打印堆栈信息</li>
 <li style="box-sizing:border-box;margin-top:.25em;">mainWithoutErrorHandling：解析部分命令行参数（-h，-v，-s）后，调用EnvironmentAwareCommand#execute：</li>
-</ol><pre style="box-sizing: border-box; font: 400 11.9px / 1.45 SFMono-Regular, Consolas, &quot;Liberation Mono&quot;, Menlo, Courier, monospace; margin-top: 0px; margin-bottom: 16px; padding: 16px; overflow: auto; background-color: rgb(246, 248, 250); border-radius: 3px; color: rgb(36, 41, 46); letter-spacing: normal; text-indent: 0px; text-transform: none; word-spacing: 0px; position: relative; z-index: 2;"><code style="box-sizing:border-box;display:inline;overflow:visible;padding:0px;color:#333333;background:transparent;font-family:&#39;SFMono-Regular&#39;, Consolas, &#39;Liberation Mono&#39;, Menlo, Courier, monospace, sans-serif;font-size:11.9px;margin:0px;border-radius:3px;white-space:pre;border:0px;line-height:inherit;">    <span style="box-sizing:border-box;"><span style="box-sizing:border-box;color:#333333;font-weight:bold;">protected</span> <span style="box-sizing:border-box;color:#333333;font-weight:bold;">void</span> <span style="box-sizing:border-box;color:#990000;font-weight:bold;">execute</span><span style="box-sizing:border-box;">(Terminal terminal, OptionSet options)</span> <span style="box-sizing:border-box;color:#333333;font-weight:bold;">throws</span> Exception </span>{
-        <span style="box-sizing:border-box;color:#333333;font-weight:bold;">final</span> Map&lt;String, String&gt; settings = <span style="box-sizing:border-box;color:#333333;font-weight:bold;">new</span> HashMap&lt;&gt;();
-        putSystemPropertyIfSettingIsMissing(settings, <span style="box-sizing:border-box;color:#dd1144;">"path.data"</span>, <span style="box-sizing:border-box;color:#dd1144;">"es.path.data"</span>);
-        putSystemPropertyIfSettingIsMissing(settings, <span style="box-sizing:border-box;color:#dd1144;">"path.home"</span>, <span style="box-sizing:border-box;color:#dd1144;">"es.path.home"</span>);
-        putSystemPropertyIfSettingIsMissing(settings, <span style="box-sizing:border-box;color:#dd1144;">"path.logs"</span>, <span style="box-sizing:border-box;color:#dd1144;">"es.path.logs"</span>);
+</ol><pre><code>    protected void execute(Terminal terminal, OptionSet options) throws Exception {
+        final Map&lt;String, String&gt; settings = new HashMap&lt;&gt;();
+        putSystemPropertyIfSettingIsMissing(settings, "path.data", "es.path.data");
+        putSystemPropertyIfSettingIsMissing(settings, "path.home", "es.path.home");
+        putSystemPropertyIfSettingIsMissing(settings, "path.logs", "es.path.logs");
         execute(terminal, options, createEnv(terminal, settings));
     }
 </code></pre>
 <ul style="box-sizing:border-box;padding-left:2em;margin-top:0px;margin-bottom:16px;color:#24292e;font-family:&#39;-apple-system&#39;, BlinkMacSystemFont, &#39;微软雅黑&#39;, &#39;PingFang SC&#39;, Helvetica, Arial, &#39;Hiragino Sans GB&#39;, &#39;Microsoft YaHei&#39;, SimSun, &#39;宋体&#39;, Heiti, &#39;黑体&#39;, sans-serif;font-size:14px;font-style:normal;font-weight:400;letter-spacing:normal;text-indent:0px;text-transform:none;white-space:normal;word-spacing:0px;"><li style="box-sizing:border-box;">获取vm options指定的参数，放入settings中，如下图所示。</li>
-</ul><p style="box-sizing: border-box; margin-top: 0px; margin-bottom: 16px; color: rgb(36, 41, 46); font-family: -apple-system, BlinkMacSystemFont, 微软雅黑, &quot;PingFang SC&quot;, Helvetica, Arial, &quot;Hiragino Sans GB&quot;, &quot;Microsoft YaHei&quot;, SimSun, 宋体, Heiti, 黑体, sans-serif; font-size: 14px; font-style: normal; font-weight: 400; letter-spacing: normal; text-indent: 0px; text-transform: none; white-space: normal; word-spacing: 0px;"><img alt="" src="./Elasticsearch 底层系列之 Node 启动过程源码解析 -  - KM平台_files/cos-file-url(6)" style="border-style: none; background-color: rgb(255, 255, 255); display: block; margin-left: auto; margin-right: auto; position: relative; z-index: 2;"></p>
+</ul><p style="box-sizing: border-box; margin-top: 0px; margin-bottom: 16px; color: rgb(36, 41, 46); font-family: -apple-system, BlinkMacSystemFont, 微软雅黑, &quot;PingFang SC&quot;, Helvetica, Arial, &quot;Hiragino Sans GB&quot;, &quot;Microsoft YaHei&quot;, SimSun, 宋体, Heiti, 黑体, sans-serif; font-size: 14px; font-style: normal; font-weight: 400; letter-spacing: normal; text-indent: 0px; text-transform: none; white-space: normal; word-spacing: 0px;"></p>
 <ul style="box-sizing:border-box;padding-left:2em;margin-top:0px;margin-bottom:16px;color:#24292e;font-family:&#39;-apple-system&#39;, BlinkMacSystemFont, &#39;微软雅黑&#39;, &#39;PingFang SC&#39;, Helvetica, Arial, &#39;Hiragino Sans GB&#39;, &#39;Microsoft YaHei&#39;, SimSun, &#39;宋体&#39;, Heiti, &#39;黑体&#39;, sans-serif;font-size:14px;font-style:normal;font-weight:400;letter-spacing:normal;text-indent:0px;text-transform:none;white-space:normal;word-spacing:0px;"><li style="box-sizing:border-box;">调用createEnv，通过prepareEnvironment读取es的配置文件（conf/elasticsearch.yml），生成Environment，存储一些路径及ES配置信息。</li>
-</ul><pre style="box-sizing: border-box; font: 400 11.9px / 1.45 SFMono-Regular, Consolas, &quot;Liberation Mono&quot;, Menlo, Courier, monospace; margin-top: 0px; margin-bottom: 16px; padding: 16px; overflow: auto; background-color: rgb(246, 248, 250); border-radius: 3px; color: rgb(36, 41, 46); letter-spacing: normal; text-indent: 0px; text-transform: none; word-spacing: 0px; position: relative; z-index: 2;"><code style="box-sizing:border-box;display:inline;overflow:visible;padding:0px;color:#333333;background:transparent;font-family:&#39;SFMono-Regular&#39;, Consolas, &#39;Liberation Mono&#39;, Menlo, Courier, monospace, sans-serif;font-size:11.9px;margin:0px;border-radius:3px;white-space:pre;border:0px;line-height:inherit;">    <span style="box-sizing:border-box;"><span style="box-sizing:border-box;color:#333333;font-weight:bold;">public</span> <span style="box-sizing:border-box;color:#333333;font-weight:bold;">static</span> Environment <span style="box-sizing:border-box;color:#990000;font-weight:bold;">prepareEnvironment</span><span style="box-sizing:border-box;">(Settings input, Terminal terminal, Map&lt;String, String&gt; properties, Path configPath)</span> </span>{
+</ul><pre><code>    public static Environment prepareEnvironment(Settings input, Terminal terminal, Map&lt;String, String&gt; properties, Path configPath) {
         Settings.Builder output = Settings.builder();
-        Path path = environment.configFile().resolve(<span style="box-sizing:border-box;color:#dd1144;">"elasticsearch.yml"</span>);
-        <span style="box-sizing:border-box;color:#333333;font-weight:bold;">if</span> (Files.exists(path)) {
-            <span style="box-sizing:border-box;color:#333333;font-weight:bold;">try</span> {
+        Path path = environment.configFile().resolve("elasticsearch.yml");
+        if (Files.exists(path)) {
+            try {
                 output.loadFromPath(path);
-            } <span style="box-sizing:border-box;color:#333333;font-weight:bold;">catch</span> (IOException e) {
-                <span style="box-sizing:border-box;color:#333333;font-weight:bold;">throw</span> <span style="box-sizing:border-box;color:#333333;font-weight:bold;">new</span> SettingsException(<span style="box-sizing:border-box;color:#dd1144;">"Failed to load settings from "</span> + path.toString(), e);
+            } catch (IOException e) {
+                throw new SettingsException("Failed to load settings from " + path.toString(), e);
             }
         }
-        <span style="box-sizing:border-box;color:#333333;font-weight:bold;">return</span> <span style="box-sizing:border-box;color:#333333;font-weight:bold;">new</span> Environment(output.build(), configPath);
+        return new Environment(output.build(), configPath);
     }
 </code></pre>
-<p style="box-sizing: border-box; margin-top: 0px; margin-bottom: 16px; color: rgb(36, 41, 46); font-family: -apple-system, BlinkMacSystemFont, 微软雅黑, &quot;PingFang SC&quot;, Helvetica, Arial, &quot;Hiragino Sans GB&quot;, &quot;Microsoft YaHei&quot;, SimSun, 宋体, Heiti, 黑体, sans-serif; font-size: 14px; font-style: normal; font-weight: 400; letter-spacing: normal; text-indent: 0px; text-transform: none; white-space: normal; word-spacing: 0px;"><img alt="" src="./Elasticsearch 底层系列之 Node 启动过程源码解析 -  - KM平台_files/cos-file-url(7)" style="border-style: none; background-color: rgb(255, 255, 255); position: relative; z-index: 2;" class="amplify"></p>
+<p style="box-sizing: border-box; margin-top: 0px; margin-bottom: 16px; color: rgb(36, 41, 46); font-family: -apple-system, BlinkMacSystemFont, 微软雅黑, &quot;PingFang SC&quot;, Helvetica, Arial, &quot;Hiragino Sans GB&quot;, &quot;Microsoft YaHei&quot;, SimSun, 宋体, Heiti, 黑体, sans-serif; font-size: 14px; font-style: normal; font-weight: 400; letter-spacing: normal; text-indent: 0px; text-transform: none; white-space: normal; word-spacing: 0px;"></p>
 <ul style="box-sizing:border-box;padding-left:2em;margin-top:0px;margin-bottom:16px;color:#24292e;font-family:&#39;-apple-system&#39;, BlinkMacSystemFont, &#39;微软雅黑&#39;, &#39;PingFang SC&#39;, Helvetica, Arial, &#39;Hiragino Sans GB&#39;, &#39;Microsoft YaHei&#39;, SimSun, &#39;宋体&#39;, Heiti, &#39;黑体&#39;, sans-serif;font-size:14px;font-style:normal;font-weight:400;letter-spacing:normal;text-indent:0px;text-transform:none;white-space:normal;word-spacing:0px;"><li style="box-sizing:border-box;">调用Elasticsearch#execute，读取daemonize/pidFile/quiet值，而后调用Elasticsearch#init -&gt; Bootstrap.init，初始化Bootstrap。</li>
-</ul><pre style="box-sizing: border-box; font: 400 11.9px / 1.45 SFMono-Regular, Consolas, &quot;Liberation Mono&quot;, Menlo, Courier, monospace; margin-top: 0px; margin-bottom: 16px; padding: 16px; overflow: auto; background-color: rgb(246, 248, 250); border-radius: 3px; color: rgb(36, 41, 46); letter-spacing: normal; text-indent: 0px; text-transform: none; word-spacing: 0px; position: relative; z-index: 2;"><code style="box-sizing:border-box;display:inline;overflow:visible;padding:0px;color:#333333;background:transparent;font-family:&#39;SFMono-Regular&#39;, Consolas, &#39;Liberation Mono&#39;, Menlo, Courier, monospace, sans-serif;font-size:11.9px;margin:0px;border-radius:3px;white-space:pre;border:0px;line-height:inherit;">    <span style="box-sizing:border-box;"><span style="box-sizing:border-box;color:#333333;font-weight:bold;">protected</span> <span style="box-sizing:border-box;color:#333333;font-weight:bold;">void</span> <span style="box-sizing:border-box;color:#990000;font-weight:bold;">execute</span><span style="box-sizing:border-box;">(Terminal terminal, OptionSet options, Environment env)</span> <span style="box-sizing:border-box;color:#333333;font-weight:bold;">throws</span> UserException </span>{
-        <span style="box-sizing:border-box;color:#333333;font-weight:bold;">final</span> <span style="box-sizing:border-box;color:#333333;font-weight:bold;">boolean</span> daemonize = options.has(daemonizeOption);
-        <span style="box-sizing:border-box;color:#333333;font-weight:bold;">final</span> Path pidFile = pidfileOption.value(options);
-        <span style="box-sizing:border-box;color:#333333;font-weight:bold;">final</span> <span style="box-sizing:border-box;color:#333333;font-weight:bold;">boolean</span> quiet = options.has(quietOption);
-        <span style="box-sizing:border-box;color:#333333;font-weight:bold;">try</span> {
+</ul><pre><code>    protected void execute(Terminal terminal, OptionSet options, Environment env) throws UserException {
+        final boolean daemonize = options.has(daemonizeOption);
+        final Path pidFile = pidfileOption.value(options);
+        final boolean quiet = options.has(quietOption);
+        try {
             init(daemonize, pidFile, quiet, env);
-        } <span style="box-sizing:border-box;color:#333333;font-weight:bold;">catch</span> (NodeValidationException e) {
-            <span style="box-sizing:border-box;color:#333333;font-weight:bold;">throw</span> <span style="box-sizing:border-box;color:#333333;font-weight:bold;">new</span> UserException(ExitCodes.CONFIG, e.getMessage());
+        } catch (NodeValidationException e) {
+            throw new UserException(ExitCodes.CONFIG, e.getMessage());
         }
     }
 
@@ -152,41 +152,41 @@ categories:
 <p style="box-sizing:border-box;margin-top:0px;margin-bottom:16px;color:#24292e;font-family:&#39;-apple-system&#39;, BlinkMacSystemFont, &#39;微软雅黑&#39;, &#39;PingFang SC&#39;, Helvetica, Arial, &#39;Hiragino Sans GB&#39;, &#39;Microsoft YaHei&#39;, SimSun, &#39;宋体&#39;, Heiti, &#39;黑体&#39;, sans-serif;font-size:14px;font-style:normal;font-weight:400;letter-spacing:normal;text-indent:0px;text-transform:none;white-space:normal;word-spacing:0px;"><strong style="box-sizing:border-box;font-weight:600;">PATH</strong></p>
 <p style="box-sizing:border-box;margin-top:0px;margin-bottom:16px;color:#24292e;font-family:&#39;-apple-system&#39;, BlinkMacSystemFont, &#39;微软雅黑&#39;, &#39;PingFang SC&#39;, Helvetica, Arial, &#39;Hiragino Sans GB&#39;, &#39;Microsoft YaHei&#39;, SimSun, &#39;宋体&#39;, Heiti, &#39;黑体&#39;, sans-serif;font-size:14px;font-style:normal;font-weight:400;letter-spacing:normal;text-indent:0px;text-transform:none;white-space:normal;word-spacing:0px;">elasticsearch\bootstrap\Bootstrap.java</p>
 <p style="box-sizing:border-box;margin-top:0px;margin-bottom:16px;color:#24292e;font-family:&#39;-apple-system&#39;, BlinkMacSystemFont, &#39;微软雅黑&#39;, &#39;PingFang SC&#39;, Helvetica, Arial, &#39;Hiragino Sans GB&#39;, &#39;Microsoft YaHei&#39;, SimSun, &#39;宋体&#39;, Heiti, &#39;黑体&#39;, sans-serif;font-size:14px;font-style:normal;font-weight:400;letter-spacing:normal;text-indent:0px;text-transform:none;white-space:normal;word-spacing:0px;"><strong style="box-sizing:border-box;font-weight:600;">CODE</strong></p>
-<pre style="box-sizing: border-box; font: 400 11.9px / 1.45 SFMono-Regular, Consolas, &quot;Liberation Mono&quot;, Menlo, Courier, monospace; margin-top: 0px; margin-bottom: 16px; padding: 16px; overflow: auto; background-color: rgb(246, 248, 250); border-radius: 3px; color: rgb(36, 41, 46); letter-spacing: normal; text-indent: 0px; text-transform: none; word-spacing: 0px; position: relative; z-index: 2;"><code style="box-sizing:border-box;display:inline;overflow:visible;padding:0px;color:#333333;background:transparent;font-family:&#39;SFMono-Regular&#39;, Consolas, &#39;Liberation Mono&#39;, Menlo, Courier, monospace, sans-serif;font-size:11.9px;margin:0px;border-radius:3px;white-space:pre;border:0px;line-height:inherit;">    <span style="box-sizing:border-box;color:#999988;font-style:italic;">/**
-     * This method is invoked by {<span style="box-sizing:border-box;color:#dd1144;">@link</span> Elasticsearch#main(String[])} to startup elasticsearch.
-     */</span>
-    <span style="box-sizing:border-box;"><span style="box-sizing:border-box;color:#333333;font-weight:bold;">static</span> <span style="box-sizing:border-box;color:#333333;font-weight:bold;">void</span> <span style="box-sizing:border-box;color:#990000;font-weight:bold;">init</span><span style="box-sizing:border-box;">(
-            <span style="box-sizing:border-box;color:#333333;font-weight:bold;">final</span> <span style="box-sizing:border-box;color:#333333;font-weight:bold;">boolean</span> foreground,
-            <span style="box-sizing:border-box;color:#333333;font-weight:bold;">final</span> Path pidFile,
-            <span style="box-sizing:border-box;color:#333333;font-weight:bold;">final</span> <span style="box-sizing:border-box;color:#333333;font-weight:bold;">boolean</span> quiet,
-            <span style="box-sizing:border-box;color:#333333;font-weight:bold;">final</span> Environment initialEnv)</span> <span style="box-sizing:border-box;color:#333333;font-weight:bold;">throws</span> BootstrapException, NodeValidationException, UserException </span>{
+<pre><code>    /**
+     * This method is invoked by {@link Elasticsearch#main(String[])} to startup elasticsearch.
+     */
+    static void init(
+            final boolean foreground,
+            final Path pidFile,
+            final boolean quiet,
+            final Environment initialEnv) throws BootstrapException, NodeValidationException, UserException {
 
-        <span style="box-sizing:border-box;color:#999988;font-style:italic;">// 1. <span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">创建</span> Bootstrap <span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">类对象</span>, <span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">启动</span>keepAlive<span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">线程</span></span>
-        INSTANCE = <span style="box-sizing:border-box;color:#333333;font-weight:bold;">new</span> Bootstrap();
+        // 1. 创建 Bootstrap 类对象, 启动keepAlive线程
+        INSTANCE = new Bootstrap();
 
-        <span style="box-sizing:border-box;color:#999988;font-style:italic;">// 2. <span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">加载安全、日志配置信息</span>,<span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">创建</span>pidFile</span>
-        <span style="box-sizing:border-box;color:#333333;font-weight:bold;">final</span> SecureSettings keystore = loadSecureSettings(initialEnv);
-        <span style="box-sizing:border-box;color:#333333;font-weight:bold;">try</span> {
+        // 2. 加载安全、日志配置信息,创建pidFile
+        final SecureSettings keystore = loadSecureSettings(initialEnv);
+        try {
             LogConfigurator.configure(environment);
-        } <span style="box-sizing:border-box;color:#333333;font-weight:bold;">catch</span> (IOException e) {
-            <span style="box-sizing:border-box;color:#333333;font-weight:bold;">throw</span> <span style="box-sizing:border-box;color:#333333;font-weight:bold;">new</span> BootstrapException(e);
+        } catch (IOException e) {
+            throw new BootstrapException(e);
         }
-        <span style="box-sizing:border-box;color:#333333;font-weight:bold;">if</span> (environment.pidFile() != <span style="box-sizing:border-box;color:#333333;font-weight:bold;">null</span>) {
-            <span style="box-sizing:border-box;color:#333333;font-weight:bold;">try</span> {
-                PidFile.create(environment.pidFile(), <span style="box-sizing:border-box;color:#333333;font-weight:bold;">true</span>);
-            } <span style="box-sizing:border-box;color:#333333;font-weight:bold;">catch</span> (IOException e) {
-                <span style="box-sizing:border-box;color:#333333;font-weight:bold;">throw</span> <span style="box-sizing:border-box;color:#333333;font-weight:bold;">new</span> BootstrapException(e);
+        if (environment.pidFile() != null) {
+            try {
+                PidFile.create(environment.pidFile(), true);
+            } catch (IOException e) {
+                throw new BootstrapException(e);
             }
         }
-        <span style="box-sizing:border-box;color:#333333;font-weight:bold;">try</span> {
-            <span style="box-sizing:border-box;color:#999988;font-style:italic;">// <span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">检测</span>Lucene Jar<span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">版本</span></span>
+        try {
+            // 检测Lucene Jar版本
             checkLucene();
-            <span style="box-sizing:border-box;color:#999988;font-style:italic;">// 3. <span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">创建</span>Node</span>
-            INSTANCE.setup(<span style="box-sizing:border-box;color:#333333;font-weight:bold;">true</span>, environment);
-            <span style="box-sizing:border-box;color:#999988;font-style:italic;">// 4. <span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">启动</span>Node</span>
+            // 3. 创建Node
+            INSTANCE.setup(true, environment);
+            // 4. 启动Node
             INSTANCE.start();
 
-        } <span style="box-sizing:border-box;color:#333333;font-weight:bold;">catch</span> (NodeValidationException | RuntimeException e) {
+        } catch (NodeValidationException | RuntimeException e) {
 
         }
     }
@@ -195,21 +195,21 @@ categories:
 <p style="box-sizing:border-box;margin-top:0px;margin-bottom:16px;color:#24292e;font-family:&#39;-apple-system&#39;, BlinkMacSystemFont, &#39;微软雅黑&#39;, &#39;PingFang SC&#39;, Helvetica, Arial, &#39;Hiragino Sans GB&#39;, &#39;Microsoft YaHei&#39;, SimSun, &#39;宋体&#39;, Heiti, &#39;黑体&#39;, sans-serif;font-size:14px;font-style:normal;font-weight:400;letter-spacing:normal;text-indent:0px;text-transform:none;white-space:normal;word-spacing:0px;"><strong style="box-sizing:border-box;font-weight:600;">解析</strong></p>
 <p style="box-sizing:border-box;margin-top:0px;margin-bottom:16px;color:#24292e;font-family:&#39;-apple-system&#39;, BlinkMacSystemFont, &#39;微软雅黑&#39;, &#39;PingFang SC&#39;, Helvetica, Arial, &#39;Hiragino Sans GB&#39;, &#39;Microsoft YaHei&#39;, SimSun, &#39;宋体&#39;, Heiti, &#39;黑体&#39;, sans-serif;font-size:14px;font-style:normal;font-weight:400;letter-spacing:normal;text-indent:0px;text-transform:none;white-space:normal;word-spacing:0px;">Bootstrap#init 顺序执行以下步骤：</p>
 <ol style="box-sizing:border-box;padding-left:2em;margin-top:0px;margin-bottom:16px;color:#24292e;font-family:&#39;-apple-system&#39;, BlinkMacSystemFont, &#39;微软雅黑&#39;, &#39;PingFang SC&#39;, Helvetica, Arial, &#39;Hiragino Sans GB&#39;, &#39;Microsoft YaHei&#39;, SimSun, &#39;宋体&#39;, Heiti, &#39;黑体&#39;, sans-serif;font-size:14px;font-style:normal;font-weight:400;letter-spacing:normal;text-indent:0px;text-transform:none;white-space:normal;word-spacing:0px;"><li style="box-sizing:border-box;">创建 Bootstrap 类对象，创建keepAliveThread，等待keepAliveLatch降为0时，该线程退出。同时向runtime添加一个ShutdownHook，当进程退出时，keepAliveLatch降为0，keepAliveThread退出。<code style="box-sizing:border-box;font-family:&#39;SFMono-Regular&#39;, Consolas, &#39;Liberation Mono&#39;, Menlo, Courier, monospace;font-size:11.9px;padding:.2em 0px;margin:0px;background-color:rgba(27,31,35,.05);border-radius:3px;">The Java Virtual Machine exits when the only threads running are all daemon threads.</code><span>&nbsp;</span>当唯一的非Deamon线程，keepAliveThread退出时，JVM关闭。</li>
-</ol><pre style="box-sizing: border-box; font: 400 11.9px / 1.45 SFMono-Regular, Consolas, &quot;Liberation Mono&quot;, Menlo, Courier, monospace; margin-top: 0px; margin-bottom: 16px; padding: 16px; overflow: auto; background-color: rgb(246, 248, 250); border-radius: 3px; color: rgb(36, 41, 46); letter-spacing: normal; text-indent: 0px; text-transform: none; word-spacing: 0px; position: relative; z-index: 2;"><code style="box-sizing:border-box;display:inline;overflow:visible;padding:0px;color:#333333;background:transparent;font-family:&#39;SFMono-Regular&#39;, Consolas, &#39;Liberation Mono&#39;, Menlo, Courier, monospace, sans-serif;font-size:11.9px;margin:0px;border-radius:3px;white-space:pre;border:0px;line-height:inherit;">    <span style="box-sizing:border-box;color:#999988;font-style:italic;">/** creates a new instance */</span>
+</ol><pre><code>    /** creates a new instance */
     Bootstrap() {
-        keepAliveThread = <span style="box-sizing:border-box;color:#333333;font-weight:bold;">new</span> Thread(<span style="box-sizing:border-box;color:#333333;font-weight:bold;">new</span> Runnable() {
-            <span style="box-sizing:border-box;"><span style="box-sizing:border-box;color:#333333;font-weight:bold;">public</span> <span style="box-sizing:border-box;color:#333333;font-weight:bold;">void</span> <span style="box-sizing:border-box;color:#990000;font-weight:bold;">run</span>(<span style="box-sizing:border-box;"></span>) </span>{
-                <span style="box-sizing:border-box;color:#333333;font-weight:bold;">try</span> {
-                    <span style="box-sizing:border-box;color:#999988;font-style:italic;">// <span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">等待进程退出，等待</span>keepAliveLatch<span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">降为</span>0<span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">时，退出当前线程。</span></span>
-                    keepAliveLatch.<span style="box-sizing:border-box;color:#333333;font-weight:bold;">await</span>();
+        keepAliveThread = new Thread(new Runnable() {
+            public void run() {
+                try {
+                    // 等待进程退出，等待keepAliveLatch降为0时，退出当前线程。
+                    keepAliveLatch.await();
                 }
             }
-        }, <span style="box-sizing:border-box;color:#dd1144;">"elasticsearch[keepAlive/"</span> + Version.CURRENT + <span style="box-sizing:border-box;color:#dd1144;">"]"</span>);
-        keepAliveThread.setDaemon(<span style="box-sizing:border-box;color:#008080;">false</span>);
-        <span style="box-sizing:border-box;color:#999988;font-style:italic;">// keep this thread alive (non daemon thread) until we shutdown</span>
-        Runtime.getRuntime().addShutdownHook(<span style="box-sizing:border-box;color:#333333;font-weight:bold;">new</span> Thread() {
-            <span style="box-sizing:border-box;"><span style="box-sizing:border-box;color:#333333;font-weight:bold;">public</span> <span style="box-sizing:border-box;color:#333333;font-weight:bold;">void</span> <span style="box-sizing:border-box;color:#990000;font-weight:bold;">run</span>(<span style="box-sizing:border-box;"></span>) </span>{
-                <span style="box-sizing:border-box;color:#999988;font-style:italic;">// <span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">进程退出时，</span>keepAliveLatch<span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">降为</span>0<span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">，</span>keepAliveThread<span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">退出。</span></span>
+        }, "elasticsearch[keepAlive/" + Version.CURRENT + "]");
+        keepAliveThread.setDaemon(false);
+        // keep this thread alive (non daemon thread) until we shutdown
+        Runtime.getRuntime().addShutdownHook(new Thread() {
+            public void run() {
+                // 进程退出时，keepAliveLatch降为0，keepAliveThread退出。
                 keepAliveLatch.countDown();
             }
         });
@@ -217,37 +217,37 @@ categories:
 </code></pre>
 <ol style="box-sizing:border-box;padding-left:2em;margin-top:0px;margin-bottom:16px;color:#24292e;font-family:&#39;-apple-system&#39;, BlinkMacSystemFont, &#39;微软雅黑&#39;, &#39;PingFang SC&#39;, Helvetica, Arial, &#39;Hiragino Sans GB&#39;, &#39;Microsoft YaHei&#39;, SimSun, &#39;宋体&#39;, Heiti, &#39;黑体&#39;, sans-serif;font-size:14px;font-style:normal;font-weight:400;letter-spacing:normal;text-indent:0px;text-transform:none;white-space:normal;word-spacing:0px;"><li style="box-sizing:border-box;">设定安全、日志配置信息，创建pidFile。pidFile为es的进程ID，防止多个ES进程读写同一路径。</li>
 <li style="box-sizing:border-box;margin-top:.25em;">创建Node：ES的一个节点被封装为一个Node实例，由Node调用ES的各个模块，完成集群管理、写入、查询等功能。</li>
-</ol><pre style="box-sizing: border-box; font: 400 11.9px / 1.45 SFMono-Regular, Consolas, &quot;Liberation Mono&quot;, Menlo, Courier, monospace; margin-top: 0px; margin-bottom: 16px; padding: 16px; overflow: auto; background-color: rgb(246, 248, 250); border-radius: 3px; color: rgb(36, 41, 46); letter-spacing: normal; text-indent: 0px; text-transform: none; word-spacing: 0px; position: relative; z-index: 2;"><code style="box-sizing:border-box;display:inline;overflow:visible;padding:0px;color:#333333;background:transparent;font-family:&#39;SFMono-Regular&#39;, Consolas, &#39;Liberation Mono&#39;, Menlo, Courier, monospace, sans-serif;font-size:11.9px;margin:0px;border-radius:3px;white-space:pre;border:0px;line-height:inherit;">    <span style="box-sizing:border-box;"><span style="box-sizing:border-box;color:#333333;font-weight:bold;">private</span> <span style="box-sizing:border-box;color:#333333;font-weight:bold;">void</span> <span style="box-sizing:border-box;color:#990000;font-weight:bold;">setup</span><span style="box-sizing:border-box;">(<span style="box-sizing:border-box;color:#333333;font-weight:bold;">boolean</span> addShutdownHook, Environment environment)</span> <span style="box-sizing:border-box;color:#333333;font-weight:bold;">throws</span> BootstrapException </span>{
+</ol><pre><code>    private void setup(boolean addShutdownHook, Environment environment) throws BootstrapException {
 
-        <span style="box-sizing:border-box;color:#333333;font-weight:bold;">try</span> {
-            <span style="box-sizing:border-box;color:#999988;font-style:italic;">// <span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">遍历</span>modules<span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">目录，读取各模块信息，为其生成控制类，这些控制类将通过</span>stdin, stdout <span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">和</span> stderr <span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">与</span>JVM<span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">保持连接</span></span>
+        try {
+            // 遍历modules目录，读取各模块信息，为其生成控制类，这些控制类将通过stdin, stdout 和 stderr 与JVM保持连接
             spawner.spawnNativeControllers(environment);
-        } <span style="box-sizing:border-box;color:#333333;font-weight:bold;">catch</span> (IOException e) {
-            <span style="box-sizing:border-box;color:#333333;font-weight:bold;">throw</span> <span style="box-sizing:border-box;color:#333333;font-weight:bold;">new</span> BootstrapException(e);
+        } catch (IOException e) {
+            throw new BootstrapException(e);
         }
-        <span style="box-sizing:border-box;color:#999988;font-style:italic;">// <span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">本地环境的检测、设置（</span>user/thread/VirtualMemory/fileSize<span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">等）</span></span>
+        // 本地环境的检测、设置（user/thread/VirtualMemory/fileSize等）
         initializeNatives(
                 environment.tmpFile(),
                 BootstrapSettings.MEMORY_LOCK_SETTING.get(settings),
                 BootstrapSettings.SYSTEM_CALL_FILTER_SETTING.get(settings),
                 BootstrapSettings.CTRLHANDLER_SETTING.get(settings));
 
-        <span style="box-sizing:border-box;color:#999988;font-style:italic;">// <span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">创建</span>Node<span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">节点，后节详述</span></span>
-        node = <span style="box-sizing:border-box;color:#333333;font-weight:bold;">new</span> Node(environment) {
-            <span style="box-sizing:border-box;color:#999999;font-weight:bold;">@Override</span>
-            <span style="box-sizing:border-box;"><span style="box-sizing:border-box;color:#333333;font-weight:bold;">protected</span> <span style="box-sizing:border-box;color:#333333;font-weight:bold;">void</span> <span style="box-sizing:border-box;color:#990000;font-weight:bold;">validateNodeBeforeAcceptingRequests</span><span style="box-sizing:border-box;">(
-                <span style="box-sizing:border-box;color:#333333;font-weight:bold;">final</span> BootstrapContext context,
-                <span style="box-sizing:border-box;color:#333333;font-weight:bold;">final</span> BoundTransportAddress boundTransportAddress, List&lt;BootstrapCheck&gt; checks)</span> <span style="box-sizing:border-box;color:#333333;font-weight:bold;">throws</span> NodeValidationException </span>{
+        // 创建Node节点，后节详述
+        node = new Node(environment) {
+            @Override
+            protected void validateNodeBeforeAcceptingRequests(
+                final BootstrapContext context,
+                final BoundTransportAddress boundTransportAddress, List&lt;BootstrapCheck&gt; checks) throws NodeValidationException {
                 BootstrapChecks.check(context, boundTransportAddress, checks);
             }
         };
     }
 </code></pre>
 <ol style="box-sizing:border-box;padding-left:2em;margin-top:0px;margin-bottom:16px;color:#24292e;font-family:&#39;-apple-system&#39;, BlinkMacSystemFont, &#39;微软雅黑&#39;, &#39;PingFang SC&#39;, Helvetica, Arial, &#39;Hiragino Sans GB&#39;, &#39;Microsoft YaHei&#39;, SimSun, &#39;宋体&#39;, Heiti, &#39;黑体&#39;, sans-serif;font-size:14px;font-style:normal;font-weight:400;letter-spacing:normal;text-indent:0px;text-transform:none;white-space:normal;word-spacing:0px;"><li style="box-sizing:border-box;">启动Node</li>
-</ol><pre style="box-sizing: border-box; font: 400 11.9px / 1.45 SFMono-Regular, Consolas, &quot;Liberation Mono&quot;, Menlo, Courier, monospace; margin-top: 0px; margin-bottom: 16px; padding: 16px; overflow: auto; background-color: rgb(246, 248, 250); border-radius: 3px; color: rgb(36, 41, 46); letter-spacing: normal; text-indent: 0px; text-transform: none; word-spacing: 0px; position: relative; z-index: 2;"><code style="box-sizing:border-box;display:inline;overflow:visible;padding:0px;color:#333333;background:transparent;font-family:&#39;SFMono-Regular&#39;, Consolas, &#39;Liberation Mono&#39;, Menlo, Courier, monospace, sans-serif;font-size:11.9px;margin:0px;border-radius:3px;white-space:pre;border:0px;line-height:inherit;">    <span style="box-sizing:border-box;"><span style="box-sizing:border-box;color:#333333;font-weight:bold;">private</span> <span style="box-sizing:border-box;color:#333333;font-weight:bold;">void</span> <span style="box-sizing:border-box;color:#990000;font-weight:bold;">start</span><span style="box-sizing:border-box;">()</span> <span style="box-sizing:border-box;color:#333333;font-weight:bold;">throws</span> NodeValidationException </span>{
-        <span style="box-sizing:border-box;color:#999988;font-style:italic;">// <span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">启动</span>Node<span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">，后节详述</span></span>
+</ol><pre><code>    private void start() throws NodeValidationException {
+        // 启动Node，后节详述
         node.start();
-        <span style="box-sizing:border-box;color:#999988;font-style:italic;">// <span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">启动前台</span>keepAliveThread<span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">线程，等待进程关闭时，关闭</span>JVM</span>
+        // 启动前台keepAliveThread线程，等待进程关闭时，关闭JVM
         keepAliveThread.start();
     }
 </code></pre>
@@ -256,56 +256,56 @@ categories:
 <p style="box-sizing:border-box;margin-top:0px;margin-bottom:16px;color:#24292e;font-family:&#39;-apple-system&#39;, BlinkMacSystemFont, &#39;微软雅黑&#39;, &#39;PingFang SC&#39;, Helvetica, Arial, &#39;Hiragino Sans GB&#39;, &#39;Microsoft YaHei&#39;, SimSun, &#39;宋体&#39;, Heiti, &#39;黑体&#39;, sans-serif;font-size:14px;font-style:normal;font-weight:400;letter-spacing:normal;text-indent:0px;text-transform:none;white-space:normal;word-spacing:0px;">elasticsearch\node\Node.java</p>
 <p style="box-sizing:border-box;margin-top:0px;margin-bottom:16px;color:#24292e;font-family:&#39;-apple-system&#39;, BlinkMacSystemFont, &#39;微软雅黑&#39;, &#39;PingFang SC&#39;, Helvetica, Arial, &#39;Hiragino Sans GB&#39;, &#39;Microsoft YaHei&#39;, SimSun, &#39;宋体&#39;, Heiti, &#39;黑体&#39;, sans-serif;font-size:14px;font-style:normal;font-weight:400;letter-spacing:normal;text-indent:0px;text-transform:none;white-space:normal;word-spacing:0px;"><strong style="box-sizing:border-box;font-weight:600;">CODE</strong></p>
 <p style="box-sizing:border-box;margin-top:0px;margin-bottom:16px;color:#24292e;font-family:&#39;-apple-system&#39;, BlinkMacSystemFont, &#39;微软雅黑&#39;, &#39;PingFang SC&#39;, Helvetica, Arial, &#39;Hiragino Sans GB&#39;, &#39;Microsoft YaHei&#39;, SimSun, &#39;宋体&#39;, Heiti, &#39;黑体&#39;, sans-serif;font-size:14px;font-style:normal;font-weight:400;letter-spacing:normal;text-indent:0px;text-transform:none;white-space:normal;word-spacing:0px;">代码较长，做了大量精简：</p>
-<pre style="box-sizing: border-box; font: 400 11.9px / 1.45 SFMono-Regular, Consolas, &quot;Liberation Mono&quot;, Menlo, Courier, monospace; margin-top: 0px; margin-bottom: 16px; padding: 16px; overflow: auto; background-color: rgb(246, 248, 250); border-radius: 3px; color: rgb(36, 41, 46); letter-spacing: normal; text-indent: 0px; text-transform: none; word-spacing: 0px; position: relative; z-index: 2;"><code style="box-sizing:border-box;display:inline;overflow:visible;padding:0px;color:#333333;background:transparent;font-family:&#39;SFMono-Regular&#39;, Consolas, &#39;Liberation Mono&#39;, Menlo, Courier, monospace, sans-serif;font-size:11.9px;margin:0px;border-radius:3px;white-space:pre;border:0px;line-height:inherit;">    <span style="box-sizing:border-box;"><span style="box-sizing:border-box;color:#333333;font-weight:bold;">protected</span> <span style="box-sizing:border-box;color:#990000;font-weight:bold;">Node</span><span style="box-sizing:border-box;">(<span style="box-sizing:border-box;color:#333333;font-weight:bold;">final</span> Environment environment, Collection&lt;Class&lt;? extends Plugin&gt;&gt; classpathPlugins)</span> </span>{
+<pre><code>    protected Node(final Environment environment, Collection&lt;Class&lt;? extends Plugin&gt;&gt; classpathPlugins) {
 
-        <span style="box-sizing:border-box;color:#333333;font-weight:bold;">try</span> {
-            <span style="box-sizing:border-box;color:#999988;font-style:italic;">// 1. <span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">创建节点环境，包括</span>nodeId/nodePaths/logger<span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">等；创建</span>tmpSettings<span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">，主要是一些节点配置信息</span></span>
-            <span style="box-sizing:border-box;color:#999988;font-style:italic;">// create the node environment as soon as possible, to recover the node id and enable logging</span>
-            <span style="box-sizing:border-box;color:#333333;font-weight:bold;">try</span> {
-                nodeEnvironment = <span style="box-sizing:border-box;color:#333333;font-weight:bold;">new</span> NodeEnvironment(tmpSettings, environment);
-            } <span style="box-sizing:border-box;color:#333333;font-weight:bold;">catch</span> (IOException ex) {
-                <span style="box-sizing:border-box;color:#333333;font-weight:bold;">throw</span> <span style="box-sizing:border-box;color:#333333;font-weight:bold;">new</span> IllegalStateException(<span style="box-sizing:border-box;color:#dd1144;">"Failed to create node environment"</span>, ex);
+        try {
+            // 1. 创建节点环境，包括nodeId/nodePaths/logger等；创建tmpSettings，主要是一些节点配置信息
+            // create the node environment as soon as possible, to recover the node id and enable logging
+            try {
+                nodeEnvironment = new NodeEnvironment(tmpSettings, environment);
+            } catch (IOException ex) {
+                throw new IllegalStateException("Failed to create node environment", ex);
             }
-            <span style="box-sizing:border-box;color:#333333;font-weight:bold;">final</span> <span style="box-sizing:border-box;color:#333333;font-weight:bold;">boolean</span> hadPredefinedNodeName = NODE_NAME_SETTING.exists(tmpSettings);
-            <span style="box-sizing:border-box;color:#333333;font-weight:bold;">final</span> String nodeId = nodeEnvironment.nodeId();
+            final boolean hadPredefinedNodeName = NODE_NAME_SETTING.exists(tmpSettings);
+            final String nodeId = nodeEnvironment.nodeId();
             tmpSettings = addNodeNameIfNeeded(tmpSettings, nodeId);
-            <span style="box-sizing:border-box;color:#333333;font-weight:bold;">final</span> Logger logger = Loggers.getLogger(Node.class, tmpSettings);
-            <span style="box-sizing:border-box;color:#999988;font-style:italic;">// this must be captured after the node name is possibly added to the settings</span>
-            <span style="box-sizing:border-box;color:#333333;font-weight:bold;">final</span> String nodeName = NODE_NAME_SETTING.get(tmpSettings);
-            <span style="box-sizing:border-box;color:#333333;font-weight:bold;">if</span> (hadPredefinedNodeName == <span style="box-sizing:border-box;color:#333333;font-weight:bold;">false</span>) {
-                logger.info(<span style="box-sizing:border-box;color:#dd1144;">"node name derived from node ID [{}]; set [{}] to override"</span>, nodeId, NODE_NAME_SETTING.getKey());
-            } <span style="box-sizing:border-box;color:#333333;font-weight:bold;">else</span> {
-                logger.info(<span style="box-sizing:border-box;color:#dd1144;">"node name [{}], node ID [{}]"</span>, nodeName, nodeId);
+            final Logger logger = Loggers.getLogger(Node.class, tmpSettings);
+            // this must be captured after the node name is possibly added to the settings
+            final String nodeName = NODE_NAME_SETTING.get(tmpSettings);
+            if (hadPredefinedNodeName == false) {
+                logger.info("node name derived from node ID [{}]; set [{}] to override", nodeId, NODE_NAME_SETTING.getKey());
+            } else {
+                logger.info("node name [{}], node ID [{}]", nodeName, nodeId);
             }
-            <span style="box-sizing:border-box;color:#999988;font-style:italic;">// 2. <span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">打印</span> jvm <span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">信息</span></span>
-            <span style="box-sizing:border-box;color:#333333;font-weight:bold;">final</span> JvmInfo jvmInfo = JvmInfo.jvmInfo();
-            logger.info(<span style="box-sizing:border-box;color:#dd1144;">"JVM arguments {}"</span>, Arrays.toString(jvmInfo.getInputArguments()));
+            // 2. 打印 jvm 信息
+            final JvmInfo jvmInfo = JvmInfo.jvmInfo();
+            logger.info("JVM arguments {}", Arrays.toString(jvmInfo.getInputArguments()));
 
-            <span style="box-sizing:border-box;color:#999988;font-style:italic;">// 3. <span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">创建</span>PluginsService<span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">，加载</span>modules<span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">目录下的所有模块和</span>plugins<span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">目录下的所有插件</span></span>
-            <span style="box-sizing:border-box;color:#333333;font-weight:bold;">this</span>.pluginsService = <span style="box-sizing:border-box;color:#333333;font-weight:bold;">new</span> PluginsService(tmpSettings, environment.configFile(), environment.modulesFile(), environment.pluginsFile(), classpathPlugins);
+            // 3. 创建PluginsService，加载modules目录下的所有模块和plugins目录下的所有插件
+            this.pluginsService = new PluginsService(tmpSettings, environment.configFile(), environment.modulesFile(), environment.pluginsFile(), classpathPlugins);
 
-            <span style="box-sizing:border-box;color:#999988;font-style:italic;">// 4. <span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">创建</span>Node.environment</span>
-             <span style="box-sizing:border-box;color:#333333;font-weight:bold;">this</span>.environment = <span style="box-sizing:border-box;color:#333333;font-weight:bold;">new</span> Environment(<span style="box-sizing:border-box;color:#333333;font-weight:bold;">this</span>.settings, environment.configFile());
+            // 4. 创建Node.environment
+             this.environment = new Environment(this.settings, environment.configFile());
 
-            <span style="box-sizing:border-box;color:#999988;font-style:italic;">// 5. <span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">调用各插件的</span>getExecutorBuilders<span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">，获取</span>ExecutorBuilder/thread pool</span>
-            <span style="box-sizing:border-box;color:#333333;font-weight:bold;">final</span> List&lt;ExecutorBuilder&lt;?&gt;&gt; executorBuilders = pluginsService.getExecutorBuilders(settings);
+            // 5. 调用各插件的getExecutorBuilders，获取ExecutorBuilder/thread pool
+            final List&lt;ExecutorBuilder&lt;?&gt;&gt; executorBuilders = pluginsService.getExecutorBuilders(settings);
 
-            <span style="box-sizing:border-box;color:#999988;font-style:italic;">// 6. <span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">创建线程池</span></span>
-            <span style="box-sizing:border-box;color:#333333;font-weight:bold;">final</span> ThreadPool threadPool = <span style="box-sizing:border-box;color:#333333;font-weight:bold;">new</span> ThreadPool(settings, executorBuilders.toArray(<span style="box-sizing:border-box;color:#333333;font-weight:bold;">new</span> ExecutorBuilder[<span style="box-sizing:border-box;color:#008080;">0</span>]));
+            // 6. 创建线程池
+            final ThreadPool threadPool = new ThreadPool(settings, executorBuilders.toArray(new ExecutorBuilder[0]));
 
-            <span style="box-sizing:border-box;color:#999988;font-style:italic;">// 7. <span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">创建</span>NodeClient</span>
-            client = <span style="box-sizing:border-box;color:#333333;font-weight:bold;">new</span> NodeClient(settings, threadPool);
+            // 7. 创建NodeClient
+            client = new NodeClient(settings, threadPool);
 
-            <span style="box-sizing:border-box;color:#999988;font-style:italic;">// 8. <span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">创建各种服务类对象</span>***Service<span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">和各种模块对象</span>***Module</span>
-            <span style="box-sizing:border-box;color:#333333;font-weight:bold;">final</span> ResourceWatcherService resourceWatcherService = <span style="box-sizing:border-box;color:#333333;font-weight:bold;">new</span> ResourceWatcherService(settings, threadPool);
-            <span style="box-sizing:border-box;color:#333333;font-weight:bold;">final</span> ScriptModule scriptModule = <span style="box-sizing:border-box;color:#333333;font-weight:bold;">new</span> ScriptModule(settings, pluginsService.filterPlugins(ScriptPlugin.class));
-            AnalysisModule analysisModule = <span style="box-sizing:border-box;color:#333333;font-weight:bold;">new</span> AnalysisModule(<span style="box-sizing:border-box;color:#333333;font-weight:bold;">this</span>.environment, pluginsService.filterPlugins(AnalysisPlugin.class));
+            // 8. 创建各种服务类对象***Service和各种模块对象***Module
+            final ResourceWatcherService resourceWatcherService = new ResourceWatcherService(settings, threadPool);
+            final ScriptModule scriptModule = new ScriptModule(settings, pluginsService.filterPlugins(ScriptPlugin.class));
+            AnalysisModule analysisModule = new AnalysisModule(this.environment, pluginsService.filterPlugins(AnalysisPlugin.class));
             ...
-            <span style="box-sizing:border-box;color:#333333;font-weight:bold;">final</span> PersistentTasksService persistentTasksService = <span style="box-sizing:border-box;color:#333333;font-weight:bold;">new</span> PersistentTasksService(settings, clusterService, threadPool, client);
+            final PersistentTasksService persistentTasksService = new PersistentTasksService(settings, clusterService, threadPool, client);
 
-            <span style="box-sizing:border-box;color:#999988;font-style:italic;">// <span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">绑定各种服务模块的实例</span></span>
+            // 绑定各种服务模块的实例
             modules.add(b -&gt; {
-                    b.bind(Node.class).toInstance(<span style="box-sizing:border-box;color:#333333;font-weight:bold;">this</span>);
+                    b.bind(Node.class).toInstance(this);
                     b.bind(NodeService.class).toInstance(nodeService);
                     ...
                     b.bind(GatewayMetaState.class).toInstance(gatewayMetaState);
@@ -314,19 +314,19 @@ categories:
             );
             injector = modules.createInjector();
 
-            <span style="box-sizing:border-box;color:#999988;font-style:italic;">// 9. <span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">初始化</span>rest handler<span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">，用于后续接收</span> http rest <span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">请求</span></span>
-            <span style="box-sizing:border-box;color:#333333;font-weight:bold;">if</span> (NetworkModule.HTTP_ENABLED.get(settings)) {
-                logger.debug(<span style="box-sizing:border-box;color:#dd1144;">"initializing HTTP handlers ..."</span>);
+            // 9. 初始化rest handler，用于后续接收 http rest 请求
+            if (NetworkModule.HTTP_ENABLED.get(settings)) {
+                logger.debug("initializing HTTP handlers ...");
                 actionModule.initRestHandlers(() -&gt; clusterService.state().nodes());
             }
 
-            <span style="box-sizing:border-box;color:#999988;font-style:italic;">// node<span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">初始化完成</span></span>
-            logger.info(<span style="box-sizing:border-box;color:#dd1144;">"initialized"</span>);
-            success = <span style="box-sizing:border-box;color:#333333;font-weight:bold;">true</span>;
-        } <span style="box-sizing:border-box;color:#333333;font-weight:bold;">catch</span> (IOException ex) {
-            <span style="box-sizing:border-box;color:#333333;font-weight:bold;">throw</span> <span style="box-sizing:border-box;color:#333333;font-weight:bold;">new</span> ElasticsearchException(<span style="box-sizing:border-box;color:#dd1144;">"failed to bind service"</span>, ex);
-        } <span style="box-sizing:border-box;color:#333333;font-weight:bold;">finally</span> {
-            <span style="box-sizing:border-box;color:#333333;font-weight:bold;">if</span> (!success) {
+            // node初始化完成
+            logger.info("initialized");
+            success = true;
+        } catch (IOException ex) {
+            throw new ElasticsearchException("failed to bind service", ex);
+        } finally {
+            if (!success) {
                 IOUtils.closeWhileHandlingException(resourcesToClose);
             }
         }
@@ -334,53 +334,53 @@ categories:
 </code></pre>
 <p style="box-sizing:border-box;margin-top:0px;margin-bottom:16px;color:#24292e;font-family:&#39;-apple-system&#39;, BlinkMacSystemFont, &#39;微软雅黑&#39;, &#39;PingFang SC&#39;, Helvetica, Arial, &#39;Hiragino Sans GB&#39;, &#39;Microsoft YaHei&#39;, SimSun, &#39;宋体&#39;, Heiti, &#39;黑体&#39;, sans-serif;font-size:14px;font-style:normal;font-weight:400;letter-spacing:normal;text-indent:0px;text-transform:none;white-space:normal;word-spacing:0px;"><strong style="box-sizing:border-box;font-weight:600;">解析</strong></p>
 <ol style="box-sizing:border-box;padding-left:2em;margin-top:0px;margin-bottom:16px;color:#24292e;font-family:&#39;-apple-system&#39;, BlinkMacSystemFont, &#39;微软雅黑&#39;, &#39;PingFang SC&#39;, Helvetica, Arial, &#39;Hiragino Sans GB&#39;, &#39;Microsoft YaHei&#39;, SimSun, &#39;宋体&#39;, Heiti, &#39;黑体&#39;, sans-serif;font-size:14px;font-style:normal;font-weight:400;letter-spacing:normal;text-indent:0px;text-transform:none;white-space:normal;word-spacing:0px;"><li style="box-sizing:border-box;">创建节点环境，包括nodeId/nodePaths/logger等；创建tmpSettings，主要是一些节点配置信息。lock data目录。</li>
-</ol><p style="box-sizing: border-box; margin-top: 0px; margin-bottom: 16px; color: rgb(36, 41, 46); font-family: -apple-system, BlinkMacSystemFont, 微软雅黑, &quot;PingFang SC&quot;, Helvetica, Arial, &quot;Hiragino Sans GB&quot;, &quot;Microsoft YaHei&quot;, SimSun, 宋体, Heiti, 黑体, sans-serif; font-size: 14px; font-style: normal; font-weight: 400; letter-spacing: normal; text-indent: 0px; text-transform: none; white-space: normal; word-spacing: 0px;"><img alt="" src="./Elasticsearch 底层系列之 Node 启动过程源码解析 -  - KM平台_files/cos-file-url(8)" style="border-style: none; background-color: rgb(255, 255, 255); position: relative; z-index: 2;" class="amplify"></p>
+</ol><p style="box-sizing: border-box; margin-top: 0px; margin-bottom: 16px; color: rgb(36, 41, 46); font-family: -apple-system, BlinkMacSystemFont, 微软雅黑, &quot;PingFang SC&quot;, Helvetica, Arial, &quot;Hiragino Sans GB&quot;, &quot;Microsoft YaHei&quot;, SimSun, 宋体, Heiti, 黑体, sans-serif; font-size: 14px; font-style: normal; font-weight: 400; letter-spacing: normal; text-indent: 0px; text-transform: none; white-space: normal; word-spacing: 0px;"></p>
 <ol style="box-sizing:border-box;padding-left:2em;margin-top:0px;margin-bottom:16px;color:#24292e;font-family:&#39;-apple-system&#39;, BlinkMacSystemFont, &#39;微软雅黑&#39;, &#39;PingFang SC&#39;, Helvetica, Arial, &#39;Hiragino Sans GB&#39;, &#39;Microsoft YaHei&#39;, SimSun, &#39;宋体&#39;, Heiti, &#39;黑体&#39;, sans-serif;font-size:14px;font-style:normal;font-weight:400;letter-spacing:normal;text-indent:0px;text-transform:none;white-space:normal;word-spacing:0px;"><li style="box-sizing:border-box;">打印 JVM 信息</li>
 <li style="box-sizing:border-box;margin-top:.25em;">创建PluginsService，加载classpath、modules目录和plugins目录下的所有模块</li>
-</ol><p style="box-sizing: border-box; margin-top: 0px; margin-bottom: 16px; color: rgb(36, 41, 46); font-family: -apple-system, BlinkMacSystemFont, 微软雅黑, &quot;PingFang SC&quot;, Helvetica, Arial, &quot;Hiragino Sans GB&quot;, &quot;Microsoft YaHei&quot;, SimSun, 宋体, Heiti, 黑体, sans-serif; font-size: 14px; font-style: normal; font-weight: 400; letter-spacing: normal; text-indent: 0px; text-transform: none; white-space: normal; word-spacing: 0px;"><img alt="" src="./Elasticsearch 底层系列之 Node 启动过程源码解析 -  - KM平台_files/cos-file-url(9)" style="border-style: none; background-color: rgb(255, 255, 255); display: block; margin-left: auto; margin-right: auto; position: relative; z-index: 2;" class="amplify"></p>
-<pre style="box-sizing: border-box; font: 400 11.9px / 1.45 SFMono-Regular, Consolas, &quot;Liberation Mono&quot;, Menlo, Courier, monospace; margin-top: 0px; margin-bottom: 16px; padding: 16px; overflow: auto; background-color: rgb(246, 248, 250); border-radius: 3px; color: rgb(36, 41, 46); letter-spacing: normal; text-indent: 0px; text-transform: none; word-spacing: 0px; position: relative; z-index: 2;"><code style="box-sizing:border-box;display:inline;overflow:visible;padding:0px;color:#333333;background:transparent;font-family:&#39;SFMono-Regular&#39;, Consolas, &#39;Liberation Mono&#39;, Menlo, Courier, monospace, sans-serif;font-size:11.9px;margin:0px;border-radius:3px;white-space:pre;border:0px;line-height:inherit;">    public PluginsService(Settings settings, Path configPath, Path modulesDirectory, Path pluginsDirectory, Collection&lt;Class&lt;? <span style="box-sizing:border-box;color:#333333;font-weight:bold;">extends</span> Plugin&gt;&gt; classpathPlugins) {
+</ol><p style="box-sizing: border-box; margin-top: 0px; margin-bottom: 16px; color: rgb(36, 41, 46); font-family: -apple-system, BlinkMacSystemFont, 微软雅黑, &quot;PingFang SC&quot;, Helvetica, Arial, &quot;Hiragino Sans GB&quot;, &quot;Microsoft YaHei&quot;, SimSun, 宋体, Heiti, 黑体, sans-serif; font-size: 14px; font-style: normal; font-weight: 400; letter-spacing: normal; text-indent: 0px; text-transform: none; white-space: normal; word-spacing: 0px;"></p>
+<pre><code>    public PluginsService(Settings settings, Path configPath, Path modulesDirectory, Path pluginsDirectory, Collection&lt;Class&lt;? extends Plugin&gt;&gt; classpathPlugins) {
 
-        <span style="box-sizing:border-box;color:#0086b3;">List</span>&lt;Tuple&lt;PluginInfo, Plugin&gt;&gt; pluginsLoaded = <span style="box-sizing:border-box;color:#333333;font-weight:bold;">new</span> ArrayList&lt;&gt;();
-        <span style="box-sizing:border-box;color:#0086b3;">List</span>&lt;PluginInfo&gt; pluginsList = <span style="box-sizing:border-box;color:#333333;font-weight:bold;">new</span> ArrayList&lt;&gt;();
-        <span style="box-sizing:border-box;color:#333333;font-weight:bold;">final</span> <span style="box-sizing:border-box;color:#0086b3;">List</span>&lt;<span style="box-sizing:border-box;color:#0086b3;">String</span>&gt; pluginsNames = <span style="box-sizing:border-box;color:#333333;font-weight:bold;">new</span> ArrayList&lt;&gt;();
+        List&lt;Tuple&lt;PluginInfo, Plugin&gt;&gt; pluginsLoaded = new ArrayList&lt;&gt;();
+        List&lt;PluginInfo&gt; pluginsList = new ArrayList&lt;&gt;();
+        final List&lt;String&gt; pluginsNames = new ArrayList&lt;&gt;();
 
-        <span style="box-sizing:border-box;color:#999988;font-style:italic;">// <span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">加载</span> classpath <span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">中的</span>plugins<span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">，</span> <span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">供</span> tests <span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">和</span> transport clients <span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">使用</span></span>
-        <span style="box-sizing:border-box;color:#333333;font-weight:bold;">for</span> (Class&lt;? <span style="box-sizing:border-box;color:#333333;font-weight:bold;">extends</span> Plugin&gt; pluginClass : classpathPlugins) {
-            pluginsLoaded.add(<span style="box-sizing:border-box;color:#333333;font-weight:bold;">new</span> Tuple&lt;&gt;(pluginInfo, plugin));
+        // 加载 classpath 中的plugins， 供 tests 和 transport clients 使用
+        for (Class&lt;? extends Plugin&gt; pluginClass : classpathPlugins) {
+            pluginsLoaded.add(new Tuple&lt;&gt;(pluginInfo, plugin));
             pluginsList.add(pluginInfo);
         }
 
-        <span style="box-sizing:border-box;color:#0086b3;">Set</span>&lt;Bundle&gt; seenBundles = <span style="box-sizing:border-box;color:#333333;font-weight:bold;">new</span> LinkedHashSet&lt;&gt;();
-        <span style="box-sizing:border-box;color:#0086b3;">List</span>&lt;PluginInfo&gt; modulesList = <span style="box-sizing:border-box;color:#333333;font-weight:bold;">new</span> ArrayList&lt;&gt;();
+        Set&lt;Bundle&gt; seenBundles = new LinkedHashSet&lt;&gt;();
+        List&lt;PluginInfo&gt; modulesList = new ArrayList&lt;&gt;();
 
-        <span style="box-sizing:border-box;color:#999988;font-style:italic;">// <span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">加载</span> modules</span>
-        <span style="box-sizing:border-box;color:#333333;font-weight:bold;">if</span> (modulesDirectory != <span style="box-sizing:border-box;color:#333333;font-weight:bold;">null</span>) {
-            <span style="box-sizing:border-box;color:#0086b3;">Set</span>&lt;Bundle&gt; modules = getModuleBundles(modulesDirectory);
-            <span style="box-sizing:border-box;color:#333333;font-weight:bold;">for</span> (Bundle bundle : modules) {
+        // 加载 modules
+        if (modulesDirectory != null) {
+            Set&lt;Bundle&gt; modules = getModuleBundles(modulesDirectory);
+            for (Bundle bundle : modules) {
                 ...
             }
             seenBundles.addAll(modules);
         }
 
-        <span style="box-sizing:border-box;color:#999988;font-style:italic;">// <span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">加载</span> plugins/ <span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">目录下的</span> plugins</span>
-        <span style="box-sizing:border-box;color:#333333;font-weight:bold;">if</span> (pluginsDirectory != <span style="box-sizing:border-box;color:#333333;font-weight:bold;">null</span>) {
-            <span style="box-sizing:border-box;color:#0086b3;">Set</span>&lt;Bundle&gt; plugins = getPluginBundles(pluginsDirectory);
-            <span style="box-sizing:border-box;color:#333333;font-weight:bold;">for</span> (<span style="box-sizing:border-box;color:#333333;font-weight:bold;">final</span> Bundle bundle : plugins) {
+        // 加载 plugins/ 目录下的 plugins
+        if (pluginsDirectory != null) {
+            Set&lt;Bundle&gt; plugins = getPluginBundles(pluginsDirectory);
+            for (final Bundle bundle : plugins) {
                 pluginsList.add(bundle.plugin);
             }
             seenBundles.addAll(plugins);
         }
 
-        <span style="box-sizing:border-box;color:#999988;font-style:italic;">// <span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">前面装载的每个</span>module<span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">和</span>plugin<span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">都是一个</span>bundle, a "bundle" is a group of jars in a single classloader</span>
-        <span style="box-sizing:border-box;color:#999988;font-style:italic;">// <span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">因此这里可以将</span>modules<span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">和</span>plugins<span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">统一封装为</span>Plugin</span>
-        <span style="box-sizing:border-box;color:#0086b3;">List</span>&lt;Tuple&lt;PluginInfo, Plugin&gt;&gt; loaded = loadBundles(seenBundles);
+        // 前面装载的每个module和plugin都是一个bundle, a "bundle" is a group of jars in a single classloader
+        // 因此这里可以将modules和plugins统一封装为Plugin
+        List&lt;Tuple&lt;PluginInfo, Plugin&gt;&gt; loaded = loadBundles(seenBundles);
         pluginsLoaded.addAll(loaded);
 
-        <span style="box-sizing:border-box;color:#999988;font-style:italic;">// <span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">将</span>plugins<span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">和</span>modules<span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">的元信息保存至</span>PluginsAndModules info</span>
-        <span style="box-sizing:border-box;color:#333333;font-weight:bold;">this</span>.info = <span style="box-sizing:border-box;color:#333333;font-weight:bold;">new</span> PluginsAndModules(pluginsList, modulesList);
+        // 将plugins和modules的元信息保存至PluginsAndModules info
+        this.info = new PluginsAndModules(pluginsList, modulesList);
 
-        <span style="box-sizing:border-box;color:#999988;font-style:italic;">// <span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">将</span>Plugin<span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">放入</span>List&lt;Tuple&lt;PluginInfo, Plugin&gt;&gt; plugins</span>
-        <span style="box-sizing:border-box;color:#333333;font-weight:bold;">this</span>.plugins = Collections.unmodifiableList(pluginsLoaded);
+        // 将Plugin放入List&lt;Tuple&lt;PluginInfo, Plugin&gt;&gt; plugins
+        this.plugins = Collections.unmodifiableList(pluginsLoaded);
 
     }
 
@@ -388,35 +388,35 @@ categories:
 <ol style="box-sizing:border-box;padding-left:2em;margin-top:0px;margin-bottom:16px;color:#24292e;font-family:&#39;-apple-system&#39;, BlinkMacSystemFont, &#39;微软雅黑&#39;, &#39;PingFang SC&#39;, Helvetica, Arial, &#39;Hiragino Sans GB&#39;, &#39;Microsoft YaHei&#39;, SimSun, &#39;宋体&#39;, Heiti, &#39;黑体&#39;, sans-serif;font-size:14px;font-style:normal;font-weight:400;letter-spacing:normal;text-indent:0px;text-transform:none;white-space:normal;word-spacing:0px;"><li style="box-sizing:border-box;">创建Node.environment</li>
 <li style="box-sizing:border-box;margin-top:.25em;">调用各插件的getExecutorBuilders，获取ExecutorBuilder</li>
 <li style="box-sizing:border-box;margin-top:.25em;">创建ThreadPool</li>
-</ol><pre style="box-sizing: border-box; font: 400 11.9px / 1.45 SFMono-Regular, Consolas, &quot;Liberation Mono&quot;, Menlo, Courier, monospace; margin-top: 0px; margin-bottom: 16px; padding: 16px; overflow: auto; background-color: rgb(246, 248, 250); border-radius: 3px; color: rgb(36, 41, 46); letter-spacing: normal; text-indent: 0px; text-transform: none; word-spacing: 0px; position: relative; z-index: 2;"><code style="box-sizing:border-box;display:inline;overflow:visible;padding:0px;color:#333333;background:transparent;font-family:&#39;SFMono-Regular&#39;, Consolas, &#39;Liberation Mono&#39;, Menlo, Courier, monospace, sans-serif;font-size:11.9px;margin:0px;border-radius:3px;white-space:pre;border:0px;line-height:inherit;">    <span style="box-sizing:border-box;color:#999988;font-style:italic;">// ThreadPool<span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">构造函数：</span></span>
-    <span style="box-sizing:border-box;"><span style="box-sizing:border-box;color:#333333;font-weight:bold;">public</span> <span style="box-sizing:border-box;color:#990000;font-weight:bold;">ThreadPool</span><span style="box-sizing:border-box;">(<span style="box-sizing:border-box;color:#333333;font-weight:bold;">final</span> Settings settings, <span style="box-sizing:border-box;color:#333333;font-weight:bold;">final</span> ExecutorBuilder&lt;?&gt;... customBuilders)</span> </span>{
+</ol><pre><code>    // ThreadPool构造函数：
+    public ThreadPool(final Settings settings, final ExecutorBuilder&lt;?&gt;... customBuilders) {
 
-        <span style="box-sizing:border-box;color:#333333;font-weight:bold;">final</span> Map&lt;String, ExecutorBuilder&gt; builders = <span style="box-sizing:border-box;color:#333333;font-weight:bold;">new</span> HashMap&lt;&gt;();
-        <span style="box-sizing:border-box;color:#999988;font-style:italic;">// <span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">获取本机</span>cpu<span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">核数，假设</span>cpu<span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">核数为</span>8</span>
-        <span style="box-sizing:border-box;color:#333333;font-weight:bold;">final</span> <span style="box-sizing:border-box;color:#333333;font-weight:bold;">int</span> availableProcessors = EsExecutors.numberOfProcessors(settings);
-        <span style="box-sizing:border-box;color:#999988;font-style:italic;">// (cpu+1)/2 <span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">在区间</span> [1,5] <span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">中的取值，此处</span>(8+1)/2 = 4, <span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">在</span>[1,5]<span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">区间内取值为</span>4</span>
-        <span style="box-sizing:border-box;color:#333333;font-weight:bold;">final</span> <span style="box-sizing:border-box;color:#333333;font-weight:bold;">int</span> halfProcMaxAt5 = halfNumberOfProcessorsMaxFive(availableProcessors);
-        <span style="box-sizing:border-box;color:#999988;font-style:italic;">// (cpu+1)/2 <span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">在区间</span> [1,10] <span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">中的取值，此处</span>(8+1)/2 = 4, <span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">在</span>[1,5]<span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">区间内取值为</span>4</span>
-        <span style="box-sizing:border-box;color:#333333;font-weight:bold;">final</span> <span style="box-sizing:border-box;color:#333333;font-weight:bold;">int</span> halfProcMaxAt10 = halfNumberOfProcessorsMaxTen(availableProcessors);
-        <span style="box-sizing:border-box;color:#999988;font-style:italic;">// 4*8=32<span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">，</span>genericThreadPoolMax<span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">在区间</span>[128,512]<span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">中的取值为</span>128</span>
-        <span style="box-sizing:border-box;color:#333333;font-weight:bold;">final</span> <span style="box-sizing:border-box;color:#333333;font-weight:bold;">int</span> genericThreadPoolMax = boundedBy(<span style="box-sizing:border-box;color:#008080;">4</span> * availableProcessors, <span style="box-sizing:border-box;color:#008080;">128</span>, <span style="box-sizing:border-box;color:#008080;">512</span>);
+        final Map&lt;String, ExecutorBuilder&gt; builders = new HashMap&lt;&gt;();
+        // 获取本机cpu核数，假设cpu核数为8
+        final int availableProcessors = EsExecutors.numberOfProcessors(settings);
+        // (cpu+1)/2 在区间 [1,5] 中的取值，此处(8+1)/2 = 4, 在[1,5]区间内取值为4
+        final int halfProcMaxAt5 = halfNumberOfProcessorsMaxFive(availableProcessors);
+        // (cpu+1)/2 在区间 [1,10] 中的取值，此处(8+1)/2 = 4, 在[1,5]区间内取值为4
+        final int halfProcMaxAt10 = halfNumberOfProcessorsMaxTen(availableProcessors);
+        // 4*8=32，genericThreadPoolMax在区间[128,512]中的取值为128
+        final int genericThreadPoolMax = boundedBy(4 * availableProcessors, 128, 512);
 
-        <span style="box-sizing:border-box;color:#999988;font-style:italic;">// <span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">创建各种线程池的</span>builder</span>
-        builders.put(Names.GENERIC, <span style="box-sizing:border-box;color:#333333;font-weight:bold;">new</span> ScalingExecutorBuilder(Names.GENERIC, <span style="box-sizing:border-box;color:#008080;">4</span>, genericThreadPoolMax, TimeValue.timeValueSeconds(<span style="box-sizing:border-box;color:#008080;">30</span>)));
-        builders.put(Names.INDEX, <span style="box-sizing:border-box;color:#333333;font-weight:bold;">new</span> FixedExecutorBuilder(settings, Names.INDEX, availableProcessors, <span style="box-sizing:border-box;color:#008080;">200</span>, <span style="box-sizing:border-box;color:#333333;font-weight:bold;">true</span>));
-        builders.put(Names.WRITE, <span style="box-sizing:border-box;color:#333333;font-weight:bold;">new</span> FixedExecutorBuilder(settings, Names.WRITE, <span style="box-sizing:border-box;color:#dd1144;">"bulk"</span>, availableProcessors, <span style="box-sizing:border-box;color:#008080;">200</span>));
+        // 创建各种线程池的builder
+        builders.put(Names.GENERIC, new ScalingExecutorBuilder(Names.GENERIC, 4, genericThreadPoolMax, TimeValue.timeValueSeconds(30)));
+        builders.put(Names.INDEX, new FixedExecutorBuilder(settings, Names.INDEX, availableProcessors, 200, true));
+        builders.put(Names.WRITE, new FixedExecutorBuilder(settings, Names.WRITE, "bulk", availableProcessors, 200));
         ...
 
-        threadContext = <span style="box-sizing:border-box;color:#333333;font-weight:bold;">new</span> ThreadContext(settings);
+        threadContext = new ThreadContext(settings);
 
-        <span style="box-sizing:border-box;color:#999988;font-style:italic;">// <span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">创建各种线程池</span></span>
-        <span style="box-sizing:border-box;color:#333333;font-weight:bold;">final</span> Map&lt;String, ExecutorHolder&gt; executors = <span style="box-sizing:border-box;color:#333333;font-weight:bold;">new</span> HashMap&lt;&gt;();
-        <span style="box-sizing:border-box;color:#333333;font-weight:bold;">for</span> (<span style="box-sizing:border-box;color:#999999;font-weight:bold;">@SuppressWarnings</span>(<span style="box-sizing:border-box;color:#dd1144;">"unchecked"</span>) <span style="box-sizing:border-box;color:#333333;font-weight:bold;">final</span> Map.Entry&lt;String, ExecutorBuilder&gt; entry : builders.entrySet()) {
-            <span style="box-sizing:border-box;color:#333333;font-weight:bold;">final</span> ExecutorHolder executorHolder = entry.getValue().build(executorSettings, threadContext);
+        // 创建各种线程池
+        final Map&lt;String, ExecutorHolder&gt; executors = new HashMap&lt;&gt;();
+        for (@SuppressWarnings("unchecked") final Map.Entry&lt;String, ExecutorBuilder&gt; entry : builders.entrySet()) {
+            final ExecutorHolder executorHolder = entry.getValue().build(executorSettings, threadContext);
             executors.put(entry.getKey(), executorHolder);
         }
-        executors.put(Names.SAME, <span style="box-sizing:border-box;color:#333333;font-weight:bold;">new</span> ExecutorHolder(DIRECT_EXECUTOR, <span style="box-sizing:border-box;color:#333333;font-weight:bold;">new</span> Info(Names.SAME, ThreadPoolType.DIRECT)));
-        <span style="box-sizing:border-box;color:#333333;font-weight:bold;">this</span>.executors = unmodifiableMap(executors);
+        executors.put(Names.SAME, new ExecutorHolder(DIRECT_EXECUTOR, new Info(Names.SAME, ThreadPoolType.DIRECT)));
+        this.executors = unmodifiableMap(executors);
     }
 </code></pre>
 <p style="box-sizing:border-box;margin-top:0px;margin-bottom:16px;color:#24292e;font-family:&#39;-apple-system&#39;, BlinkMacSystemFont, &#39;微软雅黑&#39;, &#39;PingFang SC&#39;, Helvetica, Arial, &#39;Hiragino Sans GB&#39;, &#39;Microsoft YaHei&#39;, SimSun, &#39;宋体&#39;, Heiti, &#39;黑体&#39;, sans-serif;font-size:14px;font-style:normal;font-weight:400;letter-spacing:normal;text-indent:0px;text-transform:none;white-space:normal;word-spacing:0px;">线程池类型：</p>
@@ -426,16 +426,16 @@ categories:
 <li style="box-sizing:border-box;margin-top:.25em;">
 <p style="box-sizing:border-box;margin-top:16px;margin-bottom:16px;">FIXED: 线程数量固定，有队列，队列长度为固定值。无空闲线程时，请求被放入队列中。参数：</p>
 </li>
-</ul><pre style="box-sizing: border-box; font: 400 11.9px / 1.45 SFMono-Regular, Consolas, &quot;Liberation Mono&quot;, Menlo, Courier, monospace; margin-top: 0px; margin-bottom: 16px; padding: 16px; overflow: auto; background-color: rgb(246, 248, 250); border-radius: 3px; color: rgb(36, 41, 46); letter-spacing: normal; text-indent: 0px; text-transform: none; word-spacing: 0px; position: relative; z-index: 2;"><code style="box-sizing:border-box;display:inline;overflow:visible;padding:0px;color:#333333;background:transparent;font-family:&#39;SFMono-Regular&#39;, Consolas, &#39;Liberation Mono&#39;, Menlo, Courier, monospace, sans-serif;font-size:11.9px;margin:0px;border-radius:3px;white-space:pre;border:0px;line-height:inherit;">size      the fixed number of threads
-queueSize the size of the backing queue, -<span style="box-sizing:border-box;color:#008080;">1</span> <span style="box-sizing:border-box;color:#333333;font-weight:bold;">for</span> unbounded
+</ul><pre><code>size      the fixed number of threads
+queueSize the size of the backing queue, -1 for unbounded
 </code></pre>
 <ul style="box-sizing:border-box;padding-left:2em;margin-top:0px;margin-bottom:16px;color:#24292e;font-family:&#39;-apple-system&#39;, BlinkMacSystemFont, &#39;微软雅黑&#39;, &#39;PingFang SC&#39;, Helvetica, Arial, &#39;Hiragino Sans GB&#39;, &#39;Microsoft YaHei&#39;, SimSun, &#39;宋体&#39;, Heiti, &#39;黑体&#39;, sans-serif;font-size:14px;font-style:normal;font-weight:400;letter-spacing:normal;text-indent:0px;text-transform:none;white-space:normal;word-spacing:0px;"><li style="box-sizing:border-box;">SCALING: 线程数量不固定，在core和max之间动态变化。参数：</li>
-</ul><pre style="box-sizing: border-box; font: 400 11.9px / 1.45 SFMono-Regular, Consolas, &quot;Liberation Mono&quot;, Menlo, Courier, monospace; margin-top: 0px; margin-bottom: 16px; padding: 16px; overflow: auto; background-color: rgb(246, 248, 250); border-radius: 3px; color: rgb(36, 41, 46); letter-spacing: normal; text-indent: 0px; text-transform: none; word-spacing: 0px; position: relative; z-index: 2;"><code style="box-sizing:border-box;display:inline;overflow:visible;padding:0px;color:#333333;background:transparent;font-family:&#39;SFMono-Regular&#39;, Consolas, &#39;Liberation Mono&#39;, Menlo, Courier, monospace, sans-serif;font-size:11.9px;margin:0px;border-radius:3px;white-space:pre;border:0px;line-height:inherit;">core      the minimum number of threads <span style="box-sizing:border-box;color:#333333;font-weight:bold;">in</span> the pool
-max       the maximum number of threads <span style="box-sizing:border-box;color:#333333;font-weight:bold;">in</span> the pool
+</ul><pre><code>core      the minimum number of threads in the pool
+max       the maximum number of threads in the pool
 keepAlive the time that spare threads above {@code core} threads will be kept alive
 </code></pre>
 <ul style="box-sizing:border-box;padding-left:2em;margin-top:0px;margin-bottom:16px;color:#24292e;font-family:&#39;-apple-system&#39;, BlinkMacSystemFont, &#39;微软雅黑&#39;, &#39;PingFang SC&#39;, Helvetica, Arial, &#39;Hiragino Sans GB&#39;, &#39;Microsoft YaHei&#39;, SimSun, &#39;宋体&#39;, Heiti, &#39;黑体&#39;, sans-serif;font-size:14px;font-style:normal;font-weight:400;letter-spacing:normal;text-indent:0px;text-transform:none;white-space:normal;word-spacing:0px;"><li style="box-sizing:border-box;">FIXED_AUTO_QUEUE_SIZE: 线程数量固定，有队列，队列长度为不固定。参数：</li>
-</ul><pre style="box-sizing: border-box; font: 400 11.9px / 1.45 SFMono-Regular, Consolas, &quot;Liberation Mono&quot;, Menlo, Courier, monospace; margin-top: 0px; margin-bottom: 16px; padding: 16px; overflow: auto; background-color: rgb(246, 248, 250); border-radius: 3px; color: rgb(36, 41, 46); letter-spacing: normal; text-indent: 0px; text-transform: none; word-spacing: 0px; position: relative; z-index: 2;"><code style="box-sizing:border-box;display:inline;overflow:visible;padding:0px;color:#333333;background:transparent;font-family:&#39;SFMono-Regular&#39;, Consolas, &#39;Liberation Mono&#39;, Menlo, Courier, monospace, sans-serif;font-size:11.9px;margin:0px;border-radius:3px;white-space:pre;border:0px;line-height:inherit;">size             the fixed number of threads
+</ul><pre><code>size             the fixed number of threads
 initialQueueSize initial size of the backing queue
 minQueueSize     the minimum size of the backing queue
 maxQueueSize     the maximum size of the backing queue
@@ -559,22 +559,22 @@ maxQueueSize     the maximum size of the backing queue
 <p style="box-sizing:border-box;margin-top:0px;margin-bottom:16px;color:#24292e;font-family:&#39;-apple-system&#39;, BlinkMacSystemFont, &#39;微软雅黑&#39;, &#39;PingFang SC&#39;, Helvetica, Arial, &#39;Hiragino Sans GB&#39;, &#39;Microsoft YaHei&#39;, SimSun, &#39;宋体&#39;, Heiti, &#39;黑体&#39;, sans-serif;font-size:14px;font-style:normal;font-weight:400;letter-spacing:normal;text-indent:0px;text-transform:none;white-space:normal;word-spacing:0px;"><strong style="box-sizing:border-box;font-weight:600;">PATH</strong></p>
 <p style="box-sizing:border-box;margin-top:0px;margin-bottom:16px;color:#24292e;font-family:&#39;-apple-system&#39;, BlinkMacSystemFont, &#39;微软雅黑&#39;, &#39;PingFang SC&#39;, Helvetica, Arial, &#39;Hiragino Sans GB&#39;, &#39;Microsoft YaHei&#39;, SimSun, &#39;宋体&#39;, Heiti, &#39;黑体&#39;, sans-serif;font-size:14px;font-style:normal;font-weight:400;letter-spacing:normal;text-indent:0px;text-transform:none;white-space:normal;word-spacing:0px;">elasticsearch\node\Node.java</p>
 <p style="box-sizing:border-box;margin-top:0px;margin-bottom:16px;color:#24292e;font-family:&#39;-apple-system&#39;, BlinkMacSystemFont, &#39;微软雅黑&#39;, &#39;PingFang SC&#39;, Helvetica, Arial, &#39;Hiragino Sans GB&#39;, &#39;Microsoft YaHei&#39;, SimSun, &#39;宋体&#39;, Heiti, &#39;黑体&#39;, sans-serif;font-size:14px;font-style:normal;font-weight:400;letter-spacing:normal;text-indent:0px;text-transform:none;white-space:normal;word-spacing:0px;"><strong style="box-sizing:border-box;font-weight:600;">CODE</strong></p>
-<pre style="box-sizing: border-box; font: 400 11.9px / 1.45 SFMono-Regular, Consolas, &quot;Liberation Mono&quot;, Menlo, Courier, monospace; margin-top: 0px; margin-bottom: 16px; padding: 16px; overflow: auto; background-color: rgb(246, 248, 250); border-radius: 3px; color: rgb(36, 41, 46); letter-spacing: normal; text-indent: 0px; text-transform: none; word-spacing: 0px; position: relative; z-index: 2;"><code style="box-sizing:border-box;display:inline;overflow:visible;padding:0px;color:#333333;background:transparent;font-family:&#39;SFMono-Regular&#39;, Consolas, &#39;Liberation Mono&#39;, Menlo, Courier, monospace, sans-serif;font-size:11.9px;margin:0px;border-radius:3px;white-space:pre;border:0px;line-height:inherit;">    <span style="box-sizing:border-box;color:#999988;font-style:italic;">/**
+<pre><code>    /**
      * Start the node. If the node is already started, this method is no-op.
-     */</span>
-    <span style="box-sizing:border-box;"><span style="box-sizing:border-box;color:#333333;font-weight:bold;">public</span> Node <span style="box-sizing:border-box;color:#990000;font-weight:bold;">start</span><span style="box-sizing:border-box;">()</span> <span style="box-sizing:border-box;color:#333333;font-weight:bold;">throws</span> NodeValidationException </span>{
-        <span style="box-sizing:border-box;color:#999988;font-style:italic;">// 1. <span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">状态机，将</span>local node<span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">的</span>state<span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">设为</span>STARTED<span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">状态</span></span>
-        <span style="box-sizing:border-box;color:#333333;font-weight:bold;">if</span> (!lifecycle.moveToStarted()) {
-            <span style="box-sizing:border-box;color:#333333;font-weight:bold;">return</span> <span style="box-sizing:border-box;color:#333333;font-weight:bold;">this</span>;
+     */
+    public Node start() throws NodeValidationException {
+        // 1. 状态机，将local node的state设为STARTED状态
+        if (!lifecycle.moveToStarted()) {
+            return this;
         }
 
-        logger.info(<span style="box-sizing:border-box;color:#dd1144;">"starting ..."</span>);
+        logger.info("starting ...");
 
-        <span style="box-sizing:border-box;color:#999988;font-style:italic;">// LifecycleComponent in modules and plugins start</span>
+        // LifecycleComponent in modules and plugins start
         pluginLifecycleComponents.forEach(LifecycleComponent::start);
 
-        <span style="box-sizing:border-box;color:#999988;font-style:italic;">// 2. <span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">获取创建</span>Node<span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">时各种模块及服务绑定的实例，启动这些实例</span></span>
-        <span style="box-sizing:border-box;color:#999988;font-style:italic;">// AbstractLifecycleComponent.start() -&gt; class.doStart()</span>
+        // 2. 获取创建Node时各种模块及服务绑定的实例，启动这些实例
+        // AbstractLifecycleComponent.start() -&gt; class.doStart()
 
         injector.getInstance(MappingUpdatedAction.class).setClient(client);
         injector.getInstance(IndicesService.class).start();
@@ -588,50 +588,50 @@ maxQueueSize     the maximum size of the backing queue
         Discovery discovery = injector.getInstance(Discovery.class);
         clusterService.getMasterService().setClusterStatePublisher(discovery::publish);
 
-        <span style="box-sizing:border-box;color:#999988;font-style:italic;">// <span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">启动</span> transport service</span>
+        // 启动 transport service
         TransportService transportService = injector.getInstance(TransportService.class);
         transportService.getTaskManager().setTaskResultsService(injector.getInstance(TaskResultsService.class));
         transportService.start();
 
-        <span style="box-sizing:border-box;color:#999988;font-style:italic;">// <span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">加载本地的</span>MeteData<span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">信息</span></span>
-        <span style="box-sizing:border-box;color:#333333;font-weight:bold;">final</span> MetaData onDiskMetadata;
-        <span style="box-sizing:border-box;color:#333333;font-weight:bold;">try</span> {
-            <span style="box-sizing:border-box;color:#333333;font-weight:bold;">if</span> (DiscoveryNode.isMasterNode(settings) || DiscoveryNode.isDataNode(settings)) {
+        // 加载本地的MeteData信息
+        final MetaData onDiskMetadata;
+        try {
+            if (DiscoveryNode.isMasterNode(settings) || DiscoveryNode.isDataNode(settings)) {
                 onDiskMetadata = injector.getInstance(GatewayMetaState.class).loadMetaState();
-            } <span style="box-sizing:border-box;color:#333333;font-weight:bold;">else</span> {
+            } else {
                 onDiskMetadata = MetaData.EMPTY_META_DATA;
             }
 
-        } <span style="box-sizing:border-box;color:#333333;font-weight:bold;">catch</span> (IOException e) {
-            <span style="box-sizing:border-box;color:#333333;font-weight:bold;">throw</span> <span style="box-sizing:border-box;color:#333333;font-weight:bold;">new</span> UncheckedIOException(e);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
         }
 
-        <span style="box-sizing:border-box;color:#999988;font-style:italic;">// bootstrap<span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">的各项检测：</span>BootstrapChecks.check</span>
-        validateNodeBeforeAcceptingRequests(<span style="box-sizing:border-box;color:#333333;font-weight:bold;">new</span> BootstrapContext(settings, onDiskMetadata), transportService.boundAddress(), pluginsService
+        // bootstrap的各项检测：BootstrapChecks.check
+        validateNodeBeforeAcceptingRequests(new BootstrapContext(settings, onDiskMetadata), transportService.boundAddress(), pluginsService
             .filterPlugins(Plugin
             .class)
             .stream()
             .flatMap(p -&gt; p.getBootstrapChecks().stream()).collect(Collectors.toList()));
 
-        <span style="box-sizing:border-box;color:#999988;font-style:italic;">// <span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">初始化</span>ClusterState<span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">，启动</span>Discovery</span>
+        // 初始化ClusterState，启动Discovery
         discovery.start();
-        <span style="box-sizing:border-box;color:#999988;font-style:italic;">// <span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">启动</span>clusterServeice<span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">、</span>clusterApplierService<span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">、</span>masterService</span>
+        // 启动clusterServeice、clusterApplierService、masterService
         clusterService.start();
 
-        <span style="box-sizing:border-box;color:#999988;font-style:italic;">// transport<span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">层启动，开始接受请求</span></span>
+        // transport层启动，开始接受请求
         transportService.acceptIncomingRequests();
-        <span style="box-sizing:border-box;color:#999988;font-style:italic;">// initial discovery -&gt; ZenDiscovery.java innerJoinCluster<span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">（），加入集群</span></span>
+        // initial discovery -&gt; ZenDiscovery.java innerJoinCluster（），加入集群
         discovery.startInitialJoin();
 
-        <span style="box-sizing:border-box;color:#999988;font-style:italic;">// Http<span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">层启动，开始接受请求</span></span>
+        // Http层启动，开始接受请求
         injector.getInstance(HttpServerTransport.class).start();
 
-        <span style="box-sizing:border-box;color:#999988;font-style:italic;">// <span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">节点启动成功</span></span>
-        logger.info(<span style="box-sizing:border-box;color:#dd1144;">"started"</span>);
+        // 节点启动成功
+        logger.info("started");
 
         pluginsService.filterPlugins(ClusterPlugin.class).forEach(ClusterPlugin::onNodeStarted);
 
-        <span style="box-sizing:border-box;color:#333333;font-weight:bold;">return</span> <span style="box-sizing:border-box;color:#333333;font-weight:bold;">this</span>;
+        return this;
     }
 </code></pre>
 <p style="box-sizing:border-box;margin-top:0px;margin-bottom:16px;color:#24292e;font-family:&#39;-apple-system&#39;, BlinkMacSystemFont, &#39;微软雅黑&#39;, &#39;PingFang SC&#39;, Helvetica, Arial, &#39;Hiragino Sans GB&#39;, &#39;Microsoft YaHei&#39;, SimSun, &#39;宋体&#39;, Heiti, &#39;黑体&#39;, sans-serif;font-size:14px;font-style:normal;font-weight:400;letter-spacing:normal;text-indent:0px;text-transform:none;white-space:normal;word-spacing:0px;"><strong style="box-sizing:border-box;font-weight:600;">解析</strong></p>
@@ -639,50 +639,50 @@ maxQueueSize     the maximum size of the backing queue
 <ol style="box-sizing:border-box;padding-left:2em;margin-top:0px;margin-bottom:16px;color:#24292e;font-family:&#39;-apple-system&#39;, BlinkMacSystemFont, &#39;微软雅黑&#39;, &#39;PingFang SC&#39;, Helvetica, Arial, &#39;Hiragino Sans GB&#39;, &#39;Microsoft YaHei&#39;, SimSun, &#39;宋体&#39;, Heiti, &#39;黑体&#39;, sans-serif;font-size:14px;font-style:normal;font-weight:400;letter-spacing:normal;text-indent:0px;text-transform:none;white-space:normal;word-spacing:0px;"><li style="box-sizing:border-box;">启动 transport service，使得后续该节点可通过discovery过程加入集群</li>
 <li style="box-sizing:border-box;margin-top:.25em;">如果该节点node.master属性为true的话，加载本地的metadata，以获取原集群的信息（节点挂掉后重启的场景）</li>
 <li style="box-sizing:border-box;margin-top:.25em;">bootstrap check，检测ES当前的运行环境，主要是操作系统和JVM参数，如下图所示。某些检测不通过则ES会报错退出。各项检测的具体含义可以参考<a href="https://www.elastic.co/guide/en/elasticsearch/reference/6.4/bootstrap-checks.html" target="_blank" style="box-sizing:border-box;background-color:transparent;color:#0366d6;text-decoration:none;" rel="noreferrer">官方文档 Bootstrap Checks</a>。</li>
-</ol><p style="box-sizing: border-box; margin-top: 0px; margin-bottom: 16px; color: rgb(36, 41, 46); font-family: -apple-system, BlinkMacSystemFont, 微软雅黑, &quot;PingFang SC&quot;, Helvetica, Arial, &quot;Hiragino Sans GB&quot;, &quot;Microsoft YaHei&quot;, SimSun, 宋体, Heiti, 黑体, sans-serif; font-size: 14px; font-style: normal; font-weight: 400; letter-spacing: normal; text-indent: 0px; text-transform: none; white-space: normal; word-spacing: 0px;"><img alt="" src="./Elasticsearch 底层系列之 Node 启动过程源码解析 -  - KM平台_files/cos-file-url(10)" style="border-style: none; background-color: rgb(255, 255, 255); display: block; margin-left: auto; margin-right: auto; position: relative; z-index: 2;"></p>
+</ol><p style="box-sizing: border-box; margin-top: 0px; margin-bottom: 16px; color: rgb(36, 41, 46); font-family: -apple-system, BlinkMacSystemFont, 微软雅黑, &quot;PingFang SC&quot;, Helvetica, Arial, &quot;Hiragino Sans GB&quot;, &quot;Microsoft YaHei&quot;, SimSun, 宋体, Heiti, 黑体, sans-serif; font-size: 14px; font-style: normal; font-weight: 400; letter-spacing: normal; text-indent: 0px; text-transform: none; white-space: normal; word-spacing: 0px;"></p>
 <ol style="box-sizing:border-box;padding-left:2em;margin-top:0px;margin-bottom:16px;color:#24292e;font-family:&#39;-apple-system&#39;, BlinkMacSystemFont, &#39;微软雅黑&#39;, &#39;PingFang SC&#39;, Helvetica, Arial, &#39;Hiragino Sans GB&#39;, &#39;Microsoft YaHei&#39;, SimSun, &#39;宋体&#39;, Heiti, &#39;黑体&#39;, sans-serif;font-size:14px;font-style:normal;font-weight:400;letter-spacing:normal;text-indent:0px;text-transform:none;white-space:normal;word-spacing:0px;"><li style="box-sizing:border-box;">启动discovery和clusterService，初始化集群元信息ClusterState</li>
 <li style="box-sizing:border-box;margin-top:.25em;">启动transport服务，用于节点间通信</li>
 <li style="box-sizing:border-box;margin-top:.25em;">启动initial discovery，加入所属的Elasticsearch集群</li>
 <li style="box-sizing:border-box;margin-top:.25em;">启动http服务，开始接受用户请求</li>
 </ol><h2 style="box-sizing:border-box;margin-top:24px;margin-bottom:16px;font-size:1.75em;font-weight:600;line-height:1.25;padding-bottom:.3em;border-bottom:1px solid #eaecef;color:#24292e;font-family:&#39;-apple-system&#39;, BlinkMacSystemFont, &#39;微软雅黑&#39;, &#39;PingFang SC&#39;, Helvetica, Arial, &#39;Hiragino Sans GB&#39;, &#39;Microsoft YaHei&#39;, SimSun, &#39;宋体&#39;, Heiti, &#39;黑体&#39;, sans-serif;font-style:normal;letter-spacing:normal;text-indent:0px;text-transform:none;white-space:normal;word-spacing:0px;"><a href="https://note.youdao.com/md/preview.html?file=%2Fyws%2Fapi%2Fpersonal%2Ffile%2F7C63765EE638477195831E83CB80CE2B%3Fmethod%3Ddownload%26read%3Dtrue%26shareKey%3D35d14b1c03d89b5088acd1b34a720a7c#%E5%90%AF%E5%8A%A8%E6%97%A5%E5%BF%97" style="box-sizing:border-box;background-color:transparent;color:#0366d6;text-decoration:none;"></a>启动日志</h2>
 <p style="box-sizing:border-box;margin-top:0px;margin-bottom:16px;color:#24292e;font-family:&#39;-apple-system&#39;, BlinkMacSystemFont, &#39;微软雅黑&#39;, &#39;PingFang SC&#39;, Helvetica, Arial, &#39;Hiragino Sans GB&#39;, &#39;Microsoft YaHei&#39;, SimSun, &#39;宋体&#39;, Heiti, &#39;黑体&#39;, sans-serif;font-size:14px;font-style:normal;font-weight:400;letter-spacing:normal;text-indent:0px;text-transform:none;white-space:normal;word-spacing:0px;">最后我们通过ES节点的日志来验证下上面讲述的节点启动流程</p>
-<pre style="box-sizing: border-box; font: 400 11.9px / 1.45 SFMono-Regular, Consolas, &quot;Liberation Mono&quot;, Menlo, Courier, monospace; margin-top: 0px; margin-bottom: 16px; padding: 16px; overflow: auto; background-color: rgb(246, 248, 250); border-radius: 3px; color: rgb(36, 41, 46); letter-spacing: normal; text-indent: 0px; text-transform: none; word-spacing: 0px; position: relative; z-index: 2;"><code style="box-sizing:border-box;display:inline;overflow:visible;padding:0px;color:#333333;background:transparent;font-family:&#39;SFMono-Regular&#39;, Consolas, &#39;Liberation Mono&#39;, Menlo, Courier, monospace, sans-serif;font-size:11.9px;margin:0px;border-radius:3px;white-space:pre;border:0px;line-height:inherit;">
-<span style="box-sizing:border-box;color:#999988;font-style:italic;"># <span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">开始创建</span>Node</span>
-[<span style="box-sizing:border-box;color:#008080;">2018</span>-<span style="box-sizing:border-box;color:#008080;">12</span>-<span style="box-sizing:border-box;color:#008080;">28</span>T19:<span style="box-sizing:border-box;color:#008080;">54</span>:<span style="box-sizing:border-box;color:#008080;">44</span>,<span style="box-sizing:border-box;color:#008080;">159</span>][INFO ][o.e.n.Node               ] [] initializing ...
-<span style="box-sizing:border-box;color:#999988;font-style:italic;"># <span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">读取本地目录信息、</span>JVM<span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">信息，创建</span>NodeEnvironment</span>
-[<span style="box-sizing:border-box;color:#008080;">2018</span>-<span style="box-sizing:border-box;color:#008080;">12</span>-<span style="box-sizing:border-box;color:#008080;">28</span>T19:<span style="box-sizing:border-box;color:#008080;">54</span>:<span style="box-sizing:border-box;color:#008080;">44</span>,<span style="box-sizing:border-box;color:#008080;">376</span>][INFO ][o.e.e.NodeEnvironment    ] [V9VXhfr] using [<span style="box-sizing:border-box;color:#008080;">1</span>] <span style="box-sizing:border-box;color:#333333;font-weight:bold;">data</span> paths, mounts [[<span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">项目</span> (D:)]], net usable_space [<span style="box-sizing:border-box;color:#008080;">271.7</span>gb], net total_space [<span style="box-sizing:border-box;color:#008080;">310</span>gb], types [NTFS]
-[<span style="box-sizing:border-box;color:#008080;">2018</span>-<span style="box-sizing:border-box;color:#008080;">12</span>-<span style="box-sizing:border-box;color:#008080;">28</span>T19:<span style="box-sizing:border-box;color:#008080;">54</span>:<span style="box-sizing:border-box;color:#008080;">44</span>,<span style="box-sizing:border-box;color:#008080;">376</span>][INFO ][o.e.e.NodeEnvironment    ] [V9VXhfr] heap size [<span style="box-sizing:border-box;color:#008080;">1</span>gb], compressed ordinary object pointers [true]
-<span style="box-sizing:border-box;color:#999988;font-style:italic;"># <span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">打印</span>NodeName<span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">等节点信息</span></span>
-[<span style="box-sizing:border-box;color:#008080;">2018</span>-<span style="box-sizing:border-box;color:#008080;">12</span>-<span style="box-sizing:border-box;color:#008080;">28</span>T19:<span style="box-sizing:border-box;color:#008080;">54</span>:<span style="box-sizing:border-box;color:#008080;">44</span>,<span style="box-sizing:border-box;color:#008080;">379</span>][INFO ][o.e.n.Node               ] [V9VXhfr] node name derived from node ID [V9VXhfr9TvSyUfxyr-ZQWg]; set [node.name] to override
-[<span style="box-sizing:border-box;color:#008080;">2018</span>-<span style="box-sizing:border-box;color:#008080;">12</span>-<span style="box-sizing:border-box;color:#008080;">28</span>T19:<span style="box-sizing:border-box;color:#008080;">54</span>:<span style="box-sizing:border-box;color:#008080;">44</span>,<span style="box-sizing:border-box;color:#008080;">379</span>][INFO ][o.e.n.Node               ] [V9VXhfr] version[<span style="box-sizing:border-box;color:#008080;">6.4</span>.<span style="box-sizing:border-box;color:#008080;">3</span>-SNAPSHOT], pid[<span style="box-sizing:border-box;color:#008080;">19512</span>], build[unknown/unknown/Unknown/Unknown], OS[Windows <span style="box-sizing:border-box;color:#008080;">7</span>/<span style="box-sizing:border-box;color:#008080;">6.1</span>/amd64], JVM[<span style="box-sizing:border-box;color:#dd1144;">"Oracle Corporation"</span>/Java HotSpot(TM) <span style="box-sizing:border-box;color:#008080;">64</span>-Bit Server VM/<span style="box-sizing:border-box;color:#008080;">10.0</span>.<span style="box-sizing:border-box;color:#008080;">1</span>/<span style="box-sizing:border-box;color:#008080;">10.0</span>.<span style="box-sizing:border-box;color:#008080;">1</span>+<span style="box-sizing:border-box;color:#008080;">10</span>]
-<span style="box-sizing:border-box;color:#999988;font-style:italic;"># <span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">打印</span>JVM<span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">信息</span></span>
-[<span style="box-sizing:border-box;color:#008080;">2018</span>-<span style="box-sizing:border-box;color:#008080;">12</span>-<span style="box-sizing:border-box;color:#008080;">28</span>T19:<span style="box-sizing:border-box;color:#008080;">54</span>:<span style="box-sizing:border-box;color:#008080;">44</span>,<span style="box-sizing:border-box;color:#008080;">379</span>][INFO ][o.e.n.Node               ] [V9VXhfr] JVM arguments [-agentlib:jdwp=transport=dt_socket,address=<span style="box-sizing:border-box;color:#008080;">127.0</span>.<span style="box-sizing:border-box;color:#008080;">0.1</span>:<span style="box-sizing:border-box;color:#008080;">8831</span>,suspend=y,server=n, -Des.path.home=D:\elasticsearch_release\elasticsearch-<span style="box-sizing:border-box;color:#008080;">6.4</span>.<span style="box-sizing:border-box;color:#008080;">3</span>, -Des.path.conf=D:\elasticsearch_release\elasticsearch-<span style="box-sizing:border-box;color:#008080;">6.4</span>.<span style="box-sizing:border-box;color:#008080;">3</span>\config, -Djava.security.policy=D:\elasticsearch_release\elasticsearch-<span style="box-sizing:border-box;color:#008080;">6.4</span>.<span style="box-sizing:border-box;color:#008080;">3</span>\config\java.policy, -Dlog4j2.disable.jmx=true, -Xms1g, -Xmx1g, -javaagent:C:\Users\morningchen\.IntelliJIdea2018.<span style="box-sizing:border-box;color:#008080;">3</span>\system\groovyHotSwap\gragent.jar, -javaagent:C:\Users\morningchen\.IntelliJIdea2018.<span style="box-sizing:border-box;color:#008080;">3</span>\system\captureAgent\debugger-agent.jar, -Dfile.encoding=UTF-<span style="box-sizing:border-box;color:#008080;">8</span>]
-<span style="box-sizing:border-box;color:#999988;font-style:italic;"># <span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">初始化各种</span>Service<span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">和</span>Module</span>
-<span style="box-sizing:border-box;color:#999988;font-style:italic;"># <span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">加载各种</span>module</span>
-[<span style="box-sizing:border-box;color:#008080;">2018</span>-<span style="box-sizing:border-box;color:#008080;">12</span>-<span style="box-sizing:border-box;color:#008080;">28</span>T19:<span style="box-sizing:border-box;color:#008080;">54</span>:<span style="box-sizing:border-box;color:#008080;">53</span>,<span style="box-sizing:border-box;color:#008080;">359</span>][INFO ][o.e.p.PluginsService     ] [V9VXhfr] loaded module [aggs-matrix-stats]
-[<span style="box-sizing:border-box;color:#008080;">2018</span>-<span style="box-sizing:border-box;color:#008080;">12</span>-<span style="box-sizing:border-box;color:#008080;">28</span>T19:<span style="box-sizing:border-box;color:#008080;">54</span>:<span style="box-sizing:border-box;color:#008080;">53</span>,<span style="box-sizing:border-box;color:#008080;">359</span>][INFO ][o.e.p.PluginsService     ] [V9VXhfr] loaded module [analysis-common]
+<pre><code>
+# 开始创建Node
+[2018-12-28T19:54:44,159][INFO ][o.e.n.Node               ] [] initializing ...
+# 读取本地目录信息、JVM信息，创建NodeEnvironment
+[2018-12-28T19:54:44,376][INFO ][o.e.e.NodeEnvironment    ] [V9VXhfr] using [1] data paths, mounts [[项目 (D:)]], net usable_space [271.7gb], net total_space [310gb], types [NTFS]
+[2018-12-28T19:54:44,376][INFO ][o.e.e.NodeEnvironment    ] [V9VXhfr] heap size [1gb], compressed ordinary object pointers [true]
+# 打印NodeName等节点信息
+[2018-12-28T19:54:44,379][INFO ][o.e.n.Node               ] [V9VXhfr] node name derived from node ID [V9VXhfr9TvSyUfxyr-ZQWg]; set [node.name] to override
+[2018-12-28T19:54:44,379][INFO ][o.e.n.Node               ] [V9VXhfr] version[6.4.3-SNAPSHOT], pid[19512], build[unknown/unknown/Unknown/Unknown], OS[Windows 7/6.1/amd64], JVM["Oracle Corporation"/Java HotSpot(TM) 64-Bit Server VM/10.0.1/10.0.1+10]
+# 打印JVM信息
+[2018-12-28T19:54:44,379][INFO ][o.e.n.Node               ] [V9VXhfr] JVM arguments [-agentlib:jdwp=transport=dt_socket,address=127.0.0.1:8831,suspend=y,server=n, -Des.path.home=D:\elasticsearch_release\elasticsearch-6.4.3, -Des.path.conf=D:\elasticsearch_release\elasticsearch-6.4.3\config, -Djava.security.policy=D:\elasticsearch_release\elasticsearch-6.4.3\config\java.policy, -Dlog4j2.disable.jmx=true, -Xms1g, -Xmx1g, -javaagent:C:\Users\morningchen\.IntelliJIdea2018.3\system\groovyHotSwap\gragent.jar, -javaagent:C:\Users\morningchen\.IntelliJIdea2018.3\system\captureAgent\debugger-agent.jar, -Dfile.encoding=UTF-8]
+# 初始化各种Service和Module
+# 加载各种module
+[2018-12-28T19:54:53,359][INFO ][o.e.p.PluginsService     ] [V9VXhfr] loaded module [aggs-matrix-stats]
+[2018-12-28T19:54:53,359][INFO ][o.e.p.PluginsService     ] [V9VXhfr] loaded module [analysis-common]
 ...
-[<span style="box-sizing:border-box;color:#008080;">2018</span>-<span style="box-sizing:border-box;color:#008080;">12</span>-<span style="box-sizing:border-box;color:#008080;">28</span>T19:<span style="box-sizing:border-box;color:#008080;">54</span>:<span style="box-sizing:border-box;color:#008080;">53</span>,<span style="box-sizing:border-box;color:#008080;">362</span>][INFO ][o.e.p.PluginsService     ] [V9VXhfr] loaded module [x-pack-watcher]
-<span style="box-sizing:border-box;color:#999988;font-style:italic;"># <span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">加载</span>plugin</span>
-[<span style="box-sizing:border-box;color:#008080;">2018</span>-<span style="box-sizing:border-box;color:#008080;">12</span>-<span style="box-sizing:border-box;color:#008080;">28</span>T19:<span style="box-sizing:border-box;color:#008080;">54</span>:<span style="box-sizing:border-box;color:#008080;">53</span>,<span style="box-sizing:border-box;color:#008080;">362</span>][INFO ][o.e.p.PluginsService     ] [V9VXhfr] no plugins loaded
-[<span style="box-sizing:border-box;color:#008080;">2018</span>-<span style="box-sizing:border-box;color:#008080;">12</span>-<span style="box-sizing:border-box;color:#008080;">28</span>T19:<span style="box-sizing:border-box;color:#008080;">54</span>:<span style="box-sizing:border-box;color:#008080;">58</span>,<span style="box-sizing:border-box;color:#008080;">078</span>][DEBUG][o.e.a.ActionModule       ] Using REST wrapper from plugin org.elasticsearch.xpack.security.Security
-[<span style="box-sizing:border-box;color:#008080;">2018</span>-<span style="box-sizing:border-box;color:#008080;">12</span>-<span style="box-sizing:border-box;color:#008080;">28</span>T19:<span style="box-sizing:border-box;color:#008080;">54</span>:<span style="box-sizing:border-box;color:#008080;">58</span>,<span style="box-sizing:border-box;color:#008080;">271</span>][INFO ][o.e.d.DiscoveryModule    ] [V9VXhfr] using discovery type [zen]
-[<span style="box-sizing:border-box;color:#008080;">2018</span>-<span style="box-sizing:border-box;color:#008080;">12</span>-<span style="box-sizing:border-box;color:#008080;">28</span>T19:<span style="box-sizing:border-box;color:#008080;">54</span>:<span style="box-sizing:border-box;color:#008080;">59</span>,<span style="box-sizing:border-box;color:#008080;">102</span>][INFO ][o.e.n.Node               ] [V9VXhfr] initialized
-<span style="box-sizing:border-box;color:#999988;font-style:italic;"># <span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">开始启动</span>Node</span>
-[<span style="box-sizing:border-box;color:#008080;">2018</span>-<span style="box-sizing:border-box;color:#008080;">12</span>-<span style="box-sizing:border-box;color:#008080;">28</span>T19:<span style="box-sizing:border-box;color:#008080;">54</span>:<span style="box-sizing:border-box;color:#008080;">59</span>,<span style="box-sizing:border-box;color:#008080;">102</span>][INFO ][o.e.n.Node               ] [V9VXhfr] starting ...
-<span style="box-sizing:border-box;color:#999988;font-style:italic;"># <span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">启动</span>Transport<span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">服务</span></span>
-[<span style="box-sizing:border-box;color:#008080;">2018</span>-<span style="box-sizing:border-box;color:#008080;">12</span>-<span style="box-sizing:border-box;color:#008080;">28</span>T19:<span style="box-sizing:border-box;color:#008080;">54</span>:<span style="box-sizing:border-box;color:#008080;">59</span>,<span style="box-sizing:border-box;color:#008080;">428</span>][INFO ][o.e.t.TransportService   ] [V9VXhfr] publish_address {<span style="box-sizing:border-box;color:#008080;">10.40</span>.<span style="box-sizing:border-box;color:#008080;">98.48</span>:<span style="box-sizing:border-box;color:#008080;">9300</span>}, bound_addresses {<span style="box-sizing:border-box;color:#008080;">127.0</span>.<span style="box-sizing:border-box;color:#008080;">0.1</span>:<span style="box-sizing:border-box;color:#008080;">9300</span>}, {[::<span style="box-sizing:border-box;color:#008080;">1</span>]:<span style="box-sizing:border-box;color:#008080;">9300</span>}
-<span style="box-sizing:border-box;color:#999988;font-style:italic;"># BootstrapChecks</span>
-[<span style="box-sizing:border-box;color:#008080;">2018</span>-<span style="box-sizing:border-box;color:#008080;">12</span>-<span style="box-sizing:border-box;color:#008080;">28</span>T19:<span style="box-sizing:border-box;color:#008080;">54</span>:<span style="box-sizing:border-box;color:#008080;">59</span>,<span style="box-sizing:border-box;color:#008080;">442</span>][INFO ][o.e.b.BootstrapChecks    ] [V9VXhfr] bound or publishing to a non-loopback address, enforcing bootstrap checks
-<span style="box-sizing:border-box;color:#999988;font-style:italic;"># <span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">加入集群</span></span>
-[<span style="box-sizing:border-box;color:#008080;">2018</span>-<span style="box-sizing:border-box;color:#008080;">12</span>-<span style="box-sizing:border-box;color:#008080;">28</span>T19:<span style="box-sizing:border-box;color:#008080;">55</span>:<span style="box-sizing:border-box;color:#008080;">54</span>,<span style="box-sizing:border-box;color:#008080;">939</span>][INFO ][o.e.c.s.MasterService    ] [V9VXhfr] zen-disco-elected-as-master ([<span style="box-sizing:border-box;color:#008080;">0</span>] nodes joined)[, ], reason: new_master {V9VXhfr}{V9VXhfr9TvSyUfxyr-ZQWg}{m7N1OuBHRSuJlyGOoIJmqw}{<span style="box-sizing:border-box;color:#008080;">10.40</span>.<span style="box-sizing:border-box;color:#008080;">98.48</span>}{<span style="box-sizing:border-box;color:#008080;">10.40</span>.<span style="box-sizing:border-box;color:#008080;">98.48</span>:<span style="box-sizing:border-box;color:#008080;">9300</span>}{ml.machine_memory=<span style="box-sizing:border-box;color:#008080;">17099067392</span>, xpack.installed=true, ml.max_open_jobs=<span style="box-sizing:border-box;color:#008080;">20</span>, ml.enabled=true}
-[<span style="box-sizing:border-box;color:#008080;">2018</span>-<span style="box-sizing:border-box;color:#008080;">12</span>-<span style="box-sizing:border-box;color:#008080;">28</span>T19:<span style="box-sizing:border-box;color:#008080;">55</span>:<span style="box-sizing:border-box;color:#008080;">54</span>,<span style="box-sizing:border-box;color:#008080;">945</span>][INFO ][o.e.c.s.ClusterApplierService] [V9VXhfr] new_master {V9VXhfr}{V9VXhfr9TvSyUfxyr-ZQWg}{m7N1OuBHRSuJlyGOoIJmqw}{<span style="box-sizing:border-box;color:#008080;">10.40</span>.<span style="box-sizing:border-box;color:#008080;">98.48</span>}{<span style="box-sizing:border-box;color:#008080;">10.40</span>.<span style="box-sizing:border-box;color:#008080;">98.48</span>:<span style="box-sizing:border-box;color:#008080;">9300</span>}{ml.machine_memory=<span style="box-sizing:border-box;color:#008080;">17099067392</span>, xpack.installed=true, ml.max_open_jobs=<span style="box-sizing:border-box;color:#008080;">20</span>, ml.enabled=true}, reason: apply cluster state (from master [master {V9VXhfr}{V9VXhfr9TvSyUfxyr-ZQWg}{m7N1OuBHRSuJlyGOoIJmqw}{<span style="box-sizing:border-box;color:#008080;">10.40</span>.<span style="box-sizing:border-box;color:#008080;">98.48</span>}{<span style="box-sizing:border-box;color:#008080;">10.40</span>.<span style="box-sizing:border-box;color:#008080;">98.48</span>:<span style="box-sizing:border-box;color:#008080;">9300</span>}{ml.machine_memory=<span style="box-sizing:border-box;color:#008080;">17099067392</span>, xpack.installed=true, ml.max_open_jobs=<span style="box-sizing:border-box;color:#008080;">20</span>, ml.enabled=true} committed version [<span style="box-sizing:border-box;color:#008080;">1</span>] source [zen-disco-elected-as-master ([<span style="box-sizing:border-box;color:#008080;">0</span>] nodes joined)[, ]]])
-<span style="box-sizing:border-box;color:#999988;font-style:italic;"># <span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">启动</span>Http<span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">服务</span></span>
-[<span style="box-sizing:border-box;color:#008080;">2018</span>-<span style="box-sizing:border-box;color:#008080;">12</span>-<span style="box-sizing:border-box;color:#008080;">28</span>T19:<span style="box-sizing:border-box;color:#008080;">55</span>:<span style="box-sizing:border-box;color:#008080;">58</span>,<span style="box-sizing:border-box;color:#008080;">722</span>][INFO ][o.e.x.s.t.n.SecurityNetty4HttpServerTransport] [V9VXhfr] publish_address {<span style="box-sizing:border-box;color:#008080;">10.40</span>.<span style="box-sizing:border-box;color:#008080;">98.48</span>:<span style="box-sizing:border-box;color:#008080;">9200</span>}, bound_addresses {<span style="box-sizing:border-box;color:#008080;">127.0</span>.<span style="box-sizing:border-box;color:#008080;">0.1</span>:<span style="box-sizing:border-box;color:#008080;">9200</span>}, {[::<span style="box-sizing:border-box;color:#008080;">1</span>]:<span style="box-sizing:border-box;color:#008080;">9200</span>}
-<span style="box-sizing:border-box;color:#999988;font-style:italic;"># <span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">节点启动完毕</span></span>
-[<span style="box-sizing:border-box;color:#008080;">2018</span>-<span style="box-sizing:border-box;color:#008080;">12</span>-<span style="box-sizing:border-box;color:#008080;">28</span>T19:<span style="box-sizing:border-box;color:#008080;">55</span>:<span style="box-sizing:border-box;color:#008080;">58</span>,<span style="box-sizing:border-box;color:#008080;">723</span>][INFO ][o.e.n.Node               ] [V9VXhfr] started
-<span style="box-sizing:border-box;color:#999988;font-style:italic;"># license<span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">检测</span></span>
-[<span style="box-sizing:border-box;color:#008080;">2018</span>-<span style="box-sizing:border-box;color:#008080;">12</span>-<span style="box-sizing:border-box;color:#008080;">28</span>T19:<span style="box-sizing:border-box;color:#008080;">55</span>:<span style="box-sizing:border-box;color:#008080;">58</span>,<span style="box-sizing:border-box;color:#008080;">902</span>][INFO ][o.e.l.LicenseService     ] [V9VXhfr] license [a4e08819-<span style="box-sizing:border-box;color:#008080;">7</span>a8b-<span style="box-sizing:border-box;color:#008080;">4017</span>-<span style="box-sizing:border-box;color:#008080;">8</span>b85-<span style="box-sizing:border-box;color:#008080;">5329</span>bc2909b0] mode [basic] - valid
-<span style="box-sizing:border-box;color:#999988;font-style:italic;"># <span style="box-sizing:border-box;font-family:&#39;Microsoft YaHei&#39;, &#39;微软雅黑&#39;, SimSun, sans-serif;">开始恢复本地数据</span></span>
-[<span style="box-sizing:border-box;color:#008080;">2018</span>-<span style="box-sizing:border-box;color:#008080;">12</span>-<span style="box-sizing:border-box;color:#008080;">28</span>T19:<span style="box-sizing:border-box;color:#008080;">55</span>:<span style="box-sizing:border-box;color:#008080;">58</span>,<span style="box-sizing:border-box;color:#008080;">926</span>][INFO ][o.e.g.GatewayService     ] [V9VXhfr] recovered [<span style="box-sizing:border-box;color:#008080;">0</span>] indices into cluster_state
+[2018-12-28T19:54:53,362][INFO ][o.e.p.PluginsService     ] [V9VXhfr] loaded module [x-pack-watcher]
+# 加载plugin
+[2018-12-28T19:54:53,362][INFO ][o.e.p.PluginsService     ] [V9VXhfr] no plugins loaded
+[2018-12-28T19:54:58,078][DEBUG][o.e.a.ActionModule       ] Using REST wrapper from plugin org.elasticsearch.xpack.security.Security
+[2018-12-28T19:54:58,271][INFO ][o.e.d.DiscoveryModule    ] [V9VXhfr] using discovery type [zen]
+[2018-12-28T19:54:59,102][INFO ][o.e.n.Node               ] [V9VXhfr] initialized
+# 开始启动Node
+[2018-12-28T19:54:59,102][INFO ][o.e.n.Node               ] [V9VXhfr] starting ...
+# 启动Transport服务
+[2018-12-28T19:54:59,428][INFO ][o.e.t.TransportService   ] [V9VXhfr] publish_address {10.40.98.48:9300}, bound_addresses {127.0.0.1:9300}, {[::1]:9300}
+# BootstrapChecks
+[2018-12-28T19:54:59,442][INFO ][o.e.b.BootstrapChecks    ] [V9VXhfr] bound or publishing to a non-loopback address, enforcing bootstrap checks
+# 加入集群
+[2018-12-28T19:55:54,939][INFO ][o.e.c.s.MasterService    ] [V9VXhfr] zen-disco-elected-as-master ([0] nodes joined)[, ], reason: new_master {V9VXhfr}{V9VXhfr9TvSyUfxyr-ZQWg}{m7N1OuBHRSuJlyGOoIJmqw}{10.40.98.48}{10.40.98.48:9300}{ml.machine_memory=17099067392, xpack.installed=true, ml.max_open_jobs=20, ml.enabled=true}
+[2018-12-28T19:55:54,945][INFO ][o.e.c.s.ClusterApplierService] [V9VXhfr] new_master {V9VXhfr}{V9VXhfr9TvSyUfxyr-ZQWg}{m7N1OuBHRSuJlyGOoIJmqw}{10.40.98.48}{10.40.98.48:9300}{ml.machine_memory=17099067392, xpack.installed=true, ml.max_open_jobs=20, ml.enabled=true}, reason: apply cluster state (from master [master {V9VXhfr}{V9VXhfr9TvSyUfxyr-ZQWg}{m7N1OuBHRSuJlyGOoIJmqw}{10.40.98.48}{10.40.98.48:9300}{ml.machine_memory=17099067392, xpack.installed=true, ml.max_open_jobs=20, ml.enabled=true} committed version [1] source [zen-disco-elected-as-master ([0] nodes joined)[, ]]])
+# 启动Http服务
+[2018-12-28T19:55:58,722][INFO ][o.e.x.s.t.n.SecurityNetty4HttpServerTransport] [V9VXhfr] publish_address {10.40.98.48:9200}, bound_addresses {127.0.0.1:9200}, {[::1]:9200}
+# 节点启动完毕
+[2018-12-28T19:55:58,723][INFO ][o.e.n.Node               ] [V9VXhfr] started
+# license检测
+[2018-12-28T19:55:58,902][INFO ][o.e.l.LicenseService     ] [V9VXhfr] license [a4e08819-7a8b-4017-8b85-5329bc2909b0] mode [basic] - valid
+# 开始恢复本地数据
+[2018-12-28T19:55:58,926][INFO ][o.e.g.GatewayService     ] [V9VXhfr] recovered [0] indices into cluster_state
 </code></pre>				</div>

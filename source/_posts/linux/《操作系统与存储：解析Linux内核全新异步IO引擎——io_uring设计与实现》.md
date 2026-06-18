@@ -54,7 +54,7 @@ So from the above documentation, it seems that Linux doesn’t have a true async
 
 <p>read简单介绍：</p>
 
-<pre class="  language-txt" style="position: relative; z-index: 2;"><code class="prism  language-txt">NAME
+<pre><code>NAME
     read - read from a file descriptor
 SYNOPSIS
     #include &lt;unistd.h&gt;
@@ -81,7 +81,7 @@ DESCRIPTION
 
 <p>write简单介绍：</p>
 
-<pre class="  language-txt" style="position: relative; z-index: 2;"><code class="prism  language-txt">NAME
+<pre><code>NAME
     write - write to a file descriptor
 SYNOPSIS
     #include &lt;unistd.h&gt;
@@ -117,18 +117,18 @@ DESCRIPTION
 
 <p>在多线程环境下，为了保证线程安全，需要保证下列操作的原子性。</p>
 
-<pre class="  language-python" style="position: relative; z-index: 2;"><code class="prism  language-python">    off_t orig<span class="token punctuation">;</span>
-    orig <span class="token operator">=</span> lseek<span class="token punctuation">(</span>fd<span class="token punctuation">,</span> <span class="token number">0</span><span class="token punctuation">,</span> SEEK_CUR<span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token operator">//</span> Save current offset
-    lseek<span class="token punctuation">(</span>fd<span class="token punctuation">,</span> offset<span class="token punctuation">,</span> SEEK_SET<span class="token punctuation">)</span><span class="token punctuation">;</span>
-    s <span class="token operator">=</span> read<span class="token punctuation">(</span>fd<span class="token punctuation">,</span> buf<span class="token punctuation">,</span> <span class="token builtin">len</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-    lseek<span class="token punctuation">(</span>fd<span class="token punctuation">,</span> orig<span class="token punctuation">,</span> SEEK_SET<span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token operator">//</span> Restore original <span class="token builtin">file</span> offset
+<pre><code>    off_t orig;
+    orig = lseek(fd, 0, SEEK_CUR); // Save current offset
+    lseek(fd, offset, SEEK_SET);
+    s = read(fd, buf, len);
+    lseek(fd, orig, SEEK_SET); // Restore original file offset
 </code></pre>
 
 <p>让使用者来保证原子性较繁，从接口上就有保证是一个好的选择，后来出现的pread实现了这一点。</p>
 
 <p>与read, write类似，pread, pwrite调用时可以指定位置进行文件IO操作，而非始于文件的当前偏移处，且他们不会改变文件的当前偏移量。这种方式，减少了编码，并提高了代码的健壮性。</p>
 
-<pre class="  language-txt" style="position: relative; z-index: 2;"><code class="prism  language-txt">NAME
+<pre><code>NAME
        pread,  pwrite  -  read from or write to a file descriptor at a given
        offset
 SYNOPSIS
@@ -172,10 +172,10 @@ DESCRIPTION
 
 <p>这种基于向量的，分散输入和集中输出的系统调用并非只对单个缓冲区进行读写操作，而是一次即可传输多个缓冲区的数据，免除了多次系统调用的开销。数组iov定义了一组用来传输数据的缓冲区。整形数iovcnt则指定了iov的成员个数。iov中的每个成员都是如下形式的数据结构。</p>
 
-<pre class="  language-python" style="position: relative; z-index: 2;"><code class="prism  language-python">struct iovec <span class="token punctuation">{</span>
-   void  <span class="token operator">*</span>iov_base<span class="token punctuation">;</span>    <span class="token operator">/</span><span class="token operator">*</span> Starting address <span class="token operator">*</span><span class="token operator">/</span>
-   size_t iov_len<span class="token punctuation">;</span>     <span class="token operator">/</span><span class="token operator">*</span> Number of <span class="token builtin">bytes</span> to transfer <span class="token operator">*</span><span class="token operator">/</span>
-<span class="token punctuation">}</span><span class="token punctuation">;</span>
+<pre><code>struct iovec {
+   void  *iov_base;    /* Starting address */
+   size_t iov_len;     /* Number of bytes to transfer */
+};
 </code></pre>
 
 <h4 id="功能交集-preadv-pwritev">功能交集：preadv，pwritev</h4>
@@ -190,7 +190,7 @@ DESCRIPTION
 
 <p>后来还出现了变种函数preadv2和pwritev2，相比较preadv，pwritev，v2版本还能设置本次IO的标志，比如RWF_DSYNC、RWF_HIPRI、RWF_SYNC、RWF_NOWAIT、RWF_APPEND。</p>
 
-<pre class="  language-txt" style="position: relative; z-index: 2;"><code class="prism  language-txt">NAME
+<pre><code>NAME
     readv,  writev,  preadv,  pwritev,  preadv2, pwritev2 - read or write
        data into multiple buffers
 
@@ -332,7 +332,7 @@ DESCRIPTION
 
 <p>这是因为AIO不支持缓存操作，即使需要操作的文件块在linux文件缓存中存在，也不会通过操作缓存中的文件块来代替实际对磁盘的操作，这可能降低实际处理的性能。需要看具体的使用场景，如果大部分用户请求对文件操作都会落到文件缓存中，那么使用AIO可能不是一个好的选择，需要实际测试。</p>
 
-<p style=""><img src="./《操作系统与存储：解析Linux内核全新异步IO引擎——io_uring设计与实现》 - 社交平台产品部 - KM平台_files/cos-file-url(2)" alt="" style="position: relative; z-index: 2;" class="amplify"></p>
+<p style=""><img src="/logbook/images/linux/《操作系统与存储：解析Linux内核全新异步IO引擎——io_uring设计与实现》/3c58c974d777.png" alt="" style="position: relative; z-index: 2;" class="amplify"></p>
 
 <p>以上是AIO的不足之一，分析AIO缘何不足，需要较大的篇幅，这里按下不表直接总结结论。</p>
 
@@ -400,7 +400,7 @@ DESCRIPTION
 
 <p>内核控制SQ ring的head和CQ ring的tail，应用程序控制SQ ring的tail和CQ ring的head</p>
 
-<p style=""><img src="./《操作系统与存储：解析Linux内核全新异步IO引擎——io_uring设计与实现》 - 社交平台产品部 - KM平台_files/cos-file-url(3)" alt="" style="position: relative; z-index: 2;" class="amplify"></p>
+<p style=""><img src="/logbook/images/linux/《操作系统与存储：解析Linux内核全新异步IO引擎——io_uring设计与实现》/e2e50645cffc.png" alt="" style="position: relative; z-index: 2;" class="amplify"></p>
 
 <p>那么他们分别需要保存的是什么数据呢？<br>
 假设A缓存区为核外写，内核读，就是将IO数据写到这个缓存区，然后通知内核来读；再假设B缓存区为内核写，核外读，他所承担的责任就是返回完成状态，标记A缓存区的其中一个entry的完成状态为成功或者失败等信息。</p>
@@ -431,36 +431,36 @@ DESCRIPTION
 
 <p>其中io_rings结构中sq, cq成员，分别代表了提交的请求的ring和已经完成的请求返回结构的ring。io_uring结构中是head和tail，用于控制队列中的头尾索引。即前文提到的，内核控制SQ ring的head和CQ ring的tail，应用程序控制SQ ring的tail和CQ ring的head。</p>
 
-<pre class="  language-cpp" style="position: relative; z-index: 2;"><code class="prism  language-cpp"><span class="token keyword">struct</span> <span class="token class-name">io_uring</span> <span class="token punctuation">{</span>
-	u32 head ____cacheline_aligned_in_smp<span class="token punctuation">;</span>
-	u32 tail ____cacheline_aligned_in_smp<span class="token punctuation">;</span>
-<span class="token punctuation">}</span><span class="token punctuation">;</span>
+<pre><code>struct io_uring {
+	u32 head ____cacheline_aligned_in_smp;
+	u32 tail ____cacheline_aligned_in_smp;
+};
 
-<span class="token comment">/*
+/*
  * This data is shared with the application through the mmap at offsets
  * IORING_OFF_SQ_RING and IORING_OFF_CQ_RING.
  *
  * The offsets to the member fields are published through struct
  * io_sqring_offsets when calling io_uring_setup.
- */</span>
-<span class="token keyword">struct</span> <span class="token class-name">io_rings</span> <span class="token punctuation">{</span>
-	<span class="token comment">/*
+ */
+struct io_rings {
+	/*
 	 * Head and tail offsets into the ring; the offsets need to be
 	 * masked to get valid indices.
 	 *
 	 * The kernel controls head of the sq ring and the tail of the cq ring,
 	 * and the application controls tail of the sq ring and the head of the
 	 * cq ring.
-	 */</span>
-	<span class="token keyword">struct</span> <span class="token class-name">io_uring</span>		sq<span class="token punctuation">,</span> cq<span class="token punctuation">;</span>
-	<span class="token comment">/*
+	 */
+	struct io_uring		sq, cq;
+	/*
 	 * Bitmasks to apply to head and tail offsets (constant, equals
 	 * ring_entries - 1)
-	 */</span>
-	u32			sq_ring_mask<span class="token punctuation">,</span> cq_ring_mask<span class="token punctuation">;</span>
-	<span class="token comment">/* Ring sizes (constant, power of 2) */</span>
-	u32			sq_ring_entries<span class="token punctuation">,</span> cq_ring_entries<span class="token punctuation">;</span>
-	<span class="token comment">/*
+	 */
+	u32			sq_ring_mask, cq_ring_mask;
+	/* Ring sizes (constant, power of 2) */
+	u32			sq_ring_entries, cq_ring_entries;
+	/*
 	 * Number of invalid entries dropped by the kernel due to
 	 * invalid index stored in array
 	 *
@@ -471,9 +471,9 @@ DESCRIPTION
 	 * After a new SQ head value was read by the application this
 	 * counter includes all submissions that were dropped reaching
 	 * the new SQ head (and possibly more).
-	 */</span>
-	u32			sq_dropped<span class="token punctuation">;</span>
-	<span class="token comment">/*
+	 */
+	u32			sq_dropped;
+	/*
 	 * Runtime SQ flags
 	 *
 	 * Written by the kernel, shouldn't be modified by the
@@ -481,16 +481,16 @@ DESCRIPTION
 	 *
 	 * The application needs a full memory barrier before checking
 	 * for IORING_SQ_NEED_WAKEUP after updating the sq tail.
-	 */</span>
-	u32			sq_flags<span class="token punctuation">;</span>
-	<span class="token comment">/*
+	 */
+	u32			sq_flags;
+	/*
 	 * Runtime CQ flags
 	 *
 	 * Written by the application, shouldn't be modified by the
 	 * kernel.
-	 */</span>
-	u32                     cq_flags<span class="token punctuation">;</span>
-	<span class="token comment">/*
+	 */
+	u32                     cq_flags;
+	/*
 	 * Number of completion events lost because the queue was full;
 	 * this should be avoided by the application by making sure
 	 * there are not more requests pending than there is space in
@@ -502,17 +502,17 @@ DESCRIPTION
 	 *
 	 * As completion events come in out of order this counter is not
 	 * ordered with any other data.
-	 */</span>
-	u32			cq_overflow<span class="token punctuation">;</span>
-	<span class="token comment">/*
+	 */
+	u32			cq_overflow;
+	/*
 	 * Ring buffer of completion events.
 	 *
 	 * The kernel writes completion events fresh every time they are
 	 * produced, so the application is allowed to modify pending
 	 * entries.
-	 */</span>
-	<span class="token keyword">struct</span> <span class="token class-name">io_uring_cqe</span>	cqes<span class="token punctuation">[</span><span class="token punctuation">]</span> ____cacheline_aligned_in_smp<span class="token punctuation">;</span>
-<span class="token punctuation">}</span><span class="token punctuation">;</span>
+	 */
+	struct io_uring_cqe	cqes[] ____cacheline_aligned_in_smp;
+};
 </code></pre>
 
 <h3 id="Submission-Queue-Entry单元数据结构">Submission Queue Entry单元数据结构</h3>
@@ -523,55 +523,55 @@ DESCRIPTION
 
 <p>我们需要操作码、标志集合、关联文件描述符、地址、偏移量，另外地，可能还需要表示优先级。</p>
 
-<pre class="  language-cpp" style="position: relative; z-index: 2;"><code class="prism  language-cpp"><span class="token comment">/*
+<pre><code>/*
  * IO submission data structure (Submission Queue Entry)
- */</span>
-<span class="token keyword">struct</span> <span class="token class-name">io_uring_sqe</span> <span class="token punctuation">{</span>
-	__u8	opcode<span class="token punctuation">;</span>		<span class="token comment">/* type of operation for this sqe */</span>
-	__u8	flags<span class="token punctuation">;</span>		<span class="token comment">/* IOSQE_ flags */</span>
-	__u16	ioprio<span class="token punctuation">;</span>		<span class="token comment">/* ioprio for the request */</span>
-	__s32	fd<span class="token punctuation">;</span>		<span class="token comment">/* file descriptor to do IO on */</span>
-	<span class="token keyword">union</span> <span class="token punctuation">{</span>
-		__u64	off<span class="token punctuation">;</span>	<span class="token comment">/* offset into file */</span>
-		__u64	addr2<span class="token punctuation">;</span>
-	<span class="token punctuation">}</span><span class="token punctuation">;</span>
-	<span class="token keyword">union</span> <span class="token punctuation">{</span>
-		__u64	addr<span class="token punctuation">;</span>	<span class="token comment">/* pointer to buffer or iovecs */</span>
-		__u64	splice_off_in<span class="token punctuation">;</span>
-	<span class="token punctuation">}</span><span class="token punctuation">;</span>
-	__u32	len<span class="token punctuation">;</span>		<span class="token comment">/* buffer size or number of iovecs */</span>
-	<span class="token keyword">union</span> <span class="token punctuation">{</span>
-		__kernel_rwf_t	rw_flags<span class="token punctuation">;</span>
-		__u32		fsync_flags<span class="token punctuation">;</span>
-		__u16		poll_events<span class="token punctuation">;</span>	<span class="token comment">/* compatibility */</span>
-		__u32		poll32_events<span class="token punctuation">;</span>	<span class="token comment">/* word-reversed for BE */</span>
-		__u32		sync_range_flags<span class="token punctuation">;</span>
-		__u32		msg_flags<span class="token punctuation">;</span>
-		__u32		timeout_flags<span class="token punctuation">;</span>
-		__u32		accept_flags<span class="token punctuation">;</span>
-		__u32		cancel_flags<span class="token punctuation">;</span>
-		__u32		open_flags<span class="token punctuation">;</span>
-		__u32		statx_flags<span class="token punctuation">;</span>
-		__u32		fadvise_advice<span class="token punctuation">;</span>
-		__u32		splice_flags<span class="token punctuation">;</span>
-	<span class="token punctuation">}</span><span class="token punctuation">;</span>
-	__u64	user_data<span class="token punctuation">;</span>	<span class="token comment">/* data to be passed back at completion time */</span>
-	<span class="token keyword">union</span> <span class="token punctuation">{</span>
-		<span class="token keyword">struct</span> <span class="token punctuation">{</span>
-			<span class="token comment">/* pack this to avoid bogus arm OABI complaints */</span>
-			<span class="token keyword">union</span> <span class="token punctuation">{</span>
-				<span class="token comment">/* index into fixed buffers, if used */</span>
-				__u16	buf_index<span class="token punctuation">;</span>
-				<span class="token comment">/* for grouped buffer selection */</span>
-				__u16	buf_group<span class="token punctuation">;</span>
-			<span class="token punctuation">}</span> <span class="token function">__attribute__</span><span class="token punctuation">(</span><span class="token punctuation">(</span>packed<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-			<span class="token comment">/* personality to use, if used */</span>
-			__u16	personality<span class="token punctuation">;</span>
-			__s32	splice_fd_in<span class="token punctuation">;</span>
-		<span class="token punctuation">}</span><span class="token punctuation">;</span>
-		__u64	__pad2<span class="token punctuation">[</span><span class="token number">3</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
-	<span class="token punctuation">}</span><span class="token punctuation">;</span>
-<span class="token punctuation">}</span><span class="token punctuation">;</span>
+ */
+struct io_uring_sqe {
+	__u8	opcode;		/* type of operation for this sqe */
+	__u8	flags;		/* IOSQE_ flags */
+	__u16	ioprio;		/* ioprio for the request */
+	__s32	fd;		/* file descriptor to do IO on */
+	union {
+		__u64	off;	/* offset into file */
+		__u64	addr2;
+	};
+	union {
+		__u64	addr;	/* pointer to buffer or iovecs */
+		__u64	splice_off_in;
+	};
+	__u32	len;		/* buffer size or number of iovecs */
+	union {
+		__kernel_rwf_t	rw_flags;
+		__u32		fsync_flags;
+		__u16		poll_events;	/* compatibility */
+		__u32		poll32_events;	/* word-reversed for BE */
+		__u32		sync_range_flags;
+		__u32		msg_flags;
+		__u32		timeout_flags;
+		__u32		accept_flags;
+		__u32		cancel_flags;
+		__u32		open_flags;
+		__u32		statx_flags;
+		__u32		fadvise_advice;
+		__u32		splice_flags;
+	};
+	__u64	user_data;	/* data to be passed back at completion time */
+	union {
+		struct {
+			/* pack this to avoid bogus arm OABI complaints */
+			union {
+				/* index into fixed buffers, if used */
+				__u16	buf_index;
+				/* for grouped buffer selection */
+				__u16	buf_group;
+			} __attribute__((packed));
+			/* personality to use, if used */
+			__u16	personality;
+			__s32	splice_fd_in;
+		};
+		__u64	__pad2[3];
+	};
+};
 </code></pre>
 
 <ul>
@@ -594,14 +594,14 @@ DESCRIPTION
 
 <p>描述一个CQE就简单得多。</p>
 
-<pre class="  language-cpp" style="position: relative; z-index: 2;"><code class="prism  language-cpp"><span class="token comment">/*
+<pre><code>/*
  * IO completion data structure (Completion Queue Entry)
- */</span>
-<span class="token keyword">struct</span> <span class="token class-name">io_uring_cqe</span> <span class="token punctuation">{</span>
-	__u64	user_data<span class="token punctuation">;</span>	<span class="token comment">/* sqe-&gt;data submission passed back */</span>
-	__s32	res<span class="token punctuation">;</span>		<span class="token comment">/* result code for this event */</span>
-	__u32	flags<span class="token punctuation">;</span>
-<span class="token punctuation">}</span><span class="token punctuation">;</span>
+ */
+struct io_uring_cqe {
+	__u64	user_data;	/* sqe-&gt;data submission passed back */
+	__s32	res;		/* result code for this event */
+	__u32	flags;
+};
 </code></pre>
 
 <ul>
@@ -610,175 +610,175 @@ DESCRIPTION
 <li>flags是标志位集合。如果flags设置为IORING_CQE_F_BUFFER，则前16位是buffer ID（调用链：io_uring_enter -&gt; io_iopoll_check -&gt; io_iopoll_getevents -&gt; io_do_iopoll -&gt; io_iopoll_complete -&gt; io_put_rw_kbuf -&gt; io_put_kbuf，最终会调用io_put_kbuf，如代码所示）。</li>
 </ul>
 
-<pre class="  language-python" style="position: relative; z-index: 2;"><code class="prism  language-python"><span class="token operator">/</span><span class="token operator">*</span>
- <span class="token operator">*</span> cqe<span class="token operator">-</span><span class="token operator">&gt;</span>flags
- <span class="token operator">*</span>
- <span class="token operator">*</span> IORING_CQE_F_BUFFER	If <span class="token builtin">set</span><span class="token punctuation">,</span> the upper <span class="token number">16</span> bits are the <span class="token builtin">buffer</span> ID
- <span class="token operator">*</span><span class="token operator">/</span>
-<span class="token comment">#define IORING_CQE_F_BUFFER		(1U &lt;&lt; 0)</span>
+<pre><code>/*
+ * cqe-&gt;flags
+ *
+ * IORING_CQE_F_BUFFER	If set, the upper 16 bits are the buffer ID
+ */
+#define IORING_CQE_F_BUFFER		(1U &lt;&lt; 0)
 
-enum <span class="token punctuation">{</span>
-	IORING_CQE_BUFFER_SHIFT		<span class="token operator">=</span> <span class="token number">16</span><span class="token punctuation">,</span>
-<span class="token punctuation">}</span><span class="token punctuation">;</span>
+enum {
+	IORING_CQE_BUFFER_SHIFT		= 16,
+};
 </code></pre>
 
-<pre class="  language-python" style="position: relative; z-index: 2;"><code class="prism  language-python">static unsigned <span class="token builtin">int</span> io_put_kbuf<span class="token punctuation">(</span>struct io_kiocb <span class="token operator">*</span>req<span class="token punctuation">,</span> struct io_buffer <span class="token operator">*</span>kbuf<span class="token punctuation">)</span>
-<span class="token punctuation">{</span>
-	unsigned <span class="token builtin">int</span> cflags<span class="token punctuation">;</span>
+<pre><code>static unsigned int io_put_kbuf(struct io_kiocb *req, struct io_buffer *kbuf)
+{
+	unsigned int cflags;
 
-	cflags <span class="token operator">=</span> kbuf<span class="token operator">-</span><span class="token operator">&gt;</span>bid <span class="token operator">&lt;&lt;</span> IORING_CQE_BUFFER_SHIFT<span class="token punctuation">;</span>
-	cflags <span class="token operator">|</span><span class="token operator">=</span> IORING_CQE_F_BUFFER<span class="token punctuation">;</span>
-	req<span class="token operator">-</span><span class="token operator">&gt;</span>flags <span class="token operator">&amp;</span><span class="token operator">=</span> <span class="token operator">~</span>REQ_F_BUFFER_SELECTED<span class="token punctuation">;</span>
-	kfree<span class="token punctuation">(</span>kbuf<span class="token punctuation">)</span><span class="token punctuation">;</span>
-	<span class="token keyword">return</span> cflags<span class="token punctuation">;</span>
-<span class="token punctuation">}</span>
+	cflags = kbuf-&gt;bid &lt;&lt; IORING_CQE_BUFFER_SHIFT;
+	cflags |= IORING_CQE_F_BUFFER;
+	req-&gt;flags &amp;= ~REQ_F_BUFFER_SELECTED;
+	kfree(kbuf);
+	return cflags;
+}
 </code></pre>
 
 <h3 id="上下文结构io_ring_ctx">上下文结构io_ring_ctx</h3>
 
 <p>前面介绍了SQE/CQE等关键的数据结构，他们是用来承载数据流的关键部分，有了数据流的关键数据结构我们还需要一个上下文数据结构，用于整个io_uring控制流。这就是io_ring_ctx，贯穿整个io_uring所有过程的数据结构，基本上在任何位置只需要你能持有该结构就可以找到任何数据所在的位置，例如，sq_sqes就是指向io_uring_sqe结构的指针，指向SQEs的首地址。</p>
 
-<pre class="  language-python" style="position: relative; z-index: 2;"><code class="prism  language-python">struct io_ring_ctx <span class="token punctuation">{</span>
-	struct <span class="token punctuation">{</span>
-		struct percpu_ref	refs<span class="token punctuation">;</span>
-	<span class="token punctuation">}</span> ____cacheline_aligned_in_smp<span class="token punctuation">;</span>
+<pre><code>struct io_ring_ctx {
+	struct {
+		struct percpu_ref	refs;
+	} ____cacheline_aligned_in_smp;
 
-	struct <span class="token punctuation">{</span>
-		unsigned <span class="token builtin">int</span>		flags<span class="token punctuation">;</span>
-		unsigned <span class="token builtin">int</span>		compat<span class="token punctuation">:</span> <span class="token number">1</span><span class="token punctuation">;</span>
-		unsigned <span class="token builtin">int</span>		limit_mem<span class="token punctuation">:</span> <span class="token number">1</span><span class="token punctuation">;</span>
-		unsigned <span class="token builtin">int</span>		cq_overflow_flushed<span class="token punctuation">:</span> <span class="token number">1</span><span class="token punctuation">;</span>
-		unsigned <span class="token builtin">int</span>		drain_next<span class="token punctuation">:</span> <span class="token number">1</span><span class="token punctuation">;</span>
-		unsigned <span class="token builtin">int</span>		eventfd_async<span class="token punctuation">:</span> <span class="token number">1</span><span class="token punctuation">;</span>
-		unsigned <span class="token builtin">int</span>		restricted<span class="token punctuation">:</span> <span class="token number">1</span><span class="token punctuation">;</span>
+	struct {
+		unsigned int		flags;
+		unsigned int		compat: 1;
+		unsigned int		limit_mem: 1;
+		unsigned int		cq_overflow_flushed: 1;
+		unsigned int		drain_next: 1;
+		unsigned int		eventfd_async: 1;
+		unsigned int		restricted: 1;
 
-		<span class="token operator">/</span><span class="token operator">*</span>
-		 <span class="token operator">*</span> Ring <span class="token builtin">buffer</span> of indices into array of io_uring_sqe<span class="token punctuation">,</span> which <span class="token keyword">is</span>
-		 <span class="token operator">*</span> mmapped by the application using the IORING_OFF_SQES offset<span class="token punctuation">.</span>
-		 <span class="token operator">*</span>
-		 <span class="token operator">*</span> This indirection could e<span class="token punctuation">.</span>g<span class="token punctuation">.</span> be used to assign fixed
-		 <span class="token operator">*</span> io_uring_sqe entries to operations <span class="token keyword">and</span> only submit them to
-		 <span class="token operator">*</span> the queue when needed<span class="token punctuation">.</span>
-		 <span class="token operator">*</span>
-		 <span class="token operator">*</span> The kernel modifies neither the indices array nor the entries
-		 <span class="token operator">*</span> array<span class="token punctuation">.</span>
-		 <span class="token operator">*</span><span class="token operator">/</span>
-		u32			<span class="token operator">*</span>sq_array<span class="token punctuation">;</span>
-		unsigned		cached_sq_head<span class="token punctuation">;</span>
-		unsigned		sq_entries<span class="token punctuation">;</span>
-		unsigned		sq_mask<span class="token punctuation">;</span>
-		unsigned		sq_thread_idle<span class="token punctuation">;</span>
-		unsigned		cached_sq_dropped<span class="token punctuation">;</span>
-		unsigned		cached_cq_overflow<span class="token punctuation">;</span>
-		unsigned <span class="token builtin">long</span>		sq_check_overflow<span class="token punctuation">;</span>
+		/*
+		 * Ring buffer of indices into array of io_uring_sqe, which is
+		 * mmapped by the application using the IORING_OFF_SQES offset.
+		 *
+		 * This indirection could e.g. be used to assign fixed
+		 * io_uring_sqe entries to operations and only submit them to
+		 * the queue when needed.
+		 *
+		 * The kernel modifies neither the indices array nor the entries
+		 * array.
+		 */
+		u32			*sq_array;
+		unsigned		cached_sq_head;
+		unsigned		sq_entries;
+		unsigned		sq_mask;
+		unsigned		sq_thread_idle;
+		unsigned		cached_sq_dropped;
+		unsigned		cached_cq_overflow;
+		unsigned long		sq_check_overflow;
 
-		struct list_head	defer_list<span class="token punctuation">;</span>
-		struct list_head	timeout_list<span class="token punctuation">;</span>
-		struct list_head	cq_overflow_list<span class="token punctuation">;</span>
+		struct list_head	defer_list;
+		struct list_head	timeout_list;
+		struct list_head	cq_overflow_list;
 
-		wait_queue_head_t	inflight_wait<span class="token punctuation">;</span>
-		struct io_uring_sqe	<span class="token operator">*</span>sq_sqes<span class="token punctuation">;</span>
-	<span class="token punctuation">}</span> ____cacheline_aligned_in_smp<span class="token punctuation">;</span>
+		wait_queue_head_t	inflight_wait;
+		struct io_uring_sqe	*sq_sqes;
+	} ____cacheline_aligned_in_smp;
 
-	struct io_rings	<span class="token operator">*</span>rings<span class="token punctuation">;</span>
+	struct io_rings	*rings;
 
-	<span class="token operator">/</span><span class="token operator">*</span> IO offload <span class="token operator">*</span><span class="token operator">/</span>
-	struct io_wq		<span class="token operator">*</span>io_wq<span class="token punctuation">;</span>
+	/* IO offload */
+	struct io_wq		*io_wq;
 
-	<span class="token operator">/</span><span class="token operator">*</span>
-	 <span class="token operator">*</span> For SQPOLL usage <span class="token operator">-</span> we hold a reference to the parent task<span class="token punctuation">,</span> so we
-	 <span class="token operator">*</span> have access to the <span class="token operator">-</span><span class="token operator">&gt;</span>files
-	 <span class="token operator">*</span><span class="token operator">/</span>
-	struct task_struct	<span class="token operator">*</span>sqo_task<span class="token punctuation">;</span>
+	/*
+	 * For SQPOLL usage - we hold a reference to the parent task, so we
+	 * have access to the -&gt;files
+	 */
+	struct task_struct	*sqo_task;
 
-	<span class="token operator">/</span><span class="token operator">*</span> Only used <span class="token keyword">for</span> accounting purposes <span class="token operator">*</span><span class="token operator">/</span>
-	struct mm_struct	<span class="token operator">*</span>mm_account<span class="token punctuation">;</span>
+	/* Only used for accounting purposes */
+	struct mm_struct	*mm_account;
 
-<span class="token comment">#ifdef CONFIG_BLK_CGROUP</span>
-	struct cgroup_subsys_state	<span class="token operator">*</span>sqo_blkcg_css<span class="token punctuation">;</span>
-<span class="token comment">#endif</span>
+#ifdef CONFIG_BLK_CGROUP
+	struct cgroup_subsys_state	*sqo_blkcg_css;
+#endif
 
-	struct io_sq_data	<span class="token operator">*</span>sq_data<span class="token punctuation">;</span>	<span class="token operator">/</span><span class="token operator">*</span> <span class="token keyword">if</span> using sq thread polling <span class="token operator">*</span><span class="token operator">/</span>
+	struct io_sq_data	*sq_data;	/* if using sq thread polling */
 
-	struct wait_queue_head	sqo_sq_wait<span class="token punctuation">;</span>
-	struct wait_queue_entry	sqo_wait_entry<span class="token punctuation">;</span>
-	struct list_head	sqd_list<span class="token punctuation">;</span>
+	struct wait_queue_head	sqo_sq_wait;
+	struct wait_queue_entry	sqo_wait_entry;
+	struct list_head	sqd_list;
 
-	<span class="token operator">/</span><span class="token operator">*</span>
-	 <span class="token operator">*</span> If used<span class="token punctuation">,</span> fixed <span class="token builtin">file</span> <span class="token builtin">set</span><span class="token punctuation">.</span> Writers must ensure that <span class="token operator">-</span><span class="token operator">&gt;</span>refs <span class="token keyword">is</span> dead<span class="token punctuation">,</span>
-	 <span class="token operator">*</span> readers must ensure that <span class="token operator">-</span><span class="token operator">&gt;</span>refs <span class="token keyword">is</span> alive <span class="token keyword">as</span> <span class="token builtin">long</span> <span class="token keyword">as</span> the <span class="token builtin">file</span><span class="token operator">*</span> <span class="token keyword">is</span>
-	 <span class="token operator">*</span> used<span class="token punctuation">.</span> Only updated through io_uring_register<span class="token punctuation">(</span><span class="token number">2</span><span class="token punctuation">)</span><span class="token punctuation">.</span>
-	 <span class="token operator">*</span><span class="token operator">/</span>
-	struct fixed_file_data	<span class="token operator">*</span>file_data<span class="token punctuation">;</span>
-	unsigned		nr_user_files<span class="token punctuation">;</span>
+	/*
+	 * If used, fixed file set. Writers must ensure that -&gt;refs is dead,
+	 * readers must ensure that -&gt;refs is alive as long as the file* is
+	 * used. Only updated through io_uring_register(2).
+	 */
+	struct fixed_file_data	*file_data;
+	unsigned		nr_user_files;
 
-	<span class="token operator">/</span><span class="token operator">*</span> <span class="token keyword">if</span> used<span class="token punctuation">,</span> fixed mapped user buffers <span class="token operator">*</span><span class="token operator">/</span>
-	unsigned		nr_user_bufs<span class="token punctuation">;</span>
-	struct io_mapped_ubuf	<span class="token operator">*</span>user_bufs<span class="token punctuation">;</span>
+	/* if used, fixed mapped user buffers */
+	unsigned		nr_user_bufs;
+	struct io_mapped_ubuf	*user_bufs;
 
-	struct user_struct	<span class="token operator">*</span>user<span class="token punctuation">;</span>
+	struct user_struct	*user;
 
-	const struct cred	<span class="token operator">*</span>creds<span class="token punctuation">;</span>
+	const struct cred	*creds;
 
-<span class="token comment">#ifdef CONFIG_AUDIT</span>
-	kuid_t			loginuid<span class="token punctuation">;</span>
-	unsigned <span class="token builtin">int</span>		sessionid<span class="token punctuation">;</span>
-<span class="token comment">#endif</span>
+#ifdef CONFIG_AUDIT
+	kuid_t			loginuid;
+	unsigned int		sessionid;
+#endif
 
-	struct completion	ref_comp<span class="token punctuation">;</span>
-	struct completion	sq_thread_comp<span class="token punctuation">;</span>
+	struct completion	ref_comp;
+	struct completion	sq_thread_comp;
 
-	<span class="token operator">/</span><span class="token operator">*</span> <span class="token keyword">if</span> <span class="token builtin">all</span> <span class="token keyword">else</span> fails<span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span> <span class="token operator">*</span><span class="token operator">/</span>
-	struct io_kiocb		<span class="token operator">*</span>fallback_req<span class="token punctuation">;</span>
+	/* if all else fails... */
+	struct io_kiocb		*fallback_req;
 
-<span class="token comment">#if defined(CONFIG_UNIX)</span>
-	struct socket		<span class="token operator">*</span>ring_sock<span class="token punctuation">;</span>
-<span class="token comment">#endif</span>
+#if defined(CONFIG_UNIX)
+	struct socket		*ring_sock;
+#endif
 
-	struct idr		io_buffer_idr<span class="token punctuation">;</span>
+	struct idr		io_buffer_idr;
 
-	struct idr		personality_idr<span class="token punctuation">;</span>
+	struct idr		personality_idr;
 
-	struct <span class="token punctuation">{</span>
-		unsigned		cached_cq_tail<span class="token punctuation">;</span>
-		unsigned		cq_entries<span class="token punctuation">;</span>
-		unsigned		cq_mask<span class="token punctuation">;</span>
-		atomic_t		cq_timeouts<span class="token punctuation">;</span>
-		unsigned <span class="token builtin">long</span>		cq_check_overflow<span class="token punctuation">;</span>
-		struct wait_queue_head	cq_wait<span class="token punctuation">;</span>
-		struct fasync_struct	<span class="token operator">*</span>cq_fasync<span class="token punctuation">;</span>
-		struct eventfd_ctx	<span class="token operator">*</span>cq_ev_fd<span class="token punctuation">;</span>
-	<span class="token punctuation">}</span> ____cacheline_aligned_in_smp<span class="token punctuation">;</span>
+	struct {
+		unsigned		cached_cq_tail;
+		unsigned		cq_entries;
+		unsigned		cq_mask;
+		atomic_t		cq_timeouts;
+		unsigned long		cq_check_overflow;
+		struct wait_queue_head	cq_wait;
+		struct fasync_struct	*cq_fasync;
+		struct eventfd_ctx	*cq_ev_fd;
+	} ____cacheline_aligned_in_smp;
 
-	struct <span class="token punctuation">{</span>
-		struct mutex		uring_lock<span class="token punctuation">;</span>
-		wait_queue_head_t	wait<span class="token punctuation">;</span>
-	<span class="token punctuation">}</span> ____cacheline_aligned_in_smp<span class="token punctuation">;</span>
+	struct {
+		struct mutex		uring_lock;
+		wait_queue_head_t	wait;
+	} ____cacheline_aligned_in_smp;
 
-	struct <span class="token punctuation">{</span>
-		spinlock_t		completion_lock<span class="token punctuation">;</span>
+	struct {
+		spinlock_t		completion_lock;
 
-		<span class="token operator">/</span><span class="token operator">*</span>
-		 <span class="token operator">*</span> <span class="token operator">-</span><span class="token operator">&gt;</span>iopoll_list <span class="token keyword">is</span> protected by the ctx<span class="token operator">-</span><span class="token operator">&gt;</span>uring_lock <span class="token keyword">for</span>
-		 <span class="token operator">*</span> io_uring instances that don't use IORING_SETUP_SQPOLL<span class="token punctuation">.</span>
-		 <span class="token operator">*</span> For SQPOLL<span class="token punctuation">,</span> only the single threaded io_sq_thread<span class="token punctuation">(</span><span class="token punctuation">)</span> will
-		 <span class="token operator">*</span> manipulate the <span class="token builtin">list</span><span class="token punctuation">,</span> hence no extra locking <span class="token keyword">is</span> needed there<span class="token punctuation">.</span>
-		 <span class="token operator">*</span><span class="token operator">/</span>
-		struct list_head	iopoll_list<span class="token punctuation">;</span>
-		struct hlist_head	<span class="token operator">*</span>cancel_hash<span class="token punctuation">;</span>
-		unsigned		cancel_hash_bits<span class="token punctuation">;</span>
-		<span class="token builtin">bool</span>			poll_multi_file<span class="token punctuation">;</span>
+		/*
+		 * -&gt;iopoll_list is protected by the ctx-&gt;uring_lock for
+		 * io_uring instances that don't use IORING_SETUP_SQPOLL.
+		 * For SQPOLL, only the single threaded io_sq_thread() will
+		 * manipulate the list, hence no extra locking is needed there.
+		 */
+		struct list_head	iopoll_list;
+		struct hlist_head	*cancel_hash;
+		unsigned		cancel_hash_bits;
+		bool			poll_multi_file;
 
-		spinlock_t		inflight_lock<span class="token punctuation">;</span>
-		struct list_head	inflight_list<span class="token punctuation">;</span>
-	<span class="token punctuation">}</span> ____cacheline_aligned_in_smp<span class="token punctuation">;</span>
+		spinlock_t		inflight_lock;
+		struct list_head	inflight_list;
+	} ____cacheline_aligned_in_smp;
 
-	struct delayed_work		file_put_work<span class="token punctuation">;</span>
-	struct llist_head		file_put_llist<span class="token punctuation">;</span>
+	struct delayed_work		file_put_work;
+	struct llist_head		file_put_llist;
 
-	struct work_struct		exit_work<span class="token punctuation">;</span>
-	struct io_restriction		restrictions<span class="token punctuation">;</span>
-<span class="token punctuation">}</span><span class="token punctuation">;</span>
+	struct work_struct		exit_work;
+	struct io_restriction		restrictions;
+};
 </code></pre>
 
 <h2 id="关键流程">关键流程</h2>
@@ -787,16 +787,16 @@ enum <span class="token punctuation">{</span>
 
 <p>有几个io_uring相关的系统调用：</p>
 
-<pre class="  language-cpp" style="position: relative; z-index: 2;"><code class="prism  language-cpp"><span class="token macro property">#<span class="token directive keyword">include</span> <span class="token string">&lt;linux/io_uring.h&gt;</span></span>
+<pre><code>#include &lt;linux/io_uring.h&gt;
 
-<span class="token keyword">int</span> <span class="token function">io_uring_setup</span><span class="token punctuation">(</span>u32 entries<span class="token punctuation">,</span> <span class="token keyword">struct</span> <span class="token class-name">io_uring_params</span> <span class="token operator">*</span>p<span class="token punctuation">)</span><span class="token punctuation">;</span>
+int io_uring_setup(u32 entries, struct io_uring_params *p);
 
-<span class="token keyword">int</span> <span class="token function">io_uring_enter</span><span class="token punctuation">(</span><span class="token keyword">unsigned</span> <span class="token keyword">int</span> fd<span class="token punctuation">,</span> <span class="token keyword">unsigned</span> <span class="token keyword">int</span> to_submit<span class="token punctuation">,</span>
-                   <span class="token keyword">unsigned</span> <span class="token keyword">int</span> min_complete<span class="token punctuation">,</span> <span class="token keyword">unsigned</span> <span class="token keyword">int</span> flags<span class="token punctuation">,</span>
-                   sigset_t <span class="token operator">*</span>sig<span class="token punctuation">)</span><span class="token punctuation">;</span>
+int io_uring_enter(unsigned int fd, unsigned int to_submit,
+                   unsigned int min_complete, unsigned int flags,
+                   sigset_t *sig);
 
-<span class="token keyword">int</span> <span class="token function">io_uring_register</span><span class="token punctuation">(</span><span class="token keyword">unsigned</span> <span class="token keyword">int</span> fd<span class="token punctuation">,</span> <span class="token keyword">unsigned</span> <span class="token keyword">int</span> opcode<span class="token punctuation">,</span>
-                      <span class="token keyword">void</span> <span class="token operator">*</span>arg<span class="token punctuation">,</span> <span class="token keyword">unsigned</span> <span class="token keyword">int</span> nr_args<span class="token punctuation">)</span><span class="token punctuation">;</span>
+int io_uring_register(unsigned int fd, unsigned int opcode,
+                      void *arg, unsigned int nr_args);
 </code></pre>
 
 <p>下面分析关键流程。</p>
@@ -805,7 +805,7 @@ enum <span class="token punctuation">{</span>
 
 <p>io_uring通过io_uring_setup完成准备阶段。</p>
 
-<pre class="  language-cpp" style="position: relative; z-index: 2;"><code class="prism  language-cpp"><span class="token keyword">int</span> <span class="token function">io_uring_setup</span><span class="token punctuation">(</span>u32 entries<span class="token punctuation">,</span> <span class="token keyword">struct</span> <span class="token class-name">io_uring_params</span> <span class="token operator">*</span>p<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<pre><code>int io_uring_setup(u32 entries, struct io_uring_params *p);
 </code></pre>
 
 <p>io_uring_setup系统调用的过程就是初始化相关数据结构，建立好对应的缓存区，然后通过系统调用的参数io_uring_params结构传递回去，告诉核外环内存地址在哪，起始指针的地址在哪等关键的信息。</p>
@@ -814,7 +814,7 @@ enum <span class="token punctuation">{</span>
 
 <p>通常，SQE被独立地使用，意味着它的执行不影响在ring中的连续SQE条目。它允许全面、灵活的操作，并且使它们最高性能地并行执行完成。一个顺序的使用案例就是数据的整体写入。它的一个通常的例子就是一系列写，随之的是fsync/fdatasync，应用通常转变成程序同步-等待操作。</p>
 
-<p style=""><img src="./《操作系统与存储：解析Linux内核全新异步IO引擎——io_uring设计与实现》 - 社交平台产品部 - KM平台_files/cos-file-url(4)" alt="" style="position: relative; z-index: 2;" class="amplify"></p>
+<p style=""><img src="/logbook/images/linux/《操作系统与存储：解析Linux内核全新异步IO引擎——io_uring设计与实现》/c03e71c5e7fb.png" alt="" style="position: relative; z-index: 2;" class="amplify"></p>
 
 <p>先从参数上来解析</p>
 
@@ -840,61 +840,61 @@ enum <span class="token punctuation">{</span>
 </li>
 </ul>
 
-<pre class="  language-cpp" style="position: relative; z-index: 2;"><code class="prism  language-cpp"><span class="token comment">/*
+<pre><code>/*
  * Passed in for io_uring_setup(2). Copied back with updated info on success
- */</span>
-<span class="token keyword">struct</span> <span class="token class-name">io_uring_params</span> <span class="token punctuation">{</span>
-	__u32 sq_entries<span class="token punctuation">;</span>
-	__u32 cq_entries<span class="token punctuation">;</span>
-	__u32 flags<span class="token punctuation">;</span>
-	__u32 sq_thread_cpu<span class="token punctuation">;</span>
-	__u32 sq_thread_idle<span class="token punctuation">;</span>
-	__u32 features<span class="token punctuation">;</span>
-	__u32 wq_fd<span class="token punctuation">;</span>
-	__u32 resv<span class="token punctuation">[</span><span class="token number">3</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
-	<span class="token keyword">struct</span> <span class="token class-name">io_sqring_offsets</span> sq_off<span class="token punctuation">;</span>
-	<span class="token keyword">struct</span> <span class="token class-name">io_cqring_offsets</span> cq_off<span class="token punctuation">;</span>
-<span class="token punctuation">}</span><span class="token punctuation">;</span>
+ */
+struct io_uring_params {
+	__u32 sq_entries;
+	__u32 cq_entries;
+	__u32 flags;
+	__u32 sq_thread_cpu;
+	__u32 sq_thread_idle;
+	__u32 features;
+	__u32 wq_fd;
+	__u32 resv[3];
+	struct io_sqring_offsets sq_off;
+	struct io_cqring_offsets cq_off;
+};
 
-<span class="token comment">/*
+/*
  * io_uring_params-&gt;features flags
- */</span>
-<span class="token macro property">#<span class="token directive keyword">define</span> IORING_FEAT_SINGLE_MMAP		(1U &lt;&lt; 0)</span>
-<span class="token macro property">#<span class="token directive keyword">define</span> IORING_FEAT_NODROP		(1U &lt;&lt; 1)</span>
-<span class="token macro property">#<span class="token directive keyword">define</span> IORING_FEAT_SUBMIT_STABLE	(1U &lt;&lt; 2)</span>
-<span class="token macro property">#<span class="token directive keyword">define</span> IORING_FEAT_RW_CUR_POS		(1U &lt;&lt; 3)</span>
-<span class="token macro property">#<span class="token directive keyword">define</span> IORING_FEAT_CUR_PERSONALITY	(1U &lt;&lt; 4)</span>
-<span class="token macro property">#<span class="token directive keyword">define</span> IORING_FEAT_FAST_POLL		(1U &lt;&lt; 5)</span>
-<span class="token macro property">#<span class="token directive keyword">define</span> IORING_FEAT_POLL_32BITS 	(1U &lt;&lt; 6)</span>
+ */
+#define IORING_FEAT_SINGLE_MMAP		(1U &lt;&lt; 0)
+#define IORING_FEAT_NODROP		(1U &lt;&lt; 1)
+#define IORING_FEAT_SUBMIT_STABLE	(1U &lt;&lt; 2)
+#define IORING_FEAT_RW_CUR_POS		(1U &lt;&lt; 3)
+#define IORING_FEAT_CUR_PERSONALITY	(1U &lt;&lt; 4)
+#define IORING_FEAT_FAST_POLL		(1U &lt;&lt; 5)
+#define IORING_FEAT_POLL_32BITS 	(1U &lt;&lt; 6)
 </code></pre>
 
 <p>再从实现上来解析，如下为io_uring_setup代码。</p>
 
-<pre class="  language-python" style="position: relative; z-index: 2;"><code class="prism  language-python"><span class="token operator">/</span><span class="token operator">*</span>
- <span class="token operator">*</span> Sets up an aio uring context<span class="token punctuation">,</span> <span class="token keyword">and</span> returns the fd<span class="token punctuation">.</span> Applications asks <span class="token keyword">for</span> a
- <span class="token operator">*</span> ring size<span class="token punctuation">,</span> we <span class="token keyword">return</span> the actual sq<span class="token operator">/</span>cq ring sizes <span class="token punctuation">(</span>among other things<span class="token punctuation">)</span> <span class="token keyword">in</span> the
- <span class="token operator">*</span> params structure passed <span class="token keyword">in</span><span class="token punctuation">.</span>
- <span class="token operator">*</span><span class="token operator">/</span>
-static <span class="token builtin">long</span> io_uring_setup<span class="token punctuation">(</span>u32 entries<span class="token punctuation">,</span> struct io_uring_params __user <span class="token operator">*</span>params<span class="token punctuation">)</span>
-<span class="token punctuation">{</span>
-	struct io_uring_params p<span class="token punctuation">;</span>
-	<span class="token builtin">int</span> i<span class="token punctuation">;</span>
+<pre><code>/*
+ * Sets up an aio uring context, and returns the fd. Applications asks for a
+ * ring size, we return the actual sq/cq ring sizes (among other things) in the
+ * params structure passed in.
+ */
+static long io_uring_setup(u32 entries, struct io_uring_params __user *params)
+{
+	struct io_uring_params p;
+	int i;
 
-	<span class="token keyword">if</span> <span class="token punctuation">(</span>copy_from_user<span class="token punctuation">(</span><span class="token operator">&amp;</span>p<span class="token punctuation">,</span> params<span class="token punctuation">,</span> sizeof<span class="token punctuation">(</span>p<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
-		<span class="token keyword">return</span> <span class="token operator">-</span>EFAULT<span class="token punctuation">;</span>
-	<span class="token keyword">for</span> <span class="token punctuation">(</span>i <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span> i <span class="token operator">&lt;</span> ARRAY_SIZE<span class="token punctuation">(</span>p<span class="token punctuation">.</span>resv<span class="token punctuation">)</span><span class="token punctuation">;</span> i<span class="token operator">+</span><span class="token operator">+</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
-		<span class="token keyword">if</span> <span class="token punctuation">(</span>p<span class="token punctuation">.</span>resv<span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token punctuation">)</span>
-			<span class="token keyword">return</span> <span class="token operator">-</span>EINVAL<span class="token punctuation">;</span>
-	<span class="token punctuation">}</span>
+	if (copy_from_user(&amp;p, params, sizeof(p)))
+		return -EFAULT;
+	for (i = 0; i &lt; ARRAY_SIZE(p.resv); i++) {
+		if (p.resv[i])
+			return -EINVAL;
+	}
 
-	<span class="token keyword">if</span> <span class="token punctuation">(</span>p<span class="token punctuation">.</span>flags <span class="token operator">&amp;</span> <span class="token operator">~</span><span class="token punctuation">(</span>IORING_SETUP_IOPOLL <span class="token operator">|</span> IORING_SETUP_SQPOLL <span class="token operator">|</span>
-			IORING_SETUP_SQ_AFF <span class="token operator">|</span> IORING_SETUP_CQSIZE <span class="token operator">|</span>
-			IORING_SETUP_CLAMP <span class="token operator">|</span> IORING_SETUP_ATTACH_WQ <span class="token operator">|</span>
-			IORING_SETUP_R_DISABLED<span class="token punctuation">)</span><span class="token punctuation">)</span>
-		<span class="token keyword">return</span> <span class="token operator">-</span>EINVAL<span class="token punctuation">;</span>
+	if (p.flags &amp; ~(IORING_SETUP_IOPOLL | IORING_SETUP_SQPOLL |
+			IORING_SETUP_SQ_AFF | IORING_SETUP_CQSIZE |
+			IORING_SETUP_CLAMP | IORING_SETUP_ATTACH_WQ |
+			IORING_SETUP_R_DISABLED))
+		return -EINVAL;
 
-	<span class="token keyword">return</span>  io_uring_create<span class="token punctuation">(</span>entries<span class="token punctuation">,</span> <span class="token operator">&amp;</span>p<span class="token punctuation">,</span> params<span class="token punctuation">)</span><span class="token punctuation">;</span>
-<span class="token punctuation">}</span>
+	return  io_uring_create(entries, &amp;p, params);
+}
 </code></pre>
 
 <p>经过标志位非法检查之后，关键是调用内部函数io_uring_create实现实例创建过程。</p>
@@ -905,171 +905,171 @@ static <span class="token builtin">long</span> io_uring_setup<span class="token 
 <li>其余的是一些错误检查、权限检查、资源配额检查等检查逻辑。</li>
 </ul>
 
-<pre class="  language-cpp" style="position: relative; z-index: 2;"><code class="prism  language-cpp"><span class="token keyword">static</span> <span class="token keyword">int</span> <span class="token function">io_uring_create</span><span class="token punctuation">(</span><span class="token keyword">unsigned</span> entriesstatic <span class="token keyword">int</span> <span class="token function">io_uring_create</span><span class="token punctuation">(</span><span class="token keyword">unsigned</span> entries<span class="token punctuation">,</span> <span class="token keyword">struct</span> <span class="token class-name">io_uring_params</span> <span class="token operator">*</span>p<span class="token punctuation">,</span>
-			   <span class="token keyword">struct</span> <span class="token class-name">io_uring_params</span> __user <span class="token operator">*</span>params<span class="token punctuation">)</span>
-<span class="token punctuation">{</span>
-	<span class="token keyword">struct</span> <span class="token class-name">user_struct</span> <span class="token operator">*</span>user <span class="token operator">=</span> <span class="token constant">NULL</span><span class="token punctuation">;</span>
-	<span class="token keyword">struct</span> <span class="token class-name">io_ring_ctx</span> <span class="token operator">*</span>ctx<span class="token punctuation">;</span>
-	<span class="token keyword">bool</span> limit_mem<span class="token punctuation">;</span>
-	<span class="token keyword">int</span> ret<span class="token punctuation">;</span>
+<pre><code>static int io_uring_create(unsigned entriesstatic int io_uring_create(unsigned entries, struct io_uring_params *p,
+			   struct io_uring_params __user *params)
+{
+	struct user_struct *user = NULL;
+	struct io_ring_ctx *ctx;
+	bool limit_mem;
+	int ret;
 
-	<span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">!</span>entries<span class="token punctuation">)</span>
-		<span class="token keyword">return</span> <span class="token operator">-</span>EINVAL<span class="token punctuation">;</span>
-	<span class="token keyword">if</span> <span class="token punctuation">(</span>entries <span class="token operator">&gt;</span> IORING_MAX_ENTRIES<span class="token punctuation">)</span> <span class="token punctuation">{</span>
-		<span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">!</span><span class="token punctuation">(</span>p<span class="token operator">-&gt;</span>flags <span class="token operator">&amp;</span> IORING_SETUP_CLAMP<span class="token punctuation">)</span><span class="token punctuation">)</span>
-			<span class="token keyword">return</span> <span class="token operator">-</span>EINVAL<span class="token punctuation">;</span>
-		entries <span class="token operator">=</span> IORING_MAX_ENTRIES<span class="token punctuation">;</span>
-	<span class="token punctuation">}</span>
+	if (!entries)
+		return -EINVAL;
+	if (entries &gt; IORING_MAX_ENTRIES) {
+		if (!(p-&gt;flags &amp; IORING_SETUP_CLAMP))
+			return -EINVAL;
+		entries = IORING_MAX_ENTRIES;
+	}
 
-	<span class="token comment">/*
+	/*
 	 * Use twice as many entries for the CQ ring. It's possible for the
 	 * application to drive a higher depth than the size of the SQ ring,
 	 * since the sqes are only used at submission time. This allows for
 	 * some flexibility in overcommitting a bit. If the application has
 	 * set IORING_SETUP_CQSIZE, it will have passed in the desired number
 	 * of CQ ring entries manually.
-	 */</span>
-	p<span class="token operator">-&gt;</span>sq_entries <span class="token operator">=</span> <span class="token function">roundup_pow_of_two</span><span class="token punctuation">(</span>entries<span class="token punctuation">)</span><span class="token punctuation">;</span>
-	<span class="token keyword">if</span> <span class="token punctuation">(</span>p<span class="token operator">-&gt;</span>flags <span class="token operator">&amp;</span> IORING_SETUP_CQSIZE<span class="token punctuation">)</span> <span class="token punctuation">{</span>
-		<span class="token comment">/*
+	 */
+	p-&gt;sq_entries = roundup_pow_of_two(entries);
+	if (p-&gt;flags &amp; IORING_SETUP_CQSIZE) {
+		/*
 		 * If IORING_SETUP_CQSIZE is set, we do the same roundup
 		 * to a power-of-two, if it isn't already. We do NOT impose
 		 * any cq vs sq ring sizing.
-		 */</span>
-		<span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">!</span>p<span class="token operator">-&gt;</span>cq_entries<span class="token punctuation">)</span>
-			<span class="token keyword">return</span> <span class="token operator">-</span>EINVAL<span class="token punctuation">;</span>
-		<span class="token keyword">if</span> <span class="token punctuation">(</span>p<span class="token operator">-&gt;</span>cq_entries <span class="token operator">&gt;</span> IORING_MAX_CQ_ENTRIES<span class="token punctuation">)</span> <span class="token punctuation">{</span>
-			<span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">!</span><span class="token punctuation">(</span>p<span class="token operator">-&gt;</span>flags <span class="token operator">&amp;</span> IORING_SETUP_CLAMP<span class="token punctuation">)</span><span class="token punctuation">)</span>
-				<span class="token keyword">return</span> <span class="token operator">-</span>EINVAL<span class="token punctuation">;</span>
-			p<span class="token operator">-&gt;</span>cq_entries <span class="token operator">=</span> IORING_MAX_CQ_ENTRIES<span class="token punctuation">;</span>
-		<span class="token punctuation">}</span>
-		p<span class="token operator">-&gt;</span>cq_entries <span class="token operator">=</span> <span class="token function">roundup_pow_of_two</span><span class="token punctuation">(</span>p<span class="token operator">-&gt;</span>cq_entries<span class="token punctuation">)</span><span class="token punctuation">;</span>
-		<span class="token keyword">if</span> <span class="token punctuation">(</span>p<span class="token operator">-&gt;</span>cq_entries <span class="token operator">&lt;</span> p<span class="token operator">-&gt;</span>sq_entries<span class="token punctuation">)</span>
-			<span class="token keyword">return</span> <span class="token operator">-</span>EINVAL<span class="token punctuation">;</span>
-	<span class="token punctuation">}</span> <span class="token keyword">else</span> <span class="token punctuation">{</span>
-		p<span class="token operator">-&gt;</span>cq_entries <span class="token operator">=</span> <span class="token number">2</span> <span class="token operator">*</span> p<span class="token operator">-&gt;</span>sq_entries<span class="token punctuation">;</span>
-	<span class="token punctuation">}</span>
+		 */
+		if (!p-&gt;cq_entries)
+			return -EINVAL;
+		if (p-&gt;cq_entries &gt; IORING_MAX_CQ_ENTRIES) {
+			if (!(p-&gt;flags &amp; IORING_SETUP_CLAMP))
+				return -EINVAL;
+			p-&gt;cq_entries = IORING_MAX_CQ_ENTRIES;
+		}
+		p-&gt;cq_entries = roundup_pow_of_two(p-&gt;cq_entries);
+		if (p-&gt;cq_entries &lt; p-&gt;sq_entries)
+			return -EINVAL;
+	} else {
+		p-&gt;cq_entries = 2 * p-&gt;sq_entries;
+	}
 
-	user <span class="token operator">=</span> <span class="token function">get_uid</span><span class="token punctuation">(</span><span class="token function">current_user</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-	limit_mem <span class="token operator">=</span> <span class="token operator">!</span><span class="token function">capable</span><span class="token punctuation">(</span>CAP_IPC_LOCK<span class="token punctuation">)</span><span class="token punctuation">;</span>
+	user = get_uid(current_user());
+	limit_mem = !capable(CAP_IPC_LOCK);
 
-	<span class="token keyword">if</span> <span class="token punctuation">(</span>limit_mem<span class="token punctuation">)</span> <span class="token punctuation">{</span>
-		ret <span class="token operator">=</span> <span class="token function">__io_account_mem</span><span class="token punctuation">(</span>user<span class="token punctuation">,</span>
-				<span class="token function">ring_pages</span><span class="token punctuation">(</span>p<span class="token operator">-&gt;</span>sq_entries<span class="token punctuation">,</span> p<span class="token operator">-&gt;</span>cq_entries<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-		<span class="token keyword">if</span> <span class="token punctuation">(</span>ret<span class="token punctuation">)</span> <span class="token punctuation">{</span>
-			<span class="token function">free_uid</span><span class="token punctuation">(</span>user<span class="token punctuation">)</span><span class="token punctuation">;</span>
-			<span class="token keyword">return</span> ret<span class="token punctuation">;</span>
-		<span class="token punctuation">}</span>
-	<span class="token punctuation">}</span>
+	if (limit_mem) {
+		ret = __io_account_mem(user,
+				ring_pages(p-&gt;sq_entries, p-&gt;cq_entries));
+		if (ret) {
+			free_uid(user);
+			return ret;
+		}
+	}
 
-	ctx <span class="token operator">=</span> <span class="token function">io_ring_ctx_alloc</span><span class="token punctuation">(</span>p<span class="token punctuation">)</span><span class="token punctuation">;</span>
-	<span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">!</span>ctx<span class="token punctuation">)</span> <span class="token punctuation">{</span>
-		<span class="token keyword">if</span> <span class="token punctuation">(</span>limit_mem<span class="token punctuation">)</span>
-			<span class="token function">__io_unaccount_mem</span><span class="token punctuation">(</span>user<span class="token punctuation">,</span> <span class="token function">ring_pages</span><span class="token punctuation">(</span>p<span class="token operator">-&gt;</span>sq_entries<span class="token punctuation">,</span>
-								p<span class="token operator">-&gt;</span>cq_entries<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-		<span class="token function">free_uid</span><span class="token punctuation">(</span>user<span class="token punctuation">)</span><span class="token punctuation">;</span>
-		<span class="token keyword">return</span> <span class="token operator">-</span>ENOMEM<span class="token punctuation">;</span>
-	<span class="token punctuation">}</span>
-	ctx<span class="token operator">-&gt;</span>compat <span class="token operator">=</span> <span class="token function">in_compat_syscall</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-	ctx<span class="token operator">-&gt;</span>user <span class="token operator">=</span> user<span class="token punctuation">;</span>
-	ctx<span class="token operator">-&gt;</span>creds <span class="token operator">=</span> <span class="token function">get_current_cred</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-<span class="token macro property">#<span class="token directive keyword">ifdef</span> CONFIG_AUDIT</span>
-	ctx<span class="token operator">-&gt;</span>loginuid <span class="token operator">=</span> current<span class="token operator">-&gt;</span>loginuid<span class="token punctuation">;</span>
-	ctx<span class="token operator">-&gt;</span>sessionid <span class="token operator">=</span> current<span class="token operator">-&gt;</span>sessionid<span class="token punctuation">;</span>
-<span class="token macro property">#<span class="token directive keyword">endif</span></span>
-	ctx<span class="token operator">-&gt;</span>sqo_task <span class="token operator">=</span> <span class="token function">get_task_struct</span><span class="token punctuation">(</span>current<span class="token punctuation">)</span><span class="token punctuation">;</span>
+	ctx = io_ring_ctx_alloc(p);
+	if (!ctx) {
+		if (limit_mem)
+			__io_unaccount_mem(user, ring_pages(p-&gt;sq_entries,
+								p-&gt;cq_entries));
+		free_uid(user);
+		return -ENOMEM;
+	}
+	ctx-&gt;compat = in_compat_syscall();
+	ctx-&gt;user = user;
+	ctx-&gt;creds = get_current_cred();
+#ifdef CONFIG_AUDIT
+	ctx-&gt;loginuid = current-&gt;loginuid;
+	ctx-&gt;sessionid = current-&gt;sessionid;
+#endif
+	ctx-&gt;sqo_task = get_task_struct(current);
 
-	<span class="token comment">/*
+	/*
 	 * This is just grabbed for accounting purposes. When a process exits,
 	 * the mm is exited and dropped before the files, hence we need to hang
 	 * on to this mm purely for the purposes of being able to unaccount
 	 * memory (locked/pinned vm). It's not used for anything else.
-	 */</span>
-	<span class="token function">mmgrab</span><span class="token punctuation">(</span>current<span class="token operator">-&gt;</span>mm<span class="token punctuation">)</span><span class="token punctuation">;</span>
-	ctx<span class="token operator">-&gt;</span>mm_account <span class="token operator">=</span> current<span class="token operator">-&gt;</span>mm<span class="token punctuation">;</span>
+	 */
+	mmgrab(current-&gt;mm);
+	ctx-&gt;mm_account = current-&gt;mm;
 
-<span class="token macro property">#<span class="token directive keyword">ifdef</span> CONFIG_BLK_CGROUP</span>
-	<span class="token comment">/*
+#ifdef CONFIG_BLK_CGROUP
+	/*
 	 * The sq thread will belong to the original cgroup it was inited in.
 	 * If the cgroup goes offline (e.g. disabling the io controller), then
 	 * issued bios will be associated with the closest cgroup later in the
 	 * block layer.
-	 */</span>
-	<span class="token function">rcu_read_lock</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-	ctx<span class="token operator">-&gt;</span>sqo_blkcg_css <span class="token operator">=</span> <span class="token function">blkcg_css</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-	ret <span class="token operator">=</span> <span class="token function">css_tryget_online</span><span class="token punctuation">(</span>ctx<span class="token operator">-&gt;</span>sqo_blkcg_css<span class="token punctuation">)</span><span class="token punctuation">;</span>
-	<span class="token function">rcu_read_unlock</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-	<span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">!</span>ret<span class="token punctuation">)</span> <span class="token punctuation">{</span>
-		<span class="token comment">/* don't init against a dying cgroup, have the user try again */</span>
-		ctx<span class="token operator">-&gt;</span>sqo_blkcg_css <span class="token operator">=</span> <span class="token constant">NULL</span><span class="token punctuation">;</span>
-		ret <span class="token operator">=</span> <span class="token operator">-</span>ENODEV<span class="token punctuation">;</span>
-		<span class="token keyword">goto</span> err<span class="token punctuation">;</span>
-	<span class="token punctuation">}</span>
-<span class="token macro property">#<span class="token directive keyword">endif</span></span>
+	 */
+	rcu_read_lock();
+	ctx-&gt;sqo_blkcg_css = blkcg_css();
+	ret = css_tryget_online(ctx-&gt;sqo_blkcg_css);
+	rcu_read_unlock();
+	if (!ret) {
+		/* don't init against a dying cgroup, have the user try again */
+		ctx-&gt;sqo_blkcg_css = NULL;
+		ret = -ENODEV;
+		goto err;
+	}
+#endif
 
-	<span class="token comment">/*
+	/*
 	 * Account memory _before_ installing the file descriptor. Once
 	 * the descriptor is installed, it can get closed at any time. Also
 	 * do this before hitting the general error path, as ring freeing
 	 * will un-account as well.
-	 */</span>
-	<span class="token function">io_account_mem</span><span class="token punctuation">(</span>ctx<span class="token punctuation">,</span> <span class="token function">ring_pages</span><span class="token punctuation">(</span>p<span class="token operator">-&gt;</span>sq_entries<span class="token punctuation">,</span> p<span class="token operator">-&gt;</span>cq_entries<span class="token punctuation">)</span><span class="token punctuation">,</span>
-		       ACCT_LOCKED<span class="token punctuation">)</span><span class="token punctuation">;</span>
-	ctx<span class="token operator">-&gt;</span>limit_mem <span class="token operator">=</span> limit_mem<span class="token punctuation">;</span>
+	 */
+	io_account_mem(ctx, ring_pages(p-&gt;sq_entries, p-&gt;cq_entries),
+		       ACCT_LOCKED);
+	ctx-&gt;limit_mem = limit_mem;
 
-	ret <span class="token operator">=</span> <span class="token function">io_allocate_scq_urings</span><span class="token punctuation">(</span>ctx<span class="token punctuation">,</span> p<span class="token punctuation">)</span><span class="token punctuation">;</span>
-	<span class="token keyword">if</span> <span class="token punctuation">(</span>ret<span class="token punctuation">)</span>
-		<span class="token keyword">goto</span> err<span class="token punctuation">;</span>
+	ret = io_allocate_scq_urings(ctx, p);
+	if (ret)
+		goto err;
 
-	ret <span class="token operator">=</span> <span class="token function">io_sq_offload_create</span><span class="token punctuation">(</span>ctx<span class="token punctuation">,</span> p<span class="token punctuation">)</span><span class="token punctuation">;</span>
-	<span class="token keyword">if</span> <span class="token punctuation">(</span>ret<span class="token punctuation">)</span>
-		<span class="token keyword">goto</span> err<span class="token punctuation">;</span>
+	ret = io_sq_offload_create(ctx, p);
+	if (ret)
+		goto err;
 
-	<span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">!</span><span class="token punctuation">(</span>p<span class="token operator">-&gt;</span>flags <span class="token operator">&amp;</span> IORING_SETUP_R_DISABLED<span class="token punctuation">)</span><span class="token punctuation">)</span>
-		<span class="token function">io_sq_offload_start</span><span class="token punctuation">(</span>ctx<span class="token punctuation">)</span><span class="token punctuation">;</span>
+	if (!(p-&gt;flags &amp; IORING_SETUP_R_DISABLED))
+		io_sq_offload_start(ctx);
 
-	<span class="token function">memset</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>p<span class="token operator">-&gt;</span>sq_off<span class="token punctuation">,</span> <span class="token number">0</span><span class="token punctuation">,</span> <span class="token keyword">sizeof</span><span class="token punctuation">(</span>p<span class="token operator">-&gt;</span>sq_off<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-	p<span class="token operator">-&gt;</span>sq_off<span class="token punctuation">.</span>head <span class="token operator">=</span> <span class="token function">offsetof</span><span class="token punctuation">(</span><span class="token keyword">struct</span> <span class="token class-name">io_rings</span><span class="token punctuation">,</span> sq<span class="token punctuation">.</span>head<span class="token punctuation">)</span><span class="token punctuation">;</span>
-	p<span class="token operator">-&gt;</span>sq_off<span class="token punctuation">.</span>tail <span class="token operator">=</span> <span class="token function">offsetof</span><span class="token punctuation">(</span><span class="token keyword">struct</span> <span class="token class-name">io_rings</span><span class="token punctuation">,</span> sq<span class="token punctuation">.</span>tail<span class="token punctuation">)</span><span class="token punctuation">;</span>
-	p<span class="token operator">-&gt;</span>sq_off<span class="token punctuation">.</span>ring_mask <span class="token operator">=</span> <span class="token function">offsetof</span><span class="token punctuation">(</span><span class="token keyword">struct</span> <span class="token class-name">io_rings</span><span class="token punctuation">,</span> sq_ring_mask<span class="token punctuation">)</span><span class="token punctuation">;</span>
-	p<span class="token operator">-&gt;</span>sq_off<span class="token punctuation">.</span>ring_entries <span class="token operator">=</span> <span class="token function">offsetof</span><span class="token punctuation">(</span><span class="token keyword">struct</span> <span class="token class-name">io_rings</span><span class="token punctuation">,</span> sq_ring_entries<span class="token punctuation">)</span><span class="token punctuation">;</span>
-	p<span class="token operator">-&gt;</span>sq_off<span class="token punctuation">.</span>flags <span class="token operator">=</span> <span class="token function">offsetof</span><span class="token punctuation">(</span><span class="token keyword">struct</span> <span class="token class-name">io_rings</span><span class="token punctuation">,</span> sq_flags<span class="token punctuation">)</span><span class="token punctuation">;</span>
-	p<span class="token operator">-&gt;</span>sq_off<span class="token punctuation">.</span>dropped <span class="token operator">=</span> <span class="token function">offsetof</span><span class="token punctuation">(</span><span class="token keyword">struct</span> <span class="token class-name">io_rings</span><span class="token punctuation">,</span> sq_dropped<span class="token punctuation">)</span><span class="token punctuation">;</span>
-	p<span class="token operator">-&gt;</span>sq_off<span class="token punctuation">.</span>array <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token keyword">char</span> <span class="token operator">*</span><span class="token punctuation">)</span>ctx<span class="token operator">-&gt;</span>sq_array <span class="token operator">-</span> <span class="token punctuation">(</span><span class="token keyword">char</span> <span class="token operator">*</span><span class="token punctuation">)</span>ctx<span class="token operator">-&gt;</span>rings<span class="token punctuation">;</span>
+	memset(&amp;p-&gt;sq_off, 0, sizeof(p-&gt;sq_off));
+	p-&gt;sq_off.head = offsetof(struct io_rings, sq.head);
+	p-&gt;sq_off.tail = offsetof(struct io_rings, sq.tail);
+	p-&gt;sq_off.ring_mask = offsetof(struct io_rings, sq_ring_mask);
+	p-&gt;sq_off.ring_entries = offsetof(struct io_rings, sq_ring_entries);
+	p-&gt;sq_off.flags = offsetof(struct io_rings, sq_flags);
+	p-&gt;sq_off.dropped = offsetof(struct io_rings, sq_dropped);
+	p-&gt;sq_off.array = (char *)ctx-&gt;sq_array - (char *)ctx-&gt;rings;
 
-	<span class="token function">memset</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>p<span class="token operator">-&gt;</span>cq_off<span class="token punctuation">,</span> <span class="token number">0</span><span class="token punctuation">,</span> <span class="token keyword">sizeof</span><span class="token punctuation">(</span>p<span class="token operator">-&gt;</span>cq_off<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-	p<span class="token operator">-&gt;</span>cq_off<span class="token punctuation">.</span>head <span class="token operator">=</span> <span class="token function">offsetof</span><span class="token punctuation">(</span><span class="token keyword">struct</span> <span class="token class-name">io_rings</span><span class="token punctuation">,</span> cq<span class="token punctuation">.</span>head<span class="token punctuation">)</span><span class="token punctuation">;</span>
-	p<span class="token operator">-&gt;</span>cq_off<span class="token punctuation">.</span>tail <span class="token operator">=</span> <span class="token function">offsetof</span><span class="token punctuation">(</span><span class="token keyword">struct</span> <span class="token class-name">io_rings</span><span class="token punctuation">,</span> cq<span class="token punctuation">.</span>tail<span class="token punctuation">)</span><span class="token punctuation">;</span>
-	p<span class="token operator">-&gt;</span>cq_off<span class="token punctuation">.</span>ring_mask <span class="token operator">=</span> <span class="token function">offsetof</span><span class="token punctuation">(</span><span class="token keyword">struct</span> <span class="token class-name">io_rings</span><span class="token punctuation">,</span> cq_ring_mask<span class="token punctuation">)</span><span class="token punctuation">;</span>
-	p<span class="token operator">-&gt;</span>cq_off<span class="token punctuation">.</span>ring_entries <span class="token operator">=</span> <span class="token function">offsetof</span><span class="token punctuation">(</span><span class="token keyword">struct</span> <span class="token class-name">io_rings</span><span class="token punctuation">,</span> cq_ring_entries<span class="token punctuation">)</span><span class="token punctuation">;</span>
-	p<span class="token operator">-&gt;</span>cq_off<span class="token punctuation">.</span>overflow <span class="token operator">=</span> <span class="token function">offsetof</span><span class="token punctuation">(</span><span class="token keyword">struct</span> <span class="token class-name">io_rings</span><span class="token punctuation">,</span> cq_overflow<span class="token punctuation">)</span><span class="token punctuation">;</span>
-	p<span class="token operator">-&gt;</span>cq_off<span class="token punctuation">.</span>cqes <span class="token operator">=</span> <span class="token function">offsetof</span><span class="token punctuation">(</span><span class="token keyword">struct</span> <span class="token class-name">io_rings</span><span class="token punctuation">,</span> cqes<span class="token punctuation">)</span><span class="token punctuation">;</span>
-	p<span class="token operator">-&gt;</span>cq_off<span class="token punctuation">.</span>flags <span class="token operator">=</span> <span class="token function">offsetof</span><span class="token punctuation">(</span><span class="token keyword">struct</span> <span class="token class-name">io_rings</span><span class="token punctuation">,</span> cq_flags<span class="token punctuation">)</span><span class="token punctuation">;</span>
+	memset(&amp;p-&gt;cq_off, 0, sizeof(p-&gt;cq_off));
+	p-&gt;cq_off.head = offsetof(struct io_rings, cq.head);
+	p-&gt;cq_off.tail = offsetof(struct io_rings, cq.tail);
+	p-&gt;cq_off.ring_mask = offsetof(struct io_rings, cq_ring_mask);
+	p-&gt;cq_off.ring_entries = offsetof(struct io_rings, cq_ring_entries);
+	p-&gt;cq_off.overflow = offsetof(struct io_rings, cq_overflow);
+	p-&gt;cq_off.cqes = offsetof(struct io_rings, cqes);
+	p-&gt;cq_off.flags = offsetof(struct io_rings, cq_flags);
 
-	p<span class="token operator">-&gt;</span>features <span class="token operator">=</span> IORING_FEAT_SINGLE_MMAP <span class="token operator">|</span> IORING_FEAT_NODROP <span class="token operator">|</span>
-			IORING_FEAT_SUBMIT_STABLE <span class="token operator">|</span> IORING_FEAT_RW_CUR_POS <span class="token operator">|</span>
-			IORING_FEAT_CUR_PERSONALITY <span class="token operator">|</span> IORING_FEAT_FAST_POLL <span class="token operator">|</span>
-			IORING_FEAT_POLL_32BITS<span class="token punctuation">;</span>
+	p-&gt;features = IORING_FEAT_SINGLE_MMAP | IORING_FEAT_NODROP |
+			IORING_FEAT_SUBMIT_STABLE | IORING_FEAT_RW_CUR_POS |
+			IORING_FEAT_CUR_PERSONALITY | IORING_FEAT_FAST_POLL |
+			IORING_FEAT_POLL_32BITS;
 
-	<span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token function">copy_to_user</span><span class="token punctuation">(</span>params<span class="token punctuation">,</span> p<span class="token punctuation">,</span> <span class="token keyword">sizeof</span><span class="token punctuation">(</span><span class="token operator">*</span>p<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
-		ret <span class="token operator">=</span> <span class="token operator">-</span>EFAULT<span class="token punctuation">;</span>
-		<span class="token keyword">goto</span> err<span class="token punctuation">;</span>
-	<span class="token punctuation">}</span>
+	if (copy_to_user(params, p, sizeof(*p))) {
+		ret = -EFAULT;
+		goto err;
+	}
 
-	<span class="token comment">/*
+	/*
 	 * Install ring fd as the very last thing, so we don't risk someone
 	 * having closed it before we finish setup
-	 */</span>
-	ret <span class="token operator">=</span> <span class="token function">io_uring_get_fd</span><span class="token punctuation">(</span>ctx<span class="token punctuation">)</span><span class="token punctuation">;</span>
-	<span class="token keyword">if</span> <span class="token punctuation">(</span>ret <span class="token operator">&lt;</span> <span class="token number">0</span><span class="token punctuation">)</span>
-		<span class="token keyword">goto</span> err<span class="token punctuation">;</span>
+	 */
+	ret = io_uring_get_fd(ctx);
+	if (ret &lt; 0)
+		goto err;
 
-	<span class="token function">trace_io_uring_create</span><span class="token punctuation">(</span>ret<span class="token punctuation">,</span> ctx<span class="token punctuation">,</span> p<span class="token operator">-&gt;</span>sq_entries<span class="token punctuation">,</span> p<span class="token operator">-&gt;</span>cq_entries<span class="token punctuation">,</span> p<span class="token operator">-&gt;</span>flags<span class="token punctuation">)</span><span class="token punctuation">;</span>
-	<span class="token keyword">return</span> ret<span class="token punctuation">;</span>
-err<span class="token operator">:</span>
-	<span class="token function">io_ring_ctx_wait_and_kill</span><span class="token punctuation">(</span>ctx<span class="token punctuation">)</span><span class="token punctuation">;</span>
-	<span class="token keyword">return</span> ret<span class="token punctuation">;</span>
-<span class="token punctuation">}</span>
+	trace_io_uring_create(ret, ctx, p-&gt;sq_entries, p-&gt;cq_entries, p-&gt;flags);
+	return ret;
+err:
+	io_ring_ctx_wait_and_kill(ctx);
+	return ret;
+}
 </code></pre>
 
 <p>io_sqring_offsets、io_cqring_offsets等相关结构、标志位集合。</p>
@@ -1077,109 +1077,109 @@ err<span class="token operator">:</span>
 <p>预定义offset<br>
 如果要表征分配的是io uring相关的一些内存，就需要预定义一些offset，如IORING_OFF_SQ_RING、IORING_OFF_SQES和IORING_OFF_CQ_RING，这些offset值定义了保存到这个三个结构保存到位置。这里mmap的时候，就使用了这些offset。</p>
 
-<pre class="  language-python" style="position: relative; z-index: 2;"><code class="prism  language-python"><span class="token operator">/</span><span class="token operator">*</span>
- <span class="token operator">*</span> Magic offsets <span class="token keyword">for</span> the application to mmap the data it needs
- <span class="token operator">*</span><span class="token operator">/</span>
-<span class="token comment">#define IORING_OFF_SQ_RING		0ULL</span>
-<span class="token comment">#define IORING_OFF_CQ_RING		0x8000000ULL</span>
-<span class="token comment">#define IORING_OFF_SQES			0x10000000ULL</span>
+<pre><code>/*
+ * Magic offsets for the application to mmap the data it needs
+ */
+#define IORING_OFF_SQ_RING		0ULL
+#define IORING_OFF_CQ_RING		0x8000000ULL
+#define IORING_OFF_SQES			0x10000000ULL
 
-<span class="token operator">/</span><span class="token operator">*</span>
- <span class="token operator">*</span> Filled <span class="token keyword">with</span> the offset <span class="token keyword">for</span> mmap<span class="token punctuation">(</span><span class="token number">2</span><span class="token punctuation">)</span>
- <span class="token operator">*</span><span class="token operator">/</span>
-struct io_sqring_offsets <span class="token punctuation">{</span>
-	__u32 head<span class="token punctuation">;</span>
-	__u32 tail<span class="token punctuation">;</span>
-	__u32 ring_mask<span class="token punctuation">;</span>
-	__u32 ring_entries<span class="token punctuation">;</span>
-	__u32 flags<span class="token punctuation">;</span>
-	__u32 dropped<span class="token punctuation">;</span>
-	__u32 array<span class="token punctuation">;</span>
-	__u32 resv1<span class="token punctuation">;</span>
-	__u64 resv2<span class="token punctuation">;</span>
-<span class="token punctuation">}</span><span class="token punctuation">;</span>
+/*
+ * Filled with the offset for mmap(2)
+ */
+struct io_sqring_offsets {
+	__u32 head;
+	__u32 tail;
+	__u32 ring_mask;
+	__u32 ring_entries;
+	__u32 flags;
+	__u32 dropped;
+	__u32 array;
+	__u32 resv1;
+	__u64 resv2;
+};
 
-<span class="token operator">/</span><span class="token operator">*</span>
- <span class="token operator">*</span> sq_ring<span class="token operator">-</span><span class="token operator">&gt;</span>flags
- <span class="token operator">*</span><span class="token operator">/</span>
-<span class="token comment">#define IORING_SQ_NEED_WAKEUP	(1U &lt;&lt; 0) /* needs io_uring_enter wakeup */</span>
-<span class="token comment">#define IORING_SQ_CQ_OVERFLOW	(1U &lt;&lt; 1) /* CQ ring is overflown */</span>
+/*
+ * sq_ring-&gt;flags
+ */
+#define IORING_SQ_NEED_WAKEUP	(1U &lt;&lt; 0) /* needs io_uring_enter wakeup */
+#define IORING_SQ_CQ_OVERFLOW	(1U &lt;&lt; 1) /* CQ ring is overflown */
 
-struct io_cqring_offsets <span class="token punctuation">{</span>
-	__u32 head<span class="token punctuation">;</span>
-	__u32 tail<span class="token punctuation">;</span>
-	__u32 ring_mask<span class="token punctuation">;</span>
-	__u32 ring_entries<span class="token punctuation">;</span>
-	__u32 overflow<span class="token punctuation">;</span>
-	__u32 cqes<span class="token punctuation">;</span>
-	__u32 flags<span class="token punctuation">;</span>
-	__u32 resv1<span class="token punctuation">;</span>
-	__u64 resv2<span class="token punctuation">;</span>
-<span class="token punctuation">}</span><span class="token punctuation">;</span>
+struct io_cqring_offsets {
+	__u32 head;
+	__u32 tail;
+	__u32 ring_mask;
+	__u32 ring_entries;
+	__u32 overflow;
+	__u32 cqes;
+	__u32 flags;
+	__u32 resv1;
+	__u64 resv2;
+};
 
-<span class="token operator">/</span><span class="token operator">*</span>
- <span class="token operator">*</span> cq_ring<span class="token operator">-</span><span class="token operator">&gt;</span>flags
- <span class="token operator">*</span><span class="token operator">/</span>
+/*
+ * cq_ring-&gt;flags
+ */
 
-<span class="token operator">/</span><span class="token operator">*</span> disable eventfd notifications <span class="token operator">*</span><span class="token operator">/</span>
-<span class="token comment">#define IORING_CQ_EVENTFD_DISABLED	(1U &lt;&lt; 0)</span>
+/* disable eventfd notifications */
+#define IORING_CQ_EVENTFD_DISABLED	(1U &lt;&lt; 0)
 
-<span class="token operator">/</span><span class="token operator">*</span>
- <span class="token operator">*</span> io_uring_enter<span class="token punctuation">(</span><span class="token number">2</span><span class="token punctuation">)</span> flags
- <span class="token operator">*</span><span class="token operator">/</span>
-<span class="token comment">#define IORING_ENTER_GETEVENTS	(1U &lt;&lt; 0)</span>
-<span class="token comment">#define IORING_ENTER_SQ_WAKEUP	(1U &lt;&lt; 1)</span>
-<span class="token comment">#define IORING_ENTER_SQ_WAIT	(1U &lt;&lt; 2)</span>
+/*
+ * io_uring_enter(2) flags
+ */
+#define IORING_ENTER_GETEVENTS	(1U &lt;&lt; 0)
+#define IORING_ENTER_SQ_WAKEUP	(1U &lt;&lt; 1)
+#define IORING_ENTER_SQ_WAIT	(1U &lt;&lt; 2)
 
-<span class="token operator">/</span><span class="token operator">*</span>
- <span class="token operator">*</span> io_uring_register<span class="token punctuation">(</span><span class="token number">2</span><span class="token punctuation">)</span> opcodes <span class="token keyword">and</span> arguments
- <span class="token operator">*</span><span class="token operator">/</span>
-enum <span class="token punctuation">{</span>
-	IORING_REGISTER_BUFFERS			<span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">,</span>
-	IORING_UNREGISTER_BUFFERS		<span class="token operator">=</span> <span class="token number">1</span><span class="token punctuation">,</span>
-	IORING_REGISTER_FILES			<span class="token operator">=</span> <span class="token number">2</span><span class="token punctuation">,</span>
-	IORING_UNREGISTER_FILES			<span class="token operator">=</span> <span class="token number">3</span><span class="token punctuation">,</span>
-	IORING_REGISTER_EVENTFD			<span class="token operator">=</span> <span class="token number">4</span><span class="token punctuation">,</span>
-	IORING_UNREGISTER_EVENTFD		<span class="token operator">=</span> <span class="token number">5</span><span class="token punctuation">,</span>
-	IORING_REGISTER_FILES_UPDATE		<span class="token operator">=</span> <span class="token number">6</span><span class="token punctuation">,</span>
-	IORING_REGISTER_EVENTFD_ASYNC		<span class="token operator">=</span> <span class="token number">7</span><span class="token punctuation">,</span>
-	IORING_REGISTER_PROBE			<span class="token operator">=</span> <span class="token number">8</span><span class="token punctuation">,</span>
-	IORING_REGISTER_PERSONALITY		<span class="token operator">=</span> <span class="token number">9</span><span class="token punctuation">,</span>
-	IORING_UNREGISTER_PERSONALITY		<span class="token operator">=</span> <span class="token number">10</span><span class="token punctuation">,</span>
-	IORING_REGISTER_RESTRICTIONS		<span class="token operator">=</span> <span class="token number">11</span><span class="token punctuation">,</span>
-	IORING_REGISTER_ENABLE_RINGS		<span class="token operator">=</span> <span class="token number">12</span><span class="token punctuation">,</span>
+/*
+ * io_uring_register(2) opcodes and arguments
+ */
+enum {
+	IORING_REGISTER_BUFFERS			= 0,
+	IORING_UNREGISTER_BUFFERS		= 1,
+	IORING_REGISTER_FILES			= 2,
+	IORING_UNREGISTER_FILES			= 3,
+	IORING_REGISTER_EVENTFD			= 4,
+	IORING_UNREGISTER_EVENTFD		= 5,
+	IORING_REGISTER_FILES_UPDATE		= 6,
+	IORING_REGISTER_EVENTFD_ASYNC		= 7,
+	IORING_REGISTER_PROBE			= 8,
+	IORING_REGISTER_PERSONALITY		= 9,
+	IORING_UNREGISTER_PERSONALITY		= 10,
+	IORING_REGISTER_RESTRICTIONS		= 11,
+	IORING_REGISTER_ENABLE_RINGS		= 12,
 
-	<span class="token operator">/</span><span class="token operator">*</span> this goes last <span class="token operator">*</span><span class="token operator">/</span>
+	/* this goes last */
 	IORING_REGISTER_LAST
-<span class="token punctuation">}</span><span class="token punctuation">;</span>
+};
 </code></pre>
 
 <p>具体的实践，可以参考如下liburing中的初始化函数io_uring_queue_init中对io_uring_setup的使用（<a href="http://git.kernel.dk/cgit/liburing/tree/src/setup.c%EF%BC%89%E3%80%82" target="_blank">http://git.kernel.dk/cgit/liburing/tree/src/setup.c）。</a></p>
 
 <p>liburing中使用io_uring_setup的部分代码</p>
 
-<pre class="  language-cpp" style="position: relative; z-index: 2;"><code class="prism  language-cpp"><span class="token comment">/*
+<pre><code>/*
  * Returns -1 on error, or zero on success. On success, 'ring'
  * contains the necessary information to read/write to the rings.
- */</span>
-<span class="token keyword">int</span> <span class="token function">io_uring_queue_init</span><span class="token punctuation">(</span><span class="token keyword">unsigned</span> entries<span class="token punctuation">,</span> <span class="token keyword">struct</span> <span class="token class-name">io_uring</span> <span class="token operator">*</span>ring<span class="token punctuation">,</span> <span class="token keyword">unsigned</span> flags<span class="token punctuation">)</span>
-<span class="token punctuation">{</span>
-	<span class="token keyword">struct</span> <span class="token class-name">io_uring_params</span> p<span class="token punctuation">;</span>
-	<span class="token keyword">int</span> fd<span class="token punctuation">,</span> ret<span class="token punctuation">;</span>
+ */
+int io_uring_queue_init(unsigned entries, struct io_uring *ring, unsigned flags)
+{
+	struct io_uring_params p;
+	int fd, ret;
 
-	<span class="token function">memset</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>p<span class="token punctuation">,</span> <span class="token number">0</span><span class="token punctuation">,</span> <span class="token keyword">sizeof</span><span class="token punctuation">(</span>p<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-	p<span class="token punctuation">.</span>flags <span class="token operator">=</span> flags<span class="token punctuation">;</span>
+	memset(&amp;p, 0, sizeof(p));
+	p.flags = flags;
 
-	fd <span class="token operator">=</span> <span class="token function">io_uring_setup</span><span class="token punctuation">(</span>entries<span class="token punctuation">,</span> <span class="token operator">&amp;</span>p<span class="token punctuation">)</span><span class="token punctuation">;</span>
-	<span class="token keyword">if</span> <span class="token punctuation">(</span>fd <span class="token operator">&lt;</span> <span class="token number">0</span><span class="token punctuation">)</span>
-		<span class="token keyword">return</span> fd<span class="token punctuation">;</span>
+	fd = io_uring_setup(entries, &amp;p);
+	if (fd &lt; 0)
+		return fd;
 
-	ret <span class="token operator">=</span> <span class="token function">io_uring_queue_mmap</span><span class="token punctuation">(</span>fd<span class="token punctuation">,</span> <span class="token operator">&amp;</span>p<span class="token punctuation">,</span> ring<span class="token punctuation">)</span><span class="token punctuation">;</span>
-	<span class="token keyword">if</span> <span class="token punctuation">(</span>ret<span class="token punctuation">)</span>
-		<span class="token function">close</span><span class="token punctuation">(</span>fd<span class="token punctuation">)</span><span class="token punctuation">;</span>
+	ret = io_uring_queue_mmap(fd, &amp;p, ring);
+	if (ret)
+		close(fd);
 
-	<span class="token keyword">return</span> ret<span class="token punctuation">;</span>
-<span class="token punctuation">}</span>
+	return ret;
+}
 </code></pre>
 
 <p>注意mmap的时候需要传入MAP_POPULATE参数，为文件映射通过预读的方式准备好页表，随后对映射区的访问不会被page fault。</p>
@@ -1188,9 +1188,9 @@ enum <span class="token punctuation">{</span>
 
 <p>在初始化完成之后，应用程序就可以使用这些队列来添加IO请求，即填充SQE。当请求都加入SQ后，应用程序还需要某种方式告诉内核，生产的请求待消费，这就是提交IO请求，可以通过io_uring_enter系统调用。</p>
 
-<pre class="  language-cpp" style="position: relative; z-index: 2;"><code class="prism  language-cpp"><span class="token keyword">int</span> <span class="token function">io_uring_enter</span><span class="token punctuation">(</span><span class="token keyword">unsigned</span> <span class="token keyword">int</span> fd<span class="token punctuation">,</span> <span class="token keyword">unsigned</span> <span class="token keyword">int</span> to_submit<span class="token punctuation">,</span>
-                   <span class="token keyword">unsigned</span> <span class="token keyword">int</span> min_complete<span class="token punctuation">,</span> <span class="token keyword">unsigned</span> <span class="token keyword">int</span> flags<span class="token punctuation">,</span>
-                   sigset_t <span class="token operator">*</span>sig<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<pre><code>int io_uring_enter(unsigned int fd, unsigned int to_submit,
+                   unsigned int min_complete, unsigned int flags,
+                   sigset_t *sig);
 </code></pre>
 
 <p>内核将SQ中的请求提交给Block层。这个系统调用既能提交，也能等待。</p>
@@ -1214,7 +1214,7 @@ enum <span class="token punctuation">{</span>
 
 <p>static int io_sq_thread(void *data)即内核轮询线程。</p>
 
-<p style=""><img src="./《操作系统与存储：解析Linux内核全新异步IO引擎——io_uring设计与实现》 - 社交平台产品部 - KM平台_files/cos-file-url(5)" alt="" style="position: relative; z-index: 2;"></p>
+<p style=""><img src="/logbook/images/linux/《操作系统与存储：解析Linux内核全新异步IO引擎——io_uring设计与实现》/2366df285eca.png" alt="" style="position: relative; z-index: 2;"></p>
 
 <p>同样地，可以用这个系统调用等待完成。除非应用程序，内核会直接修改CQ，因此调用io_uring_enter系统调用时不必使用IORING_ENTER_GETEVENTS，完成就可以被应用程序消费。</p>
 
@@ -1226,155 +1226,155 @@ enum <span class="token punctuation">{</span>
 
 <p>内核中io_uring_enter的相关代码如下。</p>
 
-<pre class="  language-python" style="position: relative; z-index: 2;"><code class="prism  language-python">SYSCALL_DEFINE6<span class="token punctuation">(</span>io_uring_enter<span class="token punctuation">,</span> unsigned <span class="token builtin">int</span><span class="token punctuation">,</span> fd<span class="token punctuation">,</span> u32<span class="token punctuation">,</span> to_submit<span class="token punctuation">,</span>
-		u32<span class="token punctuation">,</span> min_complete<span class="token punctuation">,</span> u32<span class="token punctuation">,</span> flags<span class="token punctuation">,</span> const sigset_t __user <span class="token operator">*</span><span class="token punctuation">,</span> sig<span class="token punctuation">,</span>
-		size_t<span class="token punctuation">,</span> sigsz<span class="token punctuation">)</span>
-<span class="token punctuation">{</span>
-	struct io_ring_ctx <span class="token operator">*</span>ctx<span class="token punctuation">;</span>
-	<span class="token builtin">long</span> ret <span class="token operator">=</span> <span class="token operator">-</span>EBADF<span class="token punctuation">;</span>
-	<span class="token builtin">int</span> submitted <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
-	struct fd f<span class="token punctuation">;</span>
+<pre><code>SYSCALL_DEFINE6(io_uring_enter, unsigned int, fd, u32, to_submit,
+		u32, min_complete, u32, flags, const sigset_t __user *, sig,
+		size_t, sigsz)
+{
+	struct io_ring_ctx *ctx;
+	long ret = -EBADF;
+	int submitted = 0;
+	struct fd f;
 
-	io_run_task_work<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+	io_run_task_work();
 
-	<span class="token keyword">if</span> <span class="token punctuation">(</span>flags <span class="token operator">&amp;</span> <span class="token operator">~</span><span class="token punctuation">(</span>IORING_ENTER_GETEVENTS <span class="token operator">|</span> IORING_ENTER_SQ_WAKEUP <span class="token operator">|</span>
-			IORING_ENTER_SQ_WAIT<span class="token punctuation">)</span><span class="token punctuation">)</span>
-		<span class="token keyword">return</span> <span class="token operator">-</span>EINVAL<span class="token punctuation">;</span>
+	if (flags &amp; ~(IORING_ENTER_GETEVENTS | IORING_ENTER_SQ_WAKEUP |
+			IORING_ENTER_SQ_WAIT))
+		return -EINVAL;
 
-	f <span class="token operator">=</span> fdget<span class="token punctuation">(</span>fd<span class="token punctuation">)</span><span class="token punctuation">;</span>
-	<span class="token keyword">if</span> <span class="token punctuation">(</span>!f<span class="token punctuation">.</span><span class="token builtin">file</span><span class="token punctuation">)</span>
-		<span class="token keyword">return</span> <span class="token operator">-</span>EBADF<span class="token punctuation">;</span>
+	f = fdget(fd);
+	if (!f.file)
+		return -EBADF;
 
-	ret <span class="token operator">=</span> <span class="token operator">-</span>EOPNOTSUPP<span class="token punctuation">;</span>
-	<span class="token keyword">if</span> <span class="token punctuation">(</span>f<span class="token punctuation">.</span><span class="token builtin">file</span><span class="token operator">-</span><span class="token operator">&gt;</span>f_op <span class="token operator">!=</span> <span class="token operator">&amp;</span>io_uring_fops<span class="token punctuation">)</span>
-		goto out_fput<span class="token punctuation">;</span>
+	ret = -EOPNOTSUPP;
+	if (f.file-&gt;f_op != &amp;io_uring_fops)
+		goto out_fput;
 
-	ret <span class="token operator">=</span> <span class="token operator">-</span>ENXIO<span class="token punctuation">;</span>
-	ctx <span class="token operator">=</span> f<span class="token punctuation">.</span><span class="token builtin">file</span><span class="token operator">-</span><span class="token operator">&gt;</span>private_data<span class="token punctuation">;</span>
-	<span class="token keyword">if</span> <span class="token punctuation">(</span>!percpu_ref_tryget<span class="token punctuation">(</span><span class="token operator">&amp;</span>ctx<span class="token operator">-</span><span class="token operator">&gt;</span>refs<span class="token punctuation">)</span><span class="token punctuation">)</span>
-		goto out_fput<span class="token punctuation">;</span>
+	ret = -ENXIO;
+	ctx = f.file-&gt;private_data;
+	if (!percpu_ref_tryget(&amp;ctx-&gt;refs))
+		goto out_fput;
 
-	ret <span class="token operator">=</span> <span class="token operator">-</span>EBADFD<span class="token punctuation">;</span>
-	<span class="token keyword">if</span> <span class="token punctuation">(</span>ctx<span class="token operator">-</span><span class="token operator">&gt;</span>flags <span class="token operator">&amp;</span> IORING_SETUP_R_DISABLED<span class="token punctuation">)</span>
-		goto out<span class="token punctuation">;</span>
+	ret = -EBADFD;
+	if (ctx-&gt;flags &amp; IORING_SETUP_R_DISABLED)
+		goto out;
 
-	<span class="token operator">/</span><span class="token operator">*</span>
-	 <span class="token operator">*</span> For SQ polling<span class="token punctuation">,</span> the thread will do <span class="token builtin">all</span> submissions <span class="token keyword">and</span> completions<span class="token punctuation">.</span>
-	 <span class="token operator">*</span> Just <span class="token keyword">return</span> the requested submit count<span class="token punctuation">,</span> <span class="token keyword">and</span> wake the thread <span class="token keyword">if</span>
-	 <span class="token operator">*</span> we were asked to<span class="token punctuation">.</span>
-	 <span class="token operator">*</span><span class="token operator">/</span>
-	ret <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
-	<span class="token keyword">if</span> <span class="token punctuation">(</span>ctx<span class="token operator">-</span><span class="token operator">&gt;</span>flags <span class="token operator">&amp;</span> IORING_SETUP_SQPOLL<span class="token punctuation">)</span> <span class="token punctuation">{</span>
-		<span class="token keyword">if</span> <span class="token punctuation">(</span>!list_empty_careful<span class="token punctuation">(</span><span class="token operator">&amp;</span>ctx<span class="token operator">-</span><span class="token operator">&gt;</span>cq_overflow_list<span class="token punctuation">)</span><span class="token punctuation">)</span>
-			io_cqring_overflow_flush<span class="token punctuation">(</span>ctx<span class="token punctuation">,</span> false<span class="token punctuation">,</span> NULL<span class="token punctuation">,</span> NULL<span class="token punctuation">)</span><span class="token punctuation">;</span>
-		<span class="token keyword">if</span> <span class="token punctuation">(</span>flags <span class="token operator">&amp;</span> IORING_ENTER_SQ_WAKEUP<span class="token punctuation">)</span>
-			wake_up<span class="token punctuation">(</span><span class="token operator">&amp;</span>ctx<span class="token operator">-</span><span class="token operator">&gt;</span>sq_data<span class="token operator">-</span><span class="token operator">&gt;</span>wait<span class="token punctuation">)</span><span class="token punctuation">;</span>
-		<span class="token keyword">if</span> <span class="token punctuation">(</span>flags <span class="token operator">&amp;</span> IORING_ENTER_SQ_WAIT<span class="token punctuation">)</span>
-			io_sqpoll_wait_sq<span class="token punctuation">(</span>ctx<span class="token punctuation">)</span><span class="token punctuation">;</span>
-		submitted <span class="token operator">=</span> to_submit<span class="token punctuation">;</span>
-	<span class="token punctuation">}</span> <span class="token keyword">else</span> <span class="token keyword">if</span> <span class="token punctuation">(</span>to_submit<span class="token punctuation">)</span> <span class="token punctuation">{</span>
-		ret <span class="token operator">=</span> io_uring_add_task_file<span class="token punctuation">(</span>ctx<span class="token punctuation">,</span> f<span class="token punctuation">.</span><span class="token builtin">file</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-		<span class="token keyword">if</span> <span class="token punctuation">(</span>unlikely<span class="token punctuation">(</span>ret<span class="token punctuation">)</span><span class="token punctuation">)</span>
-			goto out<span class="token punctuation">;</span>
-		mutex_lock<span class="token punctuation">(</span><span class="token operator">&amp;</span>ctx<span class="token operator">-</span><span class="token operator">&gt;</span>uring_lock<span class="token punctuation">)</span><span class="token punctuation">;</span>
-		submitted <span class="token operator">=</span> io_submit_sqes<span class="token punctuation">(</span>ctx<span class="token punctuation">,</span> to_submit<span class="token punctuation">)</span><span class="token punctuation">;</span>
-		mutex_unlock<span class="token punctuation">(</span><span class="token operator">&amp;</span>ctx<span class="token operator">-</span><span class="token operator">&gt;</span>uring_lock<span class="token punctuation">)</span><span class="token punctuation">;</span>
+	/*
+	 * For SQ polling, the thread will do all submissions and completions.
+	 * Just return the requested submit count, and wake the thread if
+	 * we were asked to.
+	 */
+	ret = 0;
+	if (ctx-&gt;flags &amp; IORING_SETUP_SQPOLL) {
+		if (!list_empty_careful(&amp;ctx-&gt;cq_overflow_list))
+			io_cqring_overflow_flush(ctx, false, NULL, NULL);
+		if (flags &amp; IORING_ENTER_SQ_WAKEUP)
+			wake_up(&amp;ctx-&gt;sq_data-&gt;wait);
+		if (flags &amp; IORING_ENTER_SQ_WAIT)
+			io_sqpoll_wait_sq(ctx);
+		submitted = to_submit;
+	} else if (to_submit) {
+		ret = io_uring_add_task_file(ctx, f.file);
+		if (unlikely(ret))
+			goto out;
+		mutex_lock(&amp;ctx-&gt;uring_lock);
+		submitted = io_submit_sqes(ctx, to_submit);
+		mutex_unlock(&amp;ctx-&gt;uring_lock);
 
-		<span class="token keyword">if</span> <span class="token punctuation">(</span>submitted <span class="token operator">!=</span> to_submit<span class="token punctuation">)</span>
-			goto out<span class="token punctuation">;</span>
-	<span class="token punctuation">}</span>
-	<span class="token keyword">if</span> <span class="token punctuation">(</span>flags <span class="token operator">&amp;</span> IORING_ENTER_GETEVENTS<span class="token punctuation">)</span> <span class="token punctuation">{</span>
-		min_complete <span class="token operator">=</span> <span class="token builtin">min</span><span class="token punctuation">(</span>min_complete<span class="token punctuation">,</span> ctx<span class="token operator">-</span><span class="token operator">&gt;</span>cq_entries<span class="token punctuation">)</span><span class="token punctuation">;</span>
+		if (submitted != to_submit)
+			goto out;
+	}
+	if (flags &amp; IORING_ENTER_GETEVENTS) {
+		min_complete = min(min_complete, ctx-&gt;cq_entries);
 
-		<span class="token operator">/</span><span class="token operator">*</span>
-		 <span class="token operator">*</span> When SETUP_IOPOLL <span class="token keyword">and</span> SETUP_SQPOLL are both enabled<span class="token punctuation">,</span> user
-		 <span class="token operator">*</span> space applications don't need to do io completion events
-		 <span class="token operator">*</span> polling again<span class="token punctuation">,</span> they can rely on io_sq_thread to do polling
-		 <span class="token operator">*</span> work<span class="token punctuation">,</span> which can <span class="token builtin">reduce</span> cpu usage <span class="token keyword">and</span> uring_lock contention<span class="token punctuation">.</span>
-		 <span class="token operator">*</span><span class="token operator">/</span>
-		<span class="token keyword">if</span> <span class="token punctuation">(</span>ctx<span class="token operator">-</span><span class="token operator">&gt;</span>flags <span class="token operator">&amp;</span> IORING_SETUP_IOPOLL <span class="token operator">&amp;</span><span class="token operator">&amp;</span>
-		    !<span class="token punctuation">(</span>ctx<span class="token operator">-</span><span class="token operator">&gt;</span>flags <span class="token operator">&amp;</span> IORING_SETUP_SQPOLL<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
-			ret <span class="token operator">=</span> io_iopoll_check<span class="token punctuation">(</span>ctx<span class="token punctuation">,</span> min_complete<span class="token punctuation">)</span><span class="token punctuation">;</span>
-		<span class="token punctuation">}</span> <span class="token keyword">else</span> <span class="token punctuation">{</span>
-			ret <span class="token operator">=</span> io_cqring_wait<span class="token punctuation">(</span>ctx<span class="token punctuation">,</span> min_complete<span class="token punctuation">,</span> sig<span class="token punctuation">,</span> sigsz<span class="token punctuation">)</span><span class="token punctuation">;</span>
-		<span class="token punctuation">}</span>
-	<span class="token punctuation">}</span>
+		/*
+		 * When SETUP_IOPOLL and SETUP_SQPOLL are both enabled, user
+		 * space applications don't need to do io completion events
+		 * polling again, they can rely on io_sq_thread to do polling
+		 * work, which can reduce cpu usage and uring_lock contention.
+		 */
+		if (ctx-&gt;flags &amp; IORING_SETUP_IOPOLL &amp;&amp;
+		    !(ctx-&gt;flags &amp; IORING_SETUP_SQPOLL)) {
+			ret = io_iopoll_check(ctx, min_complete);
+		} else {
+			ret = io_cqring_wait(ctx, min_complete, sig, sigsz);
+		}
+	}
 
-out<span class="token punctuation">:</span>
-	percpu_ref_put<span class="token punctuation">(</span><span class="token operator">&amp;</span>ctx<span class="token operator">-</span><span class="token operator">&gt;</span>refs<span class="token punctuation">)</span><span class="token punctuation">;</span>
-out_fput<span class="token punctuation">:</span>
-	fdput<span class="token punctuation">(</span>f<span class="token punctuation">)</span><span class="token punctuation">;</span>
-	<span class="token keyword">return</span> submitted ? submitted <span class="token punctuation">:</span> ret<span class="token punctuation">;</span>
-<span class="token punctuation">}</span>
+out:
+	percpu_ref_put(&amp;ctx-&gt;refs);
+out_fput:
+	fdput(f);
+	return submitted ? submitted : ret;
+}
 </code></pre>
 
 <p>io_iopoll_complete实现</p>
 
-<pre class="  language-python" style="position: relative; z-index: 2;"><code class="prism  language-python"><span class="token operator">/</span><span class="token operator">*</span>
- <span class="token operator">*</span> Find <span class="token keyword">and</span> free completed poll iocbs
- <span class="token operator">*</span><span class="token operator">/</span>
-static void io_iopoll_complete<span class="token punctuation">(</span>struct io_ring_ctx <span class="token operator">*</span>ctx<span class="token punctuation">,</span> unsigned <span class="token builtin">int</span> <span class="token operator">*</span>nr_events<span class="token punctuation">,</span>
-			       struct list_head <span class="token operator">*</span>done<span class="token punctuation">)</span>
-<span class="token punctuation">{</span>
-	struct req_batch rb<span class="token punctuation">;</span>
-	struct io_kiocb <span class="token operator">*</span>req<span class="token punctuation">;</span>
-	LIST_HEAD<span class="token punctuation">(</span>again<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<pre><code>/*
+ * Find and free completed poll iocbs
+ */
+static void io_iopoll_complete(struct io_ring_ctx *ctx, unsigned int *nr_events,
+			       struct list_head *done)
+{
+	struct req_batch rb;
+	struct io_kiocb *req;
+	LIST_HEAD(again);
 
-	<span class="token operator">/</span><span class="token operator">*</span> order <span class="token keyword">with</span> <span class="token operator">-</span><span class="token operator">&gt;</span>result store <span class="token keyword">in</span> io_complete_rw_iopoll<span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">*</span><span class="token operator">/</span>
-	smp_rmb<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+	/* order with -&gt;result store in io_complete_rw_iopoll() */
+	smp_rmb();
 
-	io_init_req_batch<span class="token punctuation">(</span><span class="token operator">&amp;</span>rb<span class="token punctuation">)</span><span class="token punctuation">;</span>
-	<span class="token keyword">while</span> <span class="token punctuation">(</span>!list_empty<span class="token punctuation">(</span>done<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
-		<span class="token builtin">int</span> cflags <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
+	io_init_req_batch(&amp;rb);
+	while (!list_empty(done)) {
+		int cflags = 0;
 
-		req <span class="token operator">=</span> list_first_entry<span class="token punctuation">(</span>done<span class="token punctuation">,</span> struct io_kiocb<span class="token punctuation">,</span> inflight_entry<span class="token punctuation">)</span><span class="token punctuation">;</span>
-		<span class="token keyword">if</span> <span class="token punctuation">(</span>READ_ONCE<span class="token punctuation">(</span>req<span class="token operator">-</span><span class="token operator">&gt;</span>result<span class="token punctuation">)</span> <span class="token operator">==</span> <span class="token operator">-</span>EAGAIN<span class="token punctuation">)</span> <span class="token punctuation">{</span>
-			req<span class="token operator">-</span><span class="token operator">&gt;</span>result <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
-			req<span class="token operator">-</span><span class="token operator">&gt;</span>iopoll_completed <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
-			list_move_tail<span class="token punctuation">(</span><span class="token operator">&amp;</span>req<span class="token operator">-</span><span class="token operator">&gt;</span>inflight_entry<span class="token punctuation">,</span> <span class="token operator">&amp;</span>again<span class="token punctuation">)</span><span class="token punctuation">;</span>
-			<span class="token keyword">continue</span><span class="token punctuation">;</span>
-		<span class="token punctuation">}</span>
-		list_del<span class="token punctuation">(</span><span class="token operator">&amp;</span>req<span class="token operator">-</span><span class="token operator">&gt;</span>inflight_entry<span class="token punctuation">)</span><span class="token punctuation">;</span>
+		req = list_first_entry(done, struct io_kiocb, inflight_entry);
+		if (READ_ONCE(req-&gt;result) == -EAGAIN) {
+			req-&gt;result = 0;
+			req-&gt;iopoll_completed = 0;
+			list_move_tail(&amp;req-&gt;inflight_entry, &amp;again);
+			continue;
+		}
+		list_del(&amp;req-&gt;inflight_entry);
 
-		<span class="token keyword">if</span> <span class="token punctuation">(</span>req<span class="token operator">-</span><span class="token operator">&gt;</span>flags <span class="token operator">&amp;</span> REQ_F_BUFFER_SELECTED<span class="token punctuation">)</span>
-			cflags <span class="token operator">=</span> io_put_rw_kbuf<span class="token punctuation">(</span>req<span class="token punctuation">)</span><span class="token punctuation">;</span>
+		if (req-&gt;flags &amp; REQ_F_BUFFER_SELECTED)
+			cflags = io_put_rw_kbuf(req);
 
-		__io_cqring_fill_event<span class="token punctuation">(</span>req<span class="token punctuation">,</span> req<span class="token operator">-</span><span class="token operator">&gt;</span>result<span class="token punctuation">,</span> cflags<span class="token punctuation">)</span><span class="token punctuation">;</span>
-		<span class="token punctuation">(</span><span class="token operator">*</span>nr_events<span class="token punctuation">)</span><span class="token operator">+</span><span class="token operator">+</span><span class="token punctuation">;</span>
+		__io_cqring_fill_event(req, req-&gt;result, cflags);
+		(*nr_events)++;
 
-		<span class="token keyword">if</span> <span class="token punctuation">(</span>refcount_dec_and_test<span class="token punctuation">(</span><span class="token operator">&amp;</span>req<span class="token operator">-</span><span class="token operator">&gt;</span>refs<span class="token punctuation">)</span><span class="token punctuation">)</span>
-			io_req_free_batch<span class="token punctuation">(</span><span class="token operator">&amp;</span>rb<span class="token punctuation">,</span> req<span class="token punctuation">)</span><span class="token punctuation">;</span>
-	<span class="token punctuation">}</span>
+		if (refcount_dec_and_test(&amp;req-&gt;refs))
+			io_req_free_batch(&amp;rb, req);
+	}
 
-	io_commit_cqring<span class="token punctuation">(</span>ctx<span class="token punctuation">)</span><span class="token punctuation">;</span>
-	<span class="token keyword">if</span> <span class="token punctuation">(</span>ctx<span class="token operator">-</span><span class="token operator">&gt;</span>flags <span class="token operator">&amp;</span> IORING_SETUP_SQPOLL<span class="token punctuation">)</span>
-		io_cqring_ev_posted<span class="token punctuation">(</span>ctx<span class="token punctuation">)</span><span class="token punctuation">;</span>
-	io_req_free_batch_finish<span class="token punctuation">(</span>ctx<span class="token punctuation">,</span> <span class="token operator">&amp;</span>rb<span class="token punctuation">)</span><span class="token punctuation">;</span>
+	io_commit_cqring(ctx);
+	if (ctx-&gt;flags &amp; IORING_SETUP_SQPOLL)
+		io_cqring_ev_posted(ctx);
+	io_req_free_batch_finish(ctx, &amp;rb);
 
-	<span class="token keyword">if</span> <span class="token punctuation">(</span>!list_empty<span class="token punctuation">(</span><span class="token operator">&amp;</span>again<span class="token punctuation">)</span><span class="token punctuation">)</span>
-		io_iopoll_queue<span class="token punctuation">(</span><span class="token operator">&amp;</span>again<span class="token punctuation">)</span><span class="token punctuation">;</span>
-<span class="token punctuation">}</span>
+	if (!list_empty(&amp;again))
+		io_iopoll_queue(&amp;again);
+}
 </code></pre>
 
 <p>io_get_cqring实现</p>
 
-<pre class="  language-python" style="position: relative; z-index: 2;"><code class="prism  language-python">static struct io_uring_cqe <span class="token operator">*</span>io_get_cqring<span class="token punctuation">(</span>struct io_ring_ctx <span class="token operator">*</span>ctx<span class="token punctuation">)</span>
-<span class="token punctuation">{</span>
-	struct io_rings <span class="token operator">*</span>rings <span class="token operator">=</span> ctx<span class="token operator">-</span><span class="token operator">&gt;</span>rings<span class="token punctuation">;</span>
-	unsigned tail<span class="token punctuation">;</span>
+<pre><code>static struct io_uring_cqe *io_get_cqring(struct io_ring_ctx *ctx)
+{
+	struct io_rings *rings = ctx-&gt;rings;
+	unsigned tail;
 
-	tail <span class="token operator">=</span> ctx<span class="token operator">-</span><span class="token operator">&gt;</span>cached_cq_tail<span class="token punctuation">;</span>
-	<span class="token operator">/</span><span class="token operator">*</span>
-	 <span class="token operator">*</span> writes to the cq entry need to come after reading head<span class="token punctuation">;</span> the
-	 <span class="token operator">*</span> control dependency <span class="token keyword">is</span> enough <span class="token keyword">as</span> we're using WRITE_ONCE to
-	 <span class="token operator">*</span> fill the cq entry
-	 <span class="token operator">*</span><span class="token operator">/</span>
-	<span class="token keyword">if</span> <span class="token punctuation">(</span>tail <span class="token operator">-</span> READ_ONCE<span class="token punctuation">(</span>rings<span class="token operator">-</span><span class="token operator">&gt;</span>cq<span class="token punctuation">.</span>head<span class="token punctuation">)</span> <span class="token operator">==</span> rings<span class="token operator">-</span><span class="token operator">&gt;</span>cq_ring_entries<span class="token punctuation">)</span>
-		<span class="token keyword">return</span> NULL<span class="token punctuation">;</span>
+	tail = ctx-&gt;cached_cq_tail;
+	/*
+	 * writes to the cq entry need to come after reading head; the
+	 * control dependency is enough as we're using WRITE_ONCE to
+	 * fill the cq entry
+	 */
+	if (tail - READ_ONCE(rings-&gt;cq.head) == rings-&gt;cq_ring_entries)
+		return NULL;
 
-	ctx<span class="token operator">-</span><span class="token operator">&gt;</span>cached_cq_tail<span class="token operator">+</span><span class="token operator">+</span><span class="token punctuation">;</span>
-	<span class="token keyword">return</span> <span class="token operator">&amp;</span>rings<span class="token operator">-</span><span class="token operator">&gt;</span>cqes<span class="token punctuation">[</span>tail <span class="token operator">&amp;</span> ctx<span class="token operator">-</span><span class="token operator">&gt;</span>cq_mask<span class="token punctuation">]</span><span class="token punctuation">;</span>
-<span class="token punctuation">}</span>
+	ctx-&gt;cached_cq_tail++;
+	return &amp;rings-&gt;cqes[tail &amp; ctx-&gt;cq_mask];
+}
 </code></pre>
 
 <h3 id="IO收割">IO收割</h3>
@@ -1403,127 +1403,127 @@ static void io_iopoll_complete<span class="token punctuation">(</span>struct io_
 
 <h4 id="fixed_file_data结构">fixed_file_data结构</h4>
 
-<pre class="  language-cpp" style="position: relative; z-index: 2;"><code class="prism  language-cpp"><span class="token keyword">struct</span> <span class="token class-name">fixed_file_data</span> <span class="token punctuation">{</span>
-	<span class="token keyword">struct</span> <span class="token class-name">fixed_file_table</span>		<span class="token operator">*</span>table<span class="token punctuation">;</span>
-	<span class="token keyword">struct</span> <span class="token class-name">io_ring_ctx</span>		<span class="token operator">*</span>ctx<span class="token punctuation">;</span>
+<pre><code>struct fixed_file_data {
+	struct fixed_file_table		*table;
+	struct io_ring_ctx		*ctx;
 
-	<span class="token keyword">struct</span> <span class="token class-name">fixed_file_ref_node</span>	<span class="token operator">*</span>node<span class="token punctuation">;</span>
-	<span class="token keyword">struct</span> <span class="token class-name">percpu_ref</span>		refs<span class="token punctuation">;</span>
-	<span class="token keyword">struct</span> <span class="token class-name">completion</span>		done<span class="token punctuation">;</span>
-	<span class="token keyword">struct</span> <span class="token class-name">list_head</span>		ref_list<span class="token punctuation">;</span>
-	spinlock_t			lock<span class="token punctuation">;</span>
-<span class="token punctuation">}</span><span class="token punctuation">;</span>
+	struct fixed_file_ref_node	*node;
+	struct percpu_ref		refs;
+	struct completion		done;
+	struct list_head		ref_list;
+	spinlock_t			lock;
+};
 </code></pre>
 
 <h4 id="io_sqe_files_register实现Fixed-Files操作">io_sqe_files_register实现Fixed Files操作</h4>
 
-<pre class="  language-cpp" style="position: relative; z-index: 2;"><code class="prism  language-cpp"><span class="token keyword">static</span> <span class="token keyword">int</span> <span class="token function">io_sqe_files_register</span><span class="token punctuation">(</span><span class="token keyword">struct</span> <span class="token class-name">io_ring_ctx</span> <span class="token operator">*</span>ctx<span class="token punctuation">,</span> <span class="token keyword">void</span> __user <span class="token operator">*</span>arg<span class="token punctuation">,</span>
-				 <span class="token keyword">unsigned</span> nr_args<span class="token punctuation">)</span>
-<span class="token punctuation">{</span>
-	__s32 __user <span class="token operator">*</span>fds <span class="token operator">=</span> <span class="token punctuation">(</span>__s32 __user <span class="token operator">*</span><span class="token punctuation">)</span> arg<span class="token punctuation">;</span>
-	<span class="token keyword">unsigned</span> nr_tables<span class="token punctuation">,</span> i<span class="token punctuation">;</span>
-	<span class="token keyword">struct</span> <span class="token class-name">file</span> <span class="token operator">*</span>file<span class="token punctuation">;</span>
-	<span class="token keyword">int</span> fd<span class="token punctuation">,</span> ret <span class="token operator">=</span> <span class="token operator">-</span>ENOMEM<span class="token punctuation">;</span>
-	<span class="token keyword">struct</span> <span class="token class-name">fixed_file_ref_node</span> <span class="token operator">*</span>ref_node<span class="token punctuation">;</span>
-	<span class="token keyword">struct</span> <span class="token class-name">fixed_file_data</span> <span class="token operator">*</span>file_data<span class="token punctuation">;</span>
+<pre><code>static int io_sqe_files_register(struct io_ring_ctx *ctx, void __user *arg,
+				 unsigned nr_args)
+{
+	__s32 __user *fds = (__s32 __user *) arg;
+	unsigned nr_tables, i;
+	struct file *file;
+	int fd, ret = -ENOMEM;
+	struct fixed_file_ref_node *ref_node;
+	struct fixed_file_data *file_data;
 
-	<span class="token keyword">if</span> <span class="token punctuation">(</span>ctx<span class="token operator">-&gt;</span>file_data<span class="token punctuation">)</span>
-		<span class="token keyword">return</span> <span class="token operator">-</span>EBUSY<span class="token punctuation">;</span>
-	<span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">!</span>nr_args<span class="token punctuation">)</span>
-		<span class="token keyword">return</span> <span class="token operator">-</span>EINVAL<span class="token punctuation">;</span>
-	<span class="token keyword">if</span> <span class="token punctuation">(</span>nr_args <span class="token operator">&gt;</span> IORING_MAX_FIXED_FILES<span class="token punctuation">)</span>
-		<span class="token keyword">return</span> <span class="token operator">-</span>EMFILE<span class="token punctuation">;</span>
+	if (ctx-&gt;file_data)
+		return -EBUSY;
+	if (!nr_args)
+		return -EINVAL;
+	if (nr_args &gt; IORING_MAX_FIXED_FILES)
+		return -EMFILE;
 
-	file_data <span class="token operator">=</span> <span class="token function">kzalloc</span><span class="token punctuation">(</span><span class="token keyword">sizeof</span><span class="token punctuation">(</span><span class="token operator">*</span>ctx<span class="token operator">-&gt;</span>file_data<span class="token punctuation">)</span><span class="token punctuation">,</span> GFP_KERNEL<span class="token punctuation">)</span><span class="token punctuation">;</span>
-	<span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">!</span>file_data<span class="token punctuation">)</span>
-		<span class="token keyword">return</span> <span class="token operator">-</span>ENOMEM<span class="token punctuation">;</span>
-	file_data<span class="token operator">-&gt;</span>ctx <span class="token operator">=</span> ctx<span class="token punctuation">;</span>
-	<span class="token function">init_completion</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>file_data<span class="token operator">-&gt;</span>done<span class="token punctuation">)</span><span class="token punctuation">;</span>
-	<span class="token function">INIT_LIST_HEAD</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>file_data<span class="token operator">-&gt;</span>ref_list<span class="token punctuation">)</span><span class="token punctuation">;</span>
-	<span class="token function">spin_lock_init</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>file_data<span class="token operator">-&gt;</span>lock<span class="token punctuation">)</span><span class="token punctuation">;</span>
+	file_data = kzalloc(sizeof(*ctx-&gt;file_data), GFP_KERNEL);
+	if (!file_data)
+		return -ENOMEM;
+	file_data-&gt;ctx = ctx;
+	init_completion(&amp;file_data-&gt;done);
+	INIT_LIST_HEAD(&amp;file_data-&gt;ref_list);
+	spin_lock_init(&amp;file_data-&gt;lock);
 
-	nr_tables <span class="token operator">=</span> <span class="token function">DIV_ROUND_UP</span><span class="token punctuation">(</span>nr_args<span class="token punctuation">,</span> IORING_MAX_FILES_TABLE<span class="token punctuation">)</span><span class="token punctuation">;</span>
-	file_data<span class="token operator">-&gt;</span>table <span class="token operator">=</span> <span class="token function">kcalloc</span><span class="token punctuation">(</span>nr_tables<span class="token punctuation">,</span> <span class="token keyword">sizeof</span><span class="token punctuation">(</span><span class="token operator">*</span>file_data<span class="token operator">-&gt;</span>table<span class="token punctuation">)</span><span class="token punctuation">,</span>
-				   GFP_KERNEL<span class="token punctuation">)</span><span class="token punctuation">;</span>
-	<span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">!</span>file_data<span class="token operator">-&gt;</span>table<span class="token punctuation">)</span>
-		<span class="token keyword">goto</span> out_free<span class="token punctuation">;</span>
+	nr_tables = DIV_ROUND_UP(nr_args, IORING_MAX_FILES_TABLE);
+	file_data-&gt;table = kcalloc(nr_tables, sizeof(*file_data-&gt;table),
+				   GFP_KERNEL);
+	if (!file_data-&gt;table)
+		goto out_free;
 
-	<span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token function">percpu_ref_init</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>file_data<span class="token operator">-&gt;</span>refs<span class="token punctuation">,</span> io_file_ref_kill<span class="token punctuation">,</span>
-				PERCPU_REF_ALLOW_REINIT<span class="token punctuation">,</span> GFP_KERNEL<span class="token punctuation">)</span><span class="token punctuation">)</span>
-		<span class="token keyword">goto</span> out_free<span class="token punctuation">;</span>
+	if (percpu_ref_init(&amp;file_data-&gt;refs, io_file_ref_kill,
+				PERCPU_REF_ALLOW_REINIT, GFP_KERNEL))
+		goto out_free;
 
-	<span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token function">io_sqe_alloc_file_tables</span><span class="token punctuation">(</span>file_data<span class="token punctuation">,</span> nr_tables<span class="token punctuation">,</span> nr_args<span class="token punctuation">)</span><span class="token punctuation">)</span>
-		<span class="token keyword">goto</span> out_ref<span class="token punctuation">;</span>
-	ctx<span class="token operator">-&gt;</span>file_data <span class="token operator">=</span> file_data<span class="token punctuation">;</span>
+	if (io_sqe_alloc_file_tables(file_data, nr_tables, nr_args))
+		goto out_ref;
+	ctx-&gt;file_data = file_data;
 
-	<span class="token keyword">for</span> <span class="token punctuation">(</span>i <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span> i <span class="token operator">&lt;</span> nr_args<span class="token punctuation">;</span> i<span class="token operator">++</span><span class="token punctuation">,</span> ctx<span class="token operator">-&gt;</span>nr_user_files<span class="token operator">++</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
-		<span class="token keyword">struct</span> <span class="token class-name">fixed_file_table</span> <span class="token operator">*</span>table<span class="token punctuation">;</span>
-		<span class="token keyword">unsigned</span> index<span class="token punctuation">;</span>
+	for (i = 0; i &lt; nr_args; i++, ctx-&gt;nr_user_files++) {
+		struct fixed_file_table *table;
+		unsigned index;
 
-		<span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token function">copy_from_user</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>fd<span class="token punctuation">,</span> <span class="token operator">&amp;</span>fds<span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token punctuation">,</span> <span class="token keyword">sizeof</span><span class="token punctuation">(</span>fd<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
-			ret <span class="token operator">=</span> <span class="token operator">-</span>EFAULT<span class="token punctuation">;</span>
-			<span class="token keyword">goto</span> out_fput<span class="token punctuation">;</span>
-		<span class="token punctuation">}</span>
-		<span class="token comment">/* allow sparse sets */</span>
-		<span class="token keyword">if</span> <span class="token punctuation">(</span>fd <span class="token operator">==</span> <span class="token operator">-</span><span class="token number">1</span><span class="token punctuation">)</span>
-			<span class="token keyword">continue</span><span class="token punctuation">;</span>
+		if (copy_from_user(&amp;fd, &amp;fds[i], sizeof(fd))) {
+			ret = -EFAULT;
+			goto out_fput;
+		}
+		/* allow sparse sets */
+		if (fd == -1)
+			continue;
 
-		file <span class="token operator">=</span> <span class="token function">fget</span><span class="token punctuation">(</span>fd<span class="token punctuation">)</span><span class="token punctuation">;</span>
-		ret <span class="token operator">=</span> <span class="token operator">-</span>EBADF<span class="token punctuation">;</span>
-		<span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">!</span>file<span class="token punctuation">)</span>
-			<span class="token keyword">goto</span> out_fput<span class="token punctuation">;</span>
+		file = fget(fd);
+		ret = -EBADF;
+		if (!file)
+			goto out_fput;
 
-		<span class="token comment">/*
+		/*
 		 * Don't allow io_uring instances to be registered. If UNIX
 		 * isn't enabled, then this causes a reference cycle and this
 		 * instance can never get freed. If UNIX is enabled we'll
 		 * handle it just fine, but there's still no point in allowing
 		 * a ring fd as it doesn't support regular read/write anyway.
-		 */</span>
-		<span class="token keyword">if</span> <span class="token punctuation">(</span>file<span class="token operator">-&gt;</span>f_op <span class="token operator">==</span> <span class="token operator">&amp;</span>io_uring_fops<span class="token punctuation">)</span> <span class="token punctuation">{</span>
-			<span class="token function">fput</span><span class="token punctuation">(</span>file<span class="token punctuation">)</span><span class="token punctuation">;</span>
-			<span class="token keyword">goto</span> out_fput<span class="token punctuation">;</span>
-		<span class="token punctuation">}</span>
-		table <span class="token operator">=</span> <span class="token operator">&amp;</span>file_data<span class="token operator">-&gt;</span>table<span class="token punctuation">[</span>i <span class="token operator">&gt;&gt;</span> IORING_FILE_TABLE_SHIFT<span class="token punctuation">]</span><span class="token punctuation">;</span>
-		index <span class="token operator">=</span> i <span class="token operator">&amp;</span> IORING_FILE_TABLE_MASK<span class="token punctuation">;</span>
-		table<span class="token operator">-&gt;</span>files<span class="token punctuation">[</span>index<span class="token punctuation">]</span> <span class="token operator">=</span> file<span class="token punctuation">;</span>
-	<span class="token punctuation">}</span>
+		 */
+		if (file-&gt;f_op == &amp;io_uring_fops) {
+			fput(file);
+			goto out_fput;
+		}
+		table = &amp;file_data-&gt;table[i &gt;&gt; IORING_FILE_TABLE_SHIFT];
+		index = i &amp; IORING_FILE_TABLE_MASK;
+		table-&gt;files[index] = file;
+	}
 
-	ret <span class="token operator">=</span> <span class="token function">io_sqe_files_scm</span><span class="token punctuation">(</span>ctx<span class="token punctuation">)</span><span class="token punctuation">;</span>
-	<span class="token keyword">if</span> <span class="token punctuation">(</span>ret<span class="token punctuation">)</span> <span class="token punctuation">{</span>
-		<span class="token function">io_sqe_files_unregister</span><span class="token punctuation">(</span>ctx<span class="token punctuation">)</span><span class="token punctuation">;</span>
-		<span class="token keyword">return</span> ret<span class="token punctuation">;</span>
-	<span class="token punctuation">}</span>
+	ret = io_sqe_files_scm(ctx);
+	if (ret) {
+		io_sqe_files_unregister(ctx);
+		return ret;
+	}
 
-	ref_node <span class="token operator">=</span> <span class="token function">alloc_fixed_file_ref_node</span><span class="token punctuation">(</span>ctx<span class="token punctuation">)</span><span class="token punctuation">;</span>
-	<span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token function">IS_ERR</span><span class="token punctuation">(</span>ref_node<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
-		<span class="token function">io_sqe_files_unregister</span><span class="token punctuation">(</span>ctx<span class="token punctuation">)</span><span class="token punctuation">;</span>
-		<span class="token keyword">return</span> <span class="token function">PTR_ERR</span><span class="token punctuation">(</span>ref_node<span class="token punctuation">)</span><span class="token punctuation">;</span>
-	<span class="token punctuation">}</span>
+	ref_node = alloc_fixed_file_ref_node(ctx);
+	if (IS_ERR(ref_node)) {
+		io_sqe_files_unregister(ctx);
+		return PTR_ERR(ref_node);
+	}
 
-	file_data<span class="token operator">-&gt;</span>node <span class="token operator">=</span> ref_node<span class="token punctuation">;</span>
-	<span class="token function">spin_lock</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>file_data<span class="token operator">-&gt;</span>lock<span class="token punctuation">)</span><span class="token punctuation">;</span>
-	<span class="token function">list_add_tail</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>ref_node<span class="token operator">-&gt;</span>node<span class="token punctuation">,</span> <span class="token operator">&amp;</span>file_data<span class="token operator">-&gt;</span>ref_list<span class="token punctuation">)</span><span class="token punctuation">;</span>
-	<span class="token function">spin_unlock</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>file_data<span class="token operator">-&gt;</span>lock<span class="token punctuation">)</span><span class="token punctuation">;</span>
-	<span class="token function">percpu_ref_get</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>file_data<span class="token operator">-&gt;</span>refs<span class="token punctuation">)</span><span class="token punctuation">;</span>
-	<span class="token keyword">return</span> ret<span class="token punctuation">;</span>
-out_fput<span class="token operator">:</span>
-	<span class="token keyword">for</span> <span class="token punctuation">(</span>i <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span> i <span class="token operator">&lt;</span> ctx<span class="token operator">-&gt;</span>nr_user_files<span class="token punctuation">;</span> i<span class="token operator">++</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
-		file <span class="token operator">=</span> <span class="token function">io_file_from_index</span><span class="token punctuation">(</span>ctx<span class="token punctuation">,</span> i<span class="token punctuation">)</span><span class="token punctuation">;</span>
-		<span class="token keyword">if</span> <span class="token punctuation">(</span>file<span class="token punctuation">)</span>
-			<span class="token function">fput</span><span class="token punctuation">(</span>file<span class="token punctuation">)</span><span class="token punctuation">;</span>
-	<span class="token punctuation">}</span>
-	<span class="token keyword">for</span> <span class="token punctuation">(</span>i <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span> i <span class="token operator">&lt;</span> nr_tables<span class="token punctuation">;</span> i<span class="token operator">++</span><span class="token punctuation">)</span>
-		<span class="token function">kfree</span><span class="token punctuation">(</span>file_data<span class="token operator">-&gt;</span>table<span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token punctuation">.</span>files<span class="token punctuation">)</span><span class="token punctuation">;</span>
-	ctx<span class="token operator">-&gt;</span>nr_user_files <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
-out_ref<span class="token operator">:</span>
-	<span class="token function">percpu_ref_exit</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>file_data<span class="token operator">-&gt;</span>refs<span class="token punctuation">)</span><span class="token punctuation">;</span>
-out_free<span class="token operator">:</span>
-	<span class="token function">kfree</span><span class="token punctuation">(</span>file_data<span class="token operator">-&gt;</span>table<span class="token punctuation">)</span><span class="token punctuation">;</span>
-	<span class="token function">kfree</span><span class="token punctuation">(</span>file_data<span class="token punctuation">)</span><span class="token punctuation">;</span>
-	ctx<span class="token operator">-&gt;</span>file_data <span class="token operator">=</span> <span class="token constant">NULL</span><span class="token punctuation">;</span>
-	<span class="token keyword">return</span> ret<span class="token punctuation">;</span>
-<span class="token punctuation">}</span>
+	file_data-&gt;node = ref_node;
+	spin_lock(&amp;file_data-&gt;lock);
+	list_add_tail(&amp;ref_node-&gt;node, &amp;file_data-&gt;ref_list);
+	spin_unlock(&amp;file_data-&gt;lock);
+	percpu_ref_get(&amp;file_data-&gt;refs);
+	return ret;
+out_fput:
+	for (i = 0; i &lt; ctx-&gt;nr_user_files; i++) {
+		file = io_file_from_index(ctx, i);
+		if (file)
+			fput(file);
+	}
+	for (i = 0; i &lt; nr_tables; i++)
+		kfree(file_data-&gt;table[i].files);
+	ctx-&gt;nr_user_files = 0;
+out_ref:
+	percpu_ref_exit(&amp;file_data-&gt;refs);
+out_free:
+	kfree(file_data-&gt;table);
+	kfree(file_data);
+	ctx-&gt;file_data = NULL;
+	return ret;
+}
 </code></pre>
 
 <h3 id="Fixed-Buffers模式">Fixed Buffers模式</h3>
@@ -1538,153 +1538,153 @@ out_free<span class="token operator">:</span>
 
 <h4 id="io_mapped_ubuf结构">io_mapped_ubuf结构</h4>
 
-<pre class="  language-cpp" style="position: relative; z-index: 2;"><code class="prism  language-cpp"><span class="token keyword">struct</span> <span class="token class-name">io_mapped_ubuf</span> <span class="token punctuation">{</span>
-	u64		ubuf<span class="token punctuation">;</span>
-	size_t		len<span class="token punctuation">;</span>
-	<span class="token keyword">struct</span>		<span class="token class-name">bio_vec</span> <span class="token operator">*</span>bvec<span class="token punctuation">;</span>
-	<span class="token keyword">unsigned</span> <span class="token keyword">int</span>	nr_bvecs<span class="token punctuation">;</span>
-	<span class="token keyword">unsigned</span> <span class="token keyword">long</span>	acct_pages<span class="token punctuation">;</span>
-<span class="token punctuation">}</span><span class="token punctuation">;</span>
+<pre><code>struct io_mapped_ubuf {
+	u64		ubuf;
+	size_t		len;
+	struct		bio_vec *bvec;
+	unsigned int	nr_bvecs;
+	unsigned long	acct_pages;
+};
 </code></pre>
 
 <h4 id="io_sqe_buffer_register实现Fixed-Buffers操作">io_sqe_buffer_register实现Fixed Buffers操作</h4>
 
-<pre class="  language-cpp" style="position: relative; z-index: 2;"><code class="prism  language-cpp"><span class="token keyword">static</span> <span class="token keyword">int</span> <span class="token function">io_sqe_buffer_register</span><span class="token punctuation">(</span><span class="token keyword">struct</span> <span class="token class-name">io_ring_ctx</span> <span class="token operator">*</span>ctx<span class="token punctuation">,</span> <span class="token keyword">void</span> __user <span class="token operator">*</span>arg<span class="token punctuation">,</span>
-				  <span class="token keyword">unsigned</span> nr_args<span class="token punctuation">)</span>
-<span class="token punctuation">{</span>
-	<span class="token keyword">struct</span> <span class="token class-name">vm_area_struct</span> <span class="token operator">*</span><span class="token operator">*</span>vmas <span class="token operator">=</span> <span class="token constant">NULL</span><span class="token punctuation">;</span>
-	<span class="token keyword">struct</span> <span class="token class-name">page</span> <span class="token operator">*</span><span class="token operator">*</span>pages <span class="token operator">=</span> <span class="token constant">NULL</span><span class="token punctuation">;</span>
-	<span class="token keyword">struct</span> <span class="token class-name">page</span> <span class="token operator">*</span>last_hpage <span class="token operator">=</span> <span class="token constant">NULL</span><span class="token punctuation">;</span>
-	<span class="token keyword">int</span> i<span class="token punctuation">,</span> j<span class="token punctuation">,</span> got_pages <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
-	<span class="token keyword">int</span> ret <span class="token operator">=</span> <span class="token operator">-</span>EINVAL<span class="token punctuation">;</span>
+<pre><code>static int io_sqe_buffer_register(struct io_ring_ctx *ctx, void __user *arg,
+				  unsigned nr_args)
+{
+	struct vm_area_struct **vmas = NULL;
+	struct page **pages = NULL;
+	struct page *last_hpage = NULL;
+	int i, j, got_pages = 0;
+	int ret = -EINVAL;
 
-	<span class="token keyword">if</span> <span class="token punctuation">(</span>ctx<span class="token operator">-&gt;</span>user_bufs<span class="token punctuation">)</span>
-		<span class="token keyword">return</span> <span class="token operator">-</span>EBUSY<span class="token punctuation">;</span>
-	<span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">!</span>nr_args <span class="token operator">||</span> nr_args <span class="token operator">&gt;</span> UIO_MAXIOV<span class="token punctuation">)</span>
-		<span class="token keyword">return</span> <span class="token operator">-</span>EINVAL<span class="token punctuation">;</span>
+	if (ctx-&gt;user_bufs)
+		return -EBUSY;
+	if (!nr_args || nr_args &gt; UIO_MAXIOV)
+		return -EINVAL;
 
-	ctx<span class="token operator">-&gt;</span>user_bufs <span class="token operator">=</span> <span class="token function">kcalloc</span><span class="token punctuation">(</span>nr_args<span class="token punctuation">,</span> <span class="token keyword">sizeof</span><span class="token punctuation">(</span><span class="token keyword">struct</span> <span class="token class-name">io_mapped_ubuf</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
-					GFP_KERNEL<span class="token punctuation">)</span><span class="token punctuation">;</span>
-	<span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">!</span>ctx<span class="token operator">-&gt;</span>user_bufs<span class="token punctuation">)</span>
-		<span class="token keyword">return</span> <span class="token operator">-</span>ENOMEM<span class="token punctuation">;</span>
+	ctx-&gt;user_bufs = kcalloc(nr_args, sizeof(struct io_mapped_ubuf),
+					GFP_KERNEL);
+	if (!ctx-&gt;user_bufs)
+		return -ENOMEM;
 
-	<span class="token keyword">for</span> <span class="token punctuation">(</span>i <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span> i <span class="token operator">&lt;</span> nr_args<span class="token punctuation">;</span> i<span class="token operator">++</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
-		<span class="token keyword">struct</span> <span class="token class-name">io_mapped_ubuf</span> <span class="token operator">*</span>imu <span class="token operator">=</span> <span class="token operator">&amp;</span>ctx<span class="token operator">-&gt;</span>user_bufs<span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token punctuation">;</span>
-		<span class="token keyword">unsigned</span> <span class="token keyword">long</span> off<span class="token punctuation">,</span> start<span class="token punctuation">,</span> end<span class="token punctuation">,</span> ubuf<span class="token punctuation">;</span>
-		<span class="token keyword">int</span> pret<span class="token punctuation">,</span> nr_pages<span class="token punctuation">;</span>
-		<span class="token keyword">struct</span> <span class="token class-name">iovec</span> iov<span class="token punctuation">;</span>
-		size_t size<span class="token punctuation">;</span>
+	for (i = 0; i &lt; nr_args; i++) {
+		struct io_mapped_ubuf *imu = &amp;ctx-&gt;user_bufs[i];
+		unsigned long off, start, end, ubuf;
+		int pret, nr_pages;
+		struct iovec iov;
+		size_t size;
 
-		ret <span class="token operator">=</span> <span class="token function">io_copy_iov</span><span class="token punctuation">(</span>ctx<span class="token punctuation">,</span> <span class="token operator">&amp;</span>iov<span class="token punctuation">,</span> arg<span class="token punctuation">,</span> i<span class="token punctuation">)</span><span class="token punctuation">;</span>
-		<span class="token keyword">if</span> <span class="token punctuation">(</span>ret<span class="token punctuation">)</span>
-			<span class="token keyword">goto</span> err<span class="token punctuation">;</span>
+		ret = io_copy_iov(ctx, &amp;iov, arg, i);
+		if (ret)
+			goto err;
 
-		<span class="token comment">/*
+		/*
 		 * Don't impose further limits on the size and buffer
 		 * constraints here, we'll -EINVAL later when IO is
 		 * submitted if they are wrong.
-		 */</span>
-		ret <span class="token operator">=</span> <span class="token operator">-</span>EFAULT<span class="token punctuation">;</span>
-		<span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">!</span>iov<span class="token punctuation">.</span>iov_base <span class="token operator">||</span> <span class="token operator">!</span>iov<span class="token punctuation">.</span>iov_len<span class="token punctuation">)</span>
-			<span class="token keyword">goto</span> err<span class="token punctuation">;</span>
+		 */
+		ret = -EFAULT;
+		if (!iov.iov_base || !iov.iov_len)
+			goto err;
 
-		<span class="token comment">/* arbitrary limit, but we need something */</span>
-		<span class="token keyword">if</span> <span class="token punctuation">(</span>iov<span class="token punctuation">.</span>iov_len <span class="token operator">&gt;</span> SZ_1G<span class="token punctuation">)</span>
-			<span class="token keyword">goto</span> err<span class="token punctuation">;</span>
+		/* arbitrary limit, but we need something */
+		if (iov.iov_len &gt; SZ_1G)
+			goto err;
 
-		ubuf <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token keyword">unsigned</span> <span class="token keyword">long</span><span class="token punctuation">)</span> iov<span class="token punctuation">.</span>iov_base<span class="token punctuation">;</span>
-		end <span class="token operator">=</span> <span class="token punctuation">(</span>ubuf <span class="token operator">+</span> iov<span class="token punctuation">.</span>iov_len <span class="token operator">+</span> PAGE_SIZE <span class="token operator">-</span> <span class="token number">1</span><span class="token punctuation">)</span> <span class="token operator">&gt;&gt;</span> PAGE_SHIFT<span class="token punctuation">;</span>
-		start <span class="token operator">=</span> ubuf <span class="token operator">&gt;&gt;</span> PAGE_SHIFT<span class="token punctuation">;</span>
-		nr_pages <span class="token operator">=</span> end <span class="token operator">-</span> start<span class="token punctuation">;</span>
+		ubuf = (unsigned long) iov.iov_base;
+		end = (ubuf + iov.iov_len + PAGE_SIZE - 1) &gt;&gt; PAGE_SHIFT;
+		start = ubuf &gt;&gt; PAGE_SHIFT;
+		nr_pages = end - start;
 
-		ret <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
-		<span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">!</span>pages <span class="token operator">||</span> nr_pages <span class="token operator">&gt;</span> got_pages<span class="token punctuation">)</span> <span class="token punctuation">{</span>
-			<span class="token function">kvfree</span><span class="token punctuation">(</span>vmas<span class="token punctuation">)</span><span class="token punctuation">;</span>
-			<span class="token function">kvfree</span><span class="token punctuation">(</span>pages<span class="token punctuation">)</span><span class="token punctuation">;</span>
-			pages <span class="token operator">=</span> <span class="token function">kvmalloc_array</span><span class="token punctuation">(</span>nr_pages<span class="token punctuation">,</span> <span class="token keyword">sizeof</span><span class="token punctuation">(</span><span class="token keyword">struct</span> <span class="token class-name">page</span> <span class="token operator">*</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
-						GFP_KERNEL<span class="token punctuation">)</span><span class="token punctuation">;</span>
-			vmas <span class="token operator">=</span> <span class="token function">kvmalloc_array</span><span class="token punctuation">(</span>nr_pages<span class="token punctuation">,</span>
-					<span class="token keyword">sizeof</span><span class="token punctuation">(</span><span class="token keyword">struct</span> <span class="token class-name">vm_area_struct</span> <span class="token operator">*</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
-					GFP_KERNEL<span class="token punctuation">)</span><span class="token punctuation">;</span>
-			<span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">!</span>pages <span class="token operator">||</span> <span class="token operator">!</span>vmas<span class="token punctuation">)</span> <span class="token punctuation">{</span>
-				ret <span class="token operator">=</span> <span class="token operator">-</span>ENOMEM<span class="token punctuation">;</span>
-				<span class="token keyword">goto</span> err<span class="token punctuation">;</span>
-			<span class="token punctuation">}</span>
-			got_pages <span class="token operator">=</span> nr_pages<span class="token punctuation">;</span>
-		<span class="token punctuation">}</span>
+		ret = 0;
+		if (!pages || nr_pages &gt; got_pages) {
+			kvfree(vmas);
+			kvfree(pages);
+			pages = kvmalloc_array(nr_pages, sizeof(struct page *),
+						GFP_KERNEL);
+			vmas = kvmalloc_array(nr_pages,
+					sizeof(struct vm_area_struct *),
+					GFP_KERNEL);
+			if (!pages || !vmas) {
+				ret = -ENOMEM;
+				goto err;
+			}
+			got_pages = nr_pages;
+		}
 
-		imu<span class="token operator">-&gt;</span>bvec <span class="token operator">=</span> <span class="token function">kvmalloc_array</span><span class="token punctuation">(</span>nr_pages<span class="token punctuation">,</span> <span class="token keyword">sizeof</span><span class="token punctuation">(</span><span class="token keyword">struct</span> <span class="token class-name">bio_vec</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
-						GFP_KERNEL<span class="token punctuation">)</span><span class="token punctuation">;</span>
-		ret <span class="token operator">=</span> <span class="token operator">-</span>ENOMEM<span class="token punctuation">;</span>
-		<span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">!</span>imu<span class="token operator">-&gt;</span>bvec<span class="token punctuation">)</span>
-			<span class="token keyword">goto</span> err<span class="token punctuation">;</span>
+		imu-&gt;bvec = kvmalloc_array(nr_pages, sizeof(struct bio_vec),
+						GFP_KERNEL);
+		ret = -ENOMEM;
+		if (!imu-&gt;bvec)
+			goto err;
 
-		ret <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
-		<span class="token function">mmap_read_lock</span><span class="token punctuation">(</span>current<span class="token operator">-&gt;</span>mm<span class="token punctuation">)</span><span class="token punctuation">;</span>
-		pret <span class="token operator">=</span> <span class="token function">pin_user_pages</span><span class="token punctuation">(</span>ubuf<span class="token punctuation">,</span> nr_pages<span class="token punctuation">,</span>
-				      FOLL_WRITE <span class="token operator">|</span> FOLL_LONGTERM<span class="token punctuation">,</span>
-				      pages<span class="token punctuation">,</span> vmas<span class="token punctuation">)</span><span class="token punctuation">;</span>
-		<span class="token keyword">if</span> <span class="token punctuation">(</span>pret <span class="token operator">==</span> nr_pages<span class="token punctuation">)</span> <span class="token punctuation">{</span>
-			<span class="token comment">/* don't support file backed memory */</span>
-			<span class="token keyword">for</span> <span class="token punctuation">(</span>j <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span> j <span class="token operator">&lt;</span> nr_pages<span class="token punctuation">;</span> j<span class="token operator">++</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
-				<span class="token keyword">struct</span> <span class="token class-name">vm_area_struct</span> <span class="token operator">*</span>vma <span class="token operator">=</span> vmas<span class="token punctuation">[</span>j<span class="token punctuation">]</span><span class="token punctuation">;</span>
+		ret = 0;
+		mmap_read_lock(current-&gt;mm);
+		pret = pin_user_pages(ubuf, nr_pages,
+				      FOLL_WRITE | FOLL_LONGTERM,
+				      pages, vmas);
+		if (pret == nr_pages) {
+			/* don't support file backed memory */
+			for (j = 0; j &lt; nr_pages; j++) {
+				struct vm_area_struct *vma = vmas[j];
 
-				<span class="token keyword">if</span> <span class="token punctuation">(</span>vma<span class="token operator">-&gt;</span>vm_file <span class="token operator">&amp;&amp;</span>
-				    <span class="token operator">!</span><span class="token function">is_file_hugepages</span><span class="token punctuation">(</span>vma<span class="token operator">-&gt;</span>vm_file<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
-					ret <span class="token operator">=</span> <span class="token operator">-</span>EOPNOTSUPP<span class="token punctuation">;</span>
-					<span class="token keyword">break</span><span class="token punctuation">;</span>
-				<span class="token punctuation">}</span>
-			<span class="token punctuation">}</span>
-		<span class="token punctuation">}</span> <span class="token keyword">else</span> <span class="token punctuation">{</span>
-			ret <span class="token operator">=</span> pret <span class="token operator">&lt;</span> <span class="token number">0</span> <span class="token operator">?</span> pret <span class="token operator">:</span> <span class="token operator">-</span>EFAULT<span class="token punctuation">;</span>
-		<span class="token punctuation">}</span>
-		<span class="token function">mmap_read_unlock</span><span class="token punctuation">(</span>current<span class="token operator">-&gt;</span>mm<span class="token punctuation">)</span><span class="token punctuation">;</span>
-		<span class="token keyword">if</span> <span class="token punctuation">(</span>ret<span class="token punctuation">)</span> <span class="token punctuation">{</span>
-			<span class="token comment">/*
+				if (vma-&gt;vm_file &amp;&amp;
+				    !is_file_hugepages(vma-&gt;vm_file)) {
+					ret = -EOPNOTSUPP;
+					break;
+				}
+			}
+		} else {
+			ret = pret &lt; 0 ? pret : -EFAULT;
+		}
+		mmap_read_unlock(current-&gt;mm);
+		if (ret) {
+			/*
 			 * if we did partial map, or found file backed vmas,
 			 * release any pages we did get
-			 */</span>
-			<span class="token keyword">if</span> <span class="token punctuation">(</span>pret <span class="token operator">&gt;</span> <span class="token number">0</span><span class="token punctuation">)</span>
-				<span class="token function">unpin_user_pages</span><span class="token punctuation">(</span>pages<span class="token punctuation">,</span> pret<span class="token punctuation">)</span><span class="token punctuation">;</span>
-			<span class="token function">kvfree</span><span class="token punctuation">(</span>imu<span class="token operator">-&gt;</span>bvec<span class="token punctuation">)</span><span class="token punctuation">;</span>
-			<span class="token keyword">goto</span> err<span class="token punctuation">;</span>
-		<span class="token punctuation">}</span>
+			 */
+			if (pret &gt; 0)
+				unpin_user_pages(pages, pret);
+			kvfree(imu-&gt;bvec);
+			goto err;
+		}
 
-		ret <span class="token operator">=</span> <span class="token function">io_buffer_account_pin</span><span class="token punctuation">(</span>ctx<span class="token punctuation">,</span> pages<span class="token punctuation">,</span> pret<span class="token punctuation">,</span> imu<span class="token punctuation">,</span> <span class="token operator">&amp;</span>last_hpage<span class="token punctuation">)</span><span class="token punctuation">;</span>
-		<span class="token keyword">if</span> <span class="token punctuation">(</span>ret<span class="token punctuation">)</span> <span class="token punctuation">{</span>
-			<span class="token function">unpin_user_pages</span><span class="token punctuation">(</span>pages<span class="token punctuation">,</span> pret<span class="token punctuation">)</span><span class="token punctuation">;</span>
-			<span class="token function">kvfree</span><span class="token punctuation">(</span>imu<span class="token operator">-&gt;</span>bvec<span class="token punctuation">)</span><span class="token punctuation">;</span>
-			<span class="token keyword">goto</span> err<span class="token punctuation">;</span>
-		<span class="token punctuation">}</span>
+		ret = io_buffer_account_pin(ctx, pages, pret, imu, &amp;last_hpage);
+		if (ret) {
+			unpin_user_pages(pages, pret);
+			kvfree(imu-&gt;bvec);
+			goto err;
+		}
 
-		off <span class="token operator">=</span> ubuf <span class="token operator">&amp;</span> <span class="token operator">~</span>PAGE_MASK<span class="token punctuation">;</span>
-		size <span class="token operator">=</span> iov<span class="token punctuation">.</span>iov_len<span class="token punctuation">;</span>
-		<span class="token keyword">for</span> <span class="token punctuation">(</span>j <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span> j <span class="token operator">&lt;</span> nr_pages<span class="token punctuation">;</span> j<span class="token operator">++</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
-			size_t vec_len<span class="token punctuation">;</span>
+		off = ubuf &amp; ~PAGE_MASK;
+		size = iov.iov_len;
+		for (j = 0; j &lt; nr_pages; j++) {
+			size_t vec_len;
 
-			vec_len <span class="token operator">=</span> <span class="token function">min_t</span><span class="token punctuation">(</span>size_t<span class="token punctuation">,</span> size<span class="token punctuation">,</span> PAGE_SIZE <span class="token operator">-</span> off<span class="token punctuation">)</span><span class="token punctuation">;</span>
-			imu<span class="token operator">-&gt;</span>bvec<span class="token punctuation">[</span>j<span class="token punctuation">]</span><span class="token punctuation">.</span>bv_page <span class="token operator">=</span> pages<span class="token punctuation">[</span>j<span class="token punctuation">]</span><span class="token punctuation">;</span>
-			imu<span class="token operator">-&gt;</span>bvec<span class="token punctuation">[</span>j<span class="token punctuation">]</span><span class="token punctuation">.</span>bv_len <span class="token operator">=</span> vec_len<span class="token punctuation">;</span>
-			imu<span class="token operator">-&gt;</span>bvec<span class="token punctuation">[</span>j<span class="token punctuation">]</span><span class="token punctuation">.</span>bv_offset <span class="token operator">=</span> off<span class="token punctuation">;</span>
-			off <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
-			size <span class="token operator">-=</span> vec_len<span class="token punctuation">;</span>
-		<span class="token punctuation">}</span>
-		<span class="token comment">/* store original address for later verification */</span>
-		imu<span class="token operator">-&gt;</span>ubuf <span class="token operator">=</span> ubuf<span class="token punctuation">;</span>
-		imu<span class="token operator">-&gt;</span>len <span class="token operator">=</span> iov<span class="token punctuation">.</span>iov_len<span class="token punctuation">;</span>
-		imu<span class="token operator">-&gt;</span>nr_bvecs <span class="token operator">=</span> nr_pages<span class="token punctuation">;</span>
+			vec_len = min_t(size_t, size, PAGE_SIZE - off);
+			imu-&gt;bvec[j].bv_page = pages[j];
+			imu-&gt;bvec[j].bv_len = vec_len;
+			imu-&gt;bvec[j].bv_offset = off;
+			off = 0;
+			size -= vec_len;
+		}
+		/* store original address for later verification */
+		imu-&gt;ubuf = ubuf;
+		imu-&gt;len = iov.iov_len;
+		imu-&gt;nr_bvecs = nr_pages;
 
-		ctx<span class="token operator">-&gt;</span>nr_user_bufs<span class="token operator">++</span><span class="token punctuation">;</span>
-	<span class="token punctuation">}</span>
-	<span class="token function">kvfree</span><span class="token punctuation">(</span>pages<span class="token punctuation">)</span><span class="token punctuation">;</span>
-	<span class="token function">kvfree</span><span class="token punctuation">(</span>vmas<span class="token punctuation">)</span><span class="token punctuation">;</span>
-	<span class="token keyword">return</span> <span class="token number">0</span><span class="token punctuation">;</span>
-err<span class="token operator">:</span>
-	<span class="token function">kvfree</span><span class="token punctuation">(</span>pages<span class="token punctuation">)</span><span class="token punctuation">;</span>
-	<span class="token function">kvfree</span><span class="token punctuation">(</span>vmas<span class="token punctuation">)</span><span class="token punctuation">;</span>
-	<span class="token function">io_sqe_buffer_unregister</span><span class="token punctuation">(</span>ctx<span class="token punctuation">)</span><span class="token punctuation">;</span>
-	<span class="token keyword">return</span> ret<span class="token punctuation">;</span>
-<span class="token punctuation">}</span>
+		ctx-&gt;nr_user_bufs++;
+	}
+	kvfree(pages);
+	kvfree(vmas);
+	return 0;
+err:
+	kvfree(pages);
+	kvfree(vmas);
+	io_sqe_buffer_unregister(ctx);
+	return ret;
+}
 </code></pre>
 
 <h3 id="Polled-IO模式">Polled IO模式</h3>
@@ -1701,243 +1701,243 @@ err<span class="token operator">:</span>
 
 <p>io_uring_enter通过正确设置IORING_ENTER_GETEVENTS，IORING_SETUP_IOPOLL等flag（如下代码设置IORING_SETUP_IOPOLL并且不设置IORING_SETUP_SQPOLL，即没有使用SQ线程）调用io_iopoll_check。</p>
 
-<pre class="  language-python" style="position: relative; z-index: 2;"><code class="prism  language-python">SYSCALL_DEFINE6<span class="token punctuation">(</span>io_uring_enter<span class="token punctuation">,</span> unsigned <span class="token builtin">int</span><span class="token punctuation">,</span> fd<span class="token punctuation">,</span> u32<span class="token punctuation">,</span> to_submit<span class="token punctuation">,</span>
-		u32<span class="token punctuation">,</span> min_complete<span class="token punctuation">,</span> u32<span class="token punctuation">,</span> flags<span class="token punctuation">,</span> const sigset_t __user <span class="token operator">*</span><span class="token punctuation">,</span> sig<span class="token punctuation">,</span>
-		size_t<span class="token punctuation">,</span> sigsz<span class="token punctuation">)</span>
-<span class="token punctuation">{</span>
-	struct io_ring_ctx <span class="token operator">*</span>ctx<span class="token punctuation">;</span>
-	<span class="token builtin">long</span> ret <span class="token operator">=</span> <span class="token operator">-</span>EBADF<span class="token punctuation">;</span>
-	<span class="token builtin">int</span> submitted <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
-	struct fd f<span class="token punctuation">;</span>
+<pre><code>SYSCALL_DEFINE6(io_uring_enter, unsigned int, fd, u32, to_submit,
+		u32, min_complete, u32, flags, const sigset_t __user *, sig,
+		size_t, sigsz)
+{
+	struct io_ring_ctx *ctx;
+	long ret = -EBADF;
+	int submitted = 0;
+	struct fd f;
 
-	io_run_task_work<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+	io_run_task_work();
 
-	<span class="token keyword">if</span> <span class="token punctuation">(</span>flags <span class="token operator">&amp;</span> <span class="token operator">~</span><span class="token punctuation">(</span>IORING_ENTER_GETEVENTS <span class="token operator">|</span> IORING_ENTER_SQ_WAKEUP <span class="token operator">|</span>
-			IORING_ENTER_SQ_WAIT<span class="token punctuation">)</span><span class="token punctuation">)</span>
-		<span class="token keyword">return</span> <span class="token operator">-</span>EINVAL<span class="token punctuation">;</span>
+	if (flags &amp; ~(IORING_ENTER_GETEVENTS | IORING_ENTER_SQ_WAKEUP |
+			IORING_ENTER_SQ_WAIT))
+		return -EINVAL;
 
-	f <span class="token operator">=</span> fdget<span class="token punctuation">(</span>fd<span class="token punctuation">)</span><span class="token punctuation">;</span>
-	<span class="token keyword">if</span> <span class="token punctuation">(</span>!f<span class="token punctuation">.</span><span class="token builtin">file</span><span class="token punctuation">)</span>
-		<span class="token keyword">return</span> <span class="token operator">-</span>EBADF<span class="token punctuation">;</span>
+	f = fdget(fd);
+	if (!f.file)
+		return -EBADF;
 
-	ret <span class="token operator">=</span> <span class="token operator">-</span>EOPNOTSUPP<span class="token punctuation">;</span>
-	<span class="token keyword">if</span> <span class="token punctuation">(</span>f<span class="token punctuation">.</span><span class="token builtin">file</span><span class="token operator">-</span><span class="token operator">&gt;</span>f_op <span class="token operator">!=</span> <span class="token operator">&amp;</span>io_uring_fops<span class="token punctuation">)</span>
-		goto out_fput<span class="token punctuation">;</span>
+	ret = -EOPNOTSUPP;
+	if (f.file-&gt;f_op != &amp;io_uring_fops)
+		goto out_fput;
 
-	ret <span class="token operator">=</span> <span class="token operator">-</span>ENXIO<span class="token punctuation">;</span>
-	ctx <span class="token operator">=</span> f<span class="token punctuation">.</span><span class="token builtin">file</span><span class="token operator">-</span><span class="token operator">&gt;</span>private_data<span class="token punctuation">;</span>
-	<span class="token keyword">if</span> <span class="token punctuation">(</span>!percpu_ref_tryget<span class="token punctuation">(</span><span class="token operator">&amp;</span>ctx<span class="token operator">-</span><span class="token operator">&gt;</span>refs<span class="token punctuation">)</span><span class="token punctuation">)</span>
-		goto out_fput<span class="token punctuation">;</span>
+	ret = -ENXIO;
+	ctx = f.file-&gt;private_data;
+	if (!percpu_ref_tryget(&amp;ctx-&gt;refs))
+		goto out_fput;
 
-	ret <span class="token operator">=</span> <span class="token operator">-</span>EBADFD<span class="token punctuation">;</span>
-	<span class="token keyword">if</span> <span class="token punctuation">(</span>ctx<span class="token operator">-</span><span class="token operator">&gt;</span>flags <span class="token operator">&amp;</span> IORING_SETUP_R_DISABLED<span class="token punctuation">)</span>
-		goto out<span class="token punctuation">;</span>
+	ret = -EBADFD;
+	if (ctx-&gt;flags &amp; IORING_SETUP_R_DISABLED)
+		goto out;
 
-	<span class="token operator">/</span><span class="token operator">*</span>
-	 <span class="token operator">*</span> For SQ polling<span class="token punctuation">,</span> the thread will do <span class="token builtin">all</span> submissions <span class="token keyword">and</span> completions<span class="token punctuation">.</span>
-	 <span class="token operator">*</span> Just <span class="token keyword">return</span> the requested submit count<span class="token punctuation">,</span> <span class="token keyword">and</span> wake the thread <span class="token keyword">if</span>
-	 <span class="token operator">*</span> we were asked to<span class="token punctuation">.</span>
-	 <span class="token operator">*</span><span class="token operator">/</span>
-	ret <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
-	<span class="token keyword">if</span> <span class="token punctuation">(</span>ctx<span class="token operator">-</span><span class="token operator">&gt;</span>flags <span class="token operator">&amp;</span> IORING_SETUP_SQPOLL<span class="token punctuation">)</span> <span class="token punctuation">{</span>
-		<span class="token keyword">if</span> <span class="token punctuation">(</span>!list_empty_careful<span class="token punctuation">(</span><span class="token operator">&amp;</span>ctx<span class="token operator">-</span><span class="token operator">&gt;</span>cq_overflow_list<span class="token punctuation">)</span><span class="token punctuation">)</span>
-			io_cqring_overflow_flush<span class="token punctuation">(</span>ctx<span class="token punctuation">,</span> false<span class="token punctuation">,</span> NULL<span class="token punctuation">,</span> NULL<span class="token punctuation">)</span><span class="token punctuation">;</span>
-		<span class="token keyword">if</span> <span class="token punctuation">(</span>flags <span class="token operator">&amp;</span> IORING_ENTER_SQ_WAKEUP<span class="token punctuation">)</span>
-			wake_up<span class="token punctuation">(</span><span class="token operator">&amp;</span>ctx<span class="token operator">-</span><span class="token operator">&gt;</span>sq_data<span class="token operator">-</span><span class="token operator">&gt;</span>wait<span class="token punctuation">)</span><span class="token punctuation">;</span>
-		<span class="token keyword">if</span> <span class="token punctuation">(</span>flags <span class="token operator">&amp;</span> IORING_ENTER_SQ_WAIT<span class="token punctuation">)</span>
-			io_sqpoll_wait_sq<span class="token punctuation">(</span>ctx<span class="token punctuation">)</span><span class="token punctuation">;</span>
-		submitted <span class="token operator">=</span> to_submit<span class="token punctuation">;</span>
-	<span class="token punctuation">}</span> <span class="token keyword">else</span> <span class="token keyword">if</span> <span class="token punctuation">(</span>to_submit<span class="token punctuation">)</span> <span class="token punctuation">{</span>
-		ret <span class="token operator">=</span> io_uring_add_task_file<span class="token punctuation">(</span>ctx<span class="token punctuation">,</span> f<span class="token punctuation">.</span><span class="token builtin">file</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-		<span class="token keyword">if</span> <span class="token punctuation">(</span>unlikely<span class="token punctuation">(</span>ret<span class="token punctuation">)</span><span class="token punctuation">)</span>
-			goto out<span class="token punctuation">;</span>
-		mutex_lock<span class="token punctuation">(</span><span class="token operator">&amp;</span>ctx<span class="token operator">-</span><span class="token operator">&gt;</span>uring_lock<span class="token punctuation">)</span><span class="token punctuation">;</span>
-		submitted <span class="token operator">=</span> io_submit_sqes<span class="token punctuation">(</span>ctx<span class="token punctuation">,</span> to_submit<span class="token punctuation">)</span><span class="token punctuation">;</span>
-		mutex_unlock<span class="token punctuation">(</span><span class="token operator">&amp;</span>ctx<span class="token operator">-</span><span class="token operator">&gt;</span>uring_lock<span class="token punctuation">)</span><span class="token punctuation">;</span>
+	/*
+	 * For SQ polling, the thread will do all submissions and completions.
+	 * Just return the requested submit count, and wake the thread if
+	 * we were asked to.
+	 */
+	ret = 0;
+	if (ctx-&gt;flags &amp; IORING_SETUP_SQPOLL) {
+		if (!list_empty_careful(&amp;ctx-&gt;cq_overflow_list))
+			io_cqring_overflow_flush(ctx, false, NULL, NULL);
+		if (flags &amp; IORING_ENTER_SQ_WAKEUP)
+			wake_up(&amp;ctx-&gt;sq_data-&gt;wait);
+		if (flags &amp; IORING_ENTER_SQ_WAIT)
+			io_sqpoll_wait_sq(ctx);
+		submitted = to_submit;
+	} else if (to_submit) {
+		ret = io_uring_add_task_file(ctx, f.file);
+		if (unlikely(ret))
+			goto out;
+		mutex_lock(&amp;ctx-&gt;uring_lock);
+		submitted = io_submit_sqes(ctx, to_submit);
+		mutex_unlock(&amp;ctx-&gt;uring_lock);
 
-		<span class="token keyword">if</span> <span class="token punctuation">(</span>submitted <span class="token operator">!=</span> to_submit<span class="token punctuation">)</span>
-			goto out<span class="token punctuation">;</span>
-	<span class="token punctuation">}</span>
-	<span class="token keyword">if</span> <span class="token punctuation">(</span>flags <span class="token operator">&amp;</span> IORING_ENTER_GETEVENTS<span class="token punctuation">)</span> <span class="token punctuation">{</span>
-		min_complete <span class="token operator">=</span> <span class="token builtin">min</span><span class="token punctuation">(</span>min_complete<span class="token punctuation">,</span> ctx<span class="token operator">-</span><span class="token operator">&gt;</span>cq_entries<span class="token punctuation">)</span><span class="token punctuation">;</span>
+		if (submitted != to_submit)
+			goto out;
+	}
+	if (flags &amp; IORING_ENTER_GETEVENTS) {
+		min_complete = min(min_complete, ctx-&gt;cq_entries);
 
-		<span class="token operator">/</span><span class="token operator">*</span>
-		 <span class="token operator">*</span> When SETUP_IOPOLL <span class="token keyword">and</span> SETUP_SQPOLL are both enabled<span class="token punctuation">,</span> user
-		 <span class="token operator">*</span> space applications don't need to do io completion events
-		 <span class="token operator">*</span> polling again<span class="token punctuation">,</span> they can rely on io_sq_thread to do polling
-		 <span class="token operator">*</span> work<span class="token punctuation">,</span> which can <span class="token builtin">reduce</span> cpu usage <span class="token keyword">and</span> uring_lock contention<span class="token punctuation">.</span>
-		 <span class="token operator">*</span><span class="token operator">/</span>
-		<span class="token keyword">if</span> <span class="token punctuation">(</span>ctx<span class="token operator">-</span><span class="token operator">&gt;</span>flags <span class="token operator">&amp;</span> IORING_SETUP_IOPOLL <span class="token operator">&amp;</span><span class="token operator">&amp;</span>
-		    !<span class="token punctuation">(</span>ctx<span class="token operator">-</span><span class="token operator">&gt;</span>flags <span class="token operator">&amp;</span> IORING_SETUP_SQPOLL<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
-			ret <span class="token operator">=</span> io_iopoll_check<span class="token punctuation">(</span>ctx<span class="token punctuation">,</span> min_complete<span class="token punctuation">)</span><span class="token punctuation">;</span>
-		<span class="token punctuation">}</span> <span class="token keyword">else</span> <span class="token punctuation">{</span>
-			ret <span class="token operator">=</span> io_cqring_wait<span class="token punctuation">(</span>ctx<span class="token punctuation">,</span> min_complete<span class="token punctuation">,</span> sig<span class="token punctuation">,</span> sigsz<span class="token punctuation">)</span><span class="token punctuation">;</span>
-		<span class="token punctuation">}</span>
-	<span class="token punctuation">}</span>
+		/*
+		 * When SETUP_IOPOLL and SETUP_SQPOLL are both enabled, user
+		 * space applications don't need to do io completion events
+		 * polling again, they can rely on io_sq_thread to do polling
+		 * work, which can reduce cpu usage and uring_lock contention.
+		 */
+		if (ctx-&gt;flags &amp; IORING_SETUP_IOPOLL &amp;&amp;
+		    !(ctx-&gt;flags &amp; IORING_SETUP_SQPOLL)) {
+			ret = io_iopoll_check(ctx, min_complete);
+		} else {
+			ret = io_cqring_wait(ctx, min_complete, sig, sigsz);
+		}
+	}
 
-out<span class="token punctuation">:</span>
-	percpu_ref_put<span class="token punctuation">(</span><span class="token operator">&amp;</span>ctx<span class="token operator">-</span><span class="token operator">&gt;</span>refs<span class="token punctuation">)</span><span class="token punctuation">;</span>
-out_fput<span class="token punctuation">:</span>
-	fdput<span class="token punctuation">(</span>f<span class="token punctuation">)</span><span class="token punctuation">;</span>
-	<span class="token keyword">return</span> submitted ? submitted <span class="token punctuation">:</span> ret<span class="token punctuation">;</span>
-<span class="token punctuation">}</span>
+out:
+	percpu_ref_put(&amp;ctx-&gt;refs);
+out_fput:
+	fdput(f);
+	return submitted ? submitted : ret;
+}
 </code></pre>
 
 <p>io_iopoll_check开始poll核外程序可以不停的轮询需要的完成事件数量min_complete，循环内主要调用io_iopoll_getevents。</p>
 
-<pre class="  language-python" style="position: relative; z-index: 2;"><code class="prism  language-python">static <span class="token builtin">int</span> io_iopoll_check<span class="token punctuation">(</span>struct io_ring_ctx <span class="token operator">*</span>ctx<span class="token punctuation">,</span> <span class="token builtin">long</span> <span class="token builtin">min</span><span class="token punctuation">)</span>
-<span class="token punctuation">{</span>
-	unsigned <span class="token builtin">int</span> nr_events <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
-	<span class="token builtin">int</span> iters <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">,</span> ret <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
+<pre><code>static int io_iopoll_check(struct io_ring_ctx *ctx, long min)
+{
+	unsigned int nr_events = 0;
+	int iters = 0, ret = 0;
 
-	<span class="token operator">/</span><span class="token operator">*</span>
-	 <span class="token operator">*</span> We disallow the app entering submit<span class="token operator">/</span>complete <span class="token keyword">with</span> polling<span class="token punctuation">,</span> but we
-	 <span class="token operator">*</span> still need to lock the ring to prevent racing <span class="token keyword">with</span> polled issue
-	 <span class="token operator">*</span> that got punted to a workqueue<span class="token punctuation">.</span>
-	 <span class="token operator">*</span><span class="token operator">/</span>
-	mutex_lock<span class="token punctuation">(</span><span class="token operator">&amp;</span>ctx<span class="token operator">-</span><span class="token operator">&gt;</span>uring_lock<span class="token punctuation">)</span><span class="token punctuation">;</span>
-	do <span class="token punctuation">{</span>
-		<span class="token operator">/</span><span class="token operator">*</span>
-		 <span class="token operator">*</span> Don't enter poll loop <span class="token keyword">if</span> we already have events pending<span class="token punctuation">.</span>
-		 <span class="token operator">*</span> If we do<span class="token punctuation">,</span> we can potentially be spinning <span class="token keyword">for</span> commands that
-		 <span class="token operator">*</span> already triggered a CQE <span class="token punctuation">(</span>eg <span class="token keyword">in</span> error<span class="token punctuation">)</span><span class="token punctuation">.</span>
-		 <span class="token operator">*</span><span class="token operator">/</span>
-		<span class="token keyword">if</span> <span class="token punctuation">(</span>io_cqring_events<span class="token punctuation">(</span>ctx<span class="token punctuation">,</span> false<span class="token punctuation">)</span><span class="token punctuation">)</span>
-			<span class="token keyword">break</span><span class="token punctuation">;</span>
+	/*
+	 * We disallow the app entering submit/complete with polling, but we
+	 * still need to lock the ring to prevent racing with polled issue
+	 * that got punted to a workqueue.
+	 */
+	mutex_lock(&amp;ctx-&gt;uring_lock);
+	do {
+		/*
+		 * Don't enter poll loop if we already have events pending.
+		 * If we do, we can potentially be spinning for commands that
+		 * already triggered a CQE (eg in error).
+		 */
+		if (io_cqring_events(ctx, false))
+			break;
 
-		<span class="token operator">/</span><span class="token operator">*</span>
-		 <span class="token operator">*</span> If a submit got punted to a workqueue<span class="token punctuation">,</span> we can have the
-		 <span class="token operator">*</span> application entering polling <span class="token keyword">for</span> a command before it gets
-		 <span class="token operator">*</span> issued<span class="token punctuation">.</span> That app will hold the uring_lock <span class="token keyword">for</span> the duration
-		 <span class="token operator">*</span> of the poll right here<span class="token punctuation">,</span> so we need to take a breather every
-		 <span class="token operator">*</span> now <span class="token keyword">and</span> then to ensure that the issue has a chance to add
-		 <span class="token operator">*</span> the poll to the issued <span class="token builtin">list</span><span class="token punctuation">.</span> Otherwise we can spin here
-		 <span class="token operator">*</span> forever<span class="token punctuation">,</span> <span class="token keyword">while</span> the workqueue <span class="token keyword">is</span> stuck trying to acquire the
-		 <span class="token operator">*</span> very same mutex<span class="token punctuation">.</span>
-		 <span class="token operator">*</span><span class="token operator">/</span>
-		<span class="token keyword">if</span> <span class="token punctuation">(</span>!<span class="token punctuation">(</span><span class="token operator">+</span><span class="token operator">+</span>iters <span class="token operator">&amp;</span> <span class="token number">7</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
-			mutex_unlock<span class="token punctuation">(</span><span class="token operator">&amp;</span>ctx<span class="token operator">-</span><span class="token operator">&gt;</span>uring_lock<span class="token punctuation">)</span><span class="token punctuation">;</span>
-			io_run_task_work<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-			mutex_lock<span class="token punctuation">(</span><span class="token operator">&amp;</span>ctx<span class="token operator">-</span><span class="token operator">&gt;</span>uring_lock<span class="token punctuation">)</span><span class="token punctuation">;</span>
-		<span class="token punctuation">}</span>
+		/*
+		 * If a submit got punted to a workqueue, we can have the
+		 * application entering polling for a command before it gets
+		 * issued. That app will hold the uring_lock for the duration
+		 * of the poll right here, so we need to take a breather every
+		 * now and then to ensure that the issue has a chance to add
+		 * the poll to the issued list. Otherwise we can spin here
+		 * forever, while the workqueue is stuck trying to acquire the
+		 * very same mutex.
+		 */
+		if (!(++iters &amp; 7)) {
+			mutex_unlock(&amp;ctx-&gt;uring_lock);
+			io_run_task_work();
+			mutex_lock(&amp;ctx-&gt;uring_lock);
+		}
 
-		ret <span class="token operator">=</span> io_iopoll_getevents<span class="token punctuation">(</span>ctx<span class="token punctuation">,</span> <span class="token operator">&amp;</span>nr_events<span class="token punctuation">,</span> <span class="token builtin">min</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-		<span class="token keyword">if</span> <span class="token punctuation">(</span>ret <span class="token operator">&lt;=</span> <span class="token number">0</span><span class="token punctuation">)</span>
-			<span class="token keyword">break</span><span class="token punctuation">;</span>
-		ret <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
-	<span class="token punctuation">}</span> <span class="token keyword">while</span> <span class="token punctuation">(</span><span class="token builtin">min</span> <span class="token operator">&amp;</span><span class="token operator">&amp;</span> !nr_events <span class="token operator">&amp;</span><span class="token operator">&amp;</span> !need_resched<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+		ret = io_iopoll_getevents(ctx, &amp;nr_events, min);
+		if (ret &lt;= 0)
+			break;
+		ret = 0;
+	} while (min &amp;&amp; !nr_events &amp;&amp; !need_resched());
 
-	mutex_unlock<span class="token punctuation">(</span><span class="token operator">&amp;</span>ctx<span class="token operator">-</span><span class="token operator">&gt;</span>uring_lock<span class="token punctuation">)</span><span class="token punctuation">;</span>
-	<span class="token keyword">return</span> ret<span class="token punctuation">;</span>
-<span class="token punctuation">}</span>
+	mutex_unlock(&amp;ctx-&gt;uring_lock);
+	return ret;
+}
 </code></pre>
 
 <p>io_iopoll_getevents调用io_do_iopoll。</p>
 
-<pre class="  language-cpp" style="position: relative; z-index: 2;"><code class="prism  language-cpp"><span class="token comment">/*
+<pre><code>/*
  * Poll for a minimum of 'min' events. Note that if min == 0 we consider that a
  * non-spinning poll check - we'll still enter the driver poll loop, but only
  * as a non-spinning completion check.
- */</span>
-<span class="token keyword">static</span> <span class="token keyword">int</span> <span class="token function">io_iopoll_getevents</span><span class="token punctuation">(</span><span class="token keyword">struct</span> <span class="token class-name">io_ring_ctx</span> <span class="token operator">*</span>ctx<span class="token punctuation">,</span> <span class="token keyword">unsigned</span> <span class="token keyword">int</span> <span class="token operator">*</span>nr_events<span class="token punctuation">,</span>
-				<span class="token keyword">long</span> min<span class="token punctuation">)</span>
-<span class="token punctuation">{</span>
-	<span class="token keyword">while</span> <span class="token punctuation">(</span><span class="token operator">!</span><span class="token function">list_empty</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>ctx<span class="token operator">-&gt;</span>iopoll_list<span class="token punctuation">)</span> <span class="token operator">&amp;&amp;</span> <span class="token operator">!</span><span class="token function">need_resched</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
-		<span class="token keyword">int</span> ret<span class="token punctuation">;</span>
+ */
+static int io_iopoll_getevents(struct io_ring_ctx *ctx, unsigned int *nr_events,
+				long min)
+{
+	while (!list_empty(&amp;ctx-&gt;iopoll_list) &amp;&amp; !need_resched()) {
+		int ret;
 
-		ret <span class="token operator">=</span> <span class="token function">io_do_iopoll</span><span class="token punctuation">(</span>ctx<span class="token punctuation">,</span> nr_events<span class="token punctuation">,</span> min<span class="token punctuation">)</span><span class="token punctuation">;</span>
-		<span class="token keyword">if</span> <span class="token punctuation">(</span>ret <span class="token operator">&lt;</span> <span class="token number">0</span><span class="token punctuation">)</span>
-			<span class="token keyword">return</span> ret<span class="token punctuation">;</span>
-		<span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">*</span>nr_events <span class="token operator">&gt;=</span> min<span class="token punctuation">)</span>
-			<span class="token keyword">return</span> <span class="token number">0</span><span class="token punctuation">;</span>
-	<span class="token punctuation">}</span>
+		ret = io_do_iopoll(ctx, nr_events, min);
+		if (ret &lt; 0)
+			return ret;
+		if (*nr_events &gt;= min)
+			return 0;
+	}
 
-	<span class="token keyword">return</span> <span class="token number">1</span><span class="token punctuation">;</span>
-<span class="token punctuation">}</span>
+	return 1;
+}
 </code></pre>
 
 <p>io_do_iopoll中的kiocb-&gt;ki_filp-&gt;f_op-&gt;iopoll，即blkdev_iopoll，不断地轮询探测确认提交给Block层的请求的完成状态，直到足够数量的IO完成。</p>
 
-<pre class="  language-cpp" style="position: relative; z-index: 2;"><code class="prism  language-cpp"><span class="token keyword">static</span> <span class="token keyword">int</span> <span class="token function">io_do_iopoll</span><span class="token punctuation">(</span><span class="token keyword">struct</span> <span class="token class-name">io_ring_ctx</span> <span class="token operator">*</span>ctx<span class="token punctuation">,</span> <span class="token keyword">unsigned</span> <span class="token keyword">int</span> <span class="token operator">*</span>nr_events<span class="token punctuation">,</span>
-			<span class="token keyword">long</span> min<span class="token punctuation">)</span>
-<span class="token punctuation">{</span>
-	<span class="token keyword">struct</span> <span class="token class-name">io_kiocb</span> <span class="token operator">*</span>req<span class="token punctuation">,</span> <span class="token operator">*</span>tmp<span class="token punctuation">;</span>
-	<span class="token function">LIST_HEAD</span><span class="token punctuation">(</span>done<span class="token punctuation">)</span><span class="token punctuation">;</span>
-	<span class="token keyword">bool</span> spin<span class="token punctuation">;</span>
-	<span class="token keyword">int</span> ret<span class="token punctuation">;</span>
+<pre><code>static int io_do_iopoll(struct io_ring_ctx *ctx, unsigned int *nr_events,
+			long min)
+{
+	struct io_kiocb *req, *tmp;
+	LIST_HEAD(done);
+	bool spin;
+	int ret;
 
-	<span class="token comment">/*
+	/*
 	 * Only spin for completions if we don't have multiple devices hanging
 	 * off our complete list, and we're under the requested amount.
-	 */</span>
-	spin <span class="token operator">=</span> <span class="token operator">!</span>ctx<span class="token operator">-&gt;</span>poll_multi_file <span class="token operator">&amp;&amp;</span> <span class="token operator">*</span>nr_events <span class="token operator">&lt;</span> min<span class="token punctuation">;</span>
+	 */
+	spin = !ctx-&gt;poll_multi_file &amp;&amp; *nr_events &lt; min;
 
-	ret <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
-	<span class="token function">list_for_each_entry_safe</span><span class="token punctuation">(</span>req<span class="token punctuation">,</span> tmp<span class="token punctuation">,</span> <span class="token operator">&amp;</span>ctx<span class="token operator">-&gt;</span>iopoll_list<span class="token punctuation">,</span> inflight_entry<span class="token punctuation">)</span> <span class="token punctuation">{</span>
-		<span class="token keyword">struct</span> <span class="token class-name">kiocb</span> <span class="token operator">*</span>kiocb <span class="token operator">=</span> <span class="token operator">&amp;</span>req<span class="token operator">-&gt;</span>rw<span class="token punctuation">.</span>kiocb<span class="token punctuation">;</span>
+	ret = 0;
+	list_for_each_entry_safe(req, tmp, &amp;ctx-&gt;iopoll_list, inflight_entry) {
+		struct kiocb *kiocb = &amp;req-&gt;rw.kiocb;
 
-		<span class="token comment">/*
+		/*
 		 * Move completed and retryable entries to our local lists.
 		 * If we find a request that requires polling, break out
 		 * and complete those lists first, if we have entries there.
-		 */</span>
-		<span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token function">READ_ONCE</span><span class="token punctuation">(</span>req<span class="token operator">-&gt;</span>iopoll_completed<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
-			<span class="token function">list_move_tail</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>req<span class="token operator">-&gt;</span>inflight_entry<span class="token punctuation">,</span> <span class="token operator">&amp;</span>done<span class="token punctuation">)</span><span class="token punctuation">;</span>
-			<span class="token keyword">continue</span><span class="token punctuation">;</span>
-		<span class="token punctuation">}</span>
-		<span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">!</span><span class="token function">list_empty</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>done<span class="token punctuation">)</span><span class="token punctuation">)</span>
-			<span class="token keyword">break</span><span class="token punctuation">;</span>
+		 */
+		if (READ_ONCE(req-&gt;iopoll_completed)) {
+			list_move_tail(&amp;req-&gt;inflight_entry, &amp;done);
+			continue;
+		}
+		if (!list_empty(&amp;done))
+			break;
 
-		ret <span class="token operator">=</span> kiocb<span class="token operator">-&gt;</span>ki_filp<span class="token operator">-&gt;</span>f_op<span class="token operator">-&gt;</span><span class="token function">iopoll</span><span class="token punctuation">(</span>kiocb<span class="token punctuation">,</span> spin<span class="token punctuation">)</span><span class="token punctuation">;</span>
-		<span class="token keyword">if</span> <span class="token punctuation">(</span>ret <span class="token operator">&lt;</span> <span class="token number">0</span><span class="token punctuation">)</span>
-			<span class="token keyword">break</span><span class="token punctuation">;</span>
+		ret = kiocb-&gt;ki_filp-&gt;f_op-&gt;iopoll(kiocb, spin);
+		if (ret &lt; 0)
+			break;
 
-		<span class="token comment">/* iopoll may have completed current req */</span>
-		<span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token function">READ_ONCE</span><span class="token punctuation">(</span>req<span class="token operator">-&gt;</span>iopoll_completed<span class="token punctuation">)</span><span class="token punctuation">)</span>
-			<span class="token function">list_move_tail</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>req<span class="token operator">-&gt;</span>inflight_entry<span class="token punctuation">,</span> <span class="token operator">&amp;</span>done<span class="token punctuation">)</span><span class="token punctuation">;</span>
+		/* iopoll may have completed current req */
+		if (READ_ONCE(req-&gt;iopoll_completed))
+			list_move_tail(&amp;req-&gt;inflight_entry, &amp;done);
 
-		<span class="token keyword">if</span> <span class="token punctuation">(</span>ret <span class="token operator">&amp;&amp;</span> spin<span class="token punctuation">)</span>
-			spin <span class="token operator">=</span> <span class="token boolean">false</span><span class="token punctuation">;</span>
-		ret <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
-	<span class="token punctuation">}</span>
+		if (ret &amp;&amp; spin)
+			spin = false;
+		ret = 0;
+	}
 
-	<span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">!</span><span class="token function">list_empty</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>done<span class="token punctuation">)</span><span class="token punctuation">)</span>
-		<span class="token function">io_iopoll_complete</span><span class="token punctuation">(</span>ctx<span class="token punctuation">,</span> nr_events<span class="token punctuation">,</span> <span class="token operator">&amp;</span>done<span class="token punctuation">)</span><span class="token punctuation">;</span>
+	if (!list_empty(&amp;done))
+		io_iopoll_complete(ctx, nr_events, &amp;done);
 
-	<span class="token keyword">return</span> ret<span class="token punctuation">;</span>
-<span class="token punctuation">}</span>
+	return ret;
+}
 </code></pre>
 
 <p>块设备层相关file_operations。</p>
 
-<pre class="  language-python" style="position: relative; z-index: 2;"><code class="prism  language-python">const struct file_operations def_blk_fops <span class="token operator">=</span> <span class="token punctuation">{</span>
-	<span class="token punctuation">.</span><span class="token builtin">open</span>		<span class="token operator">=</span> blkdev_open<span class="token punctuation">,</span>
-	<span class="token punctuation">.</span>release	<span class="token operator">=</span> blkdev_close<span class="token punctuation">,</span>
-	<span class="token punctuation">.</span>llseek		<span class="token operator">=</span> block_llseek<span class="token punctuation">,</span>
-	<span class="token punctuation">.</span>read_iter	<span class="token operator">=</span> blkdev_read_iter<span class="token punctuation">,</span>
-	<span class="token punctuation">.</span>write_iter	<span class="token operator">=</span> blkdev_write_iter<span class="token punctuation">,</span>
-	<span class="token punctuation">.</span>iopoll		<span class="token operator">=</span> blkdev_iopoll<span class="token punctuation">,</span>
-	<span class="token punctuation">.</span>mmap		<span class="token operator">=</span> generic_file_mmap<span class="token punctuation">,</span>
-	<span class="token punctuation">.</span>fsync		<span class="token operator">=</span> blkdev_fsync<span class="token punctuation">,</span>
-	<span class="token punctuation">.</span>unlocked_ioctl	<span class="token operator">=</span> block_ioctl<span class="token punctuation">,</span>
-<span class="token comment">#ifdef CONFIG_COMPAT</span>
-	<span class="token punctuation">.</span>compat_ioctl	<span class="token operator">=</span> compat_blkdev_ioctl<span class="token punctuation">,</span>
-<span class="token comment">#endif</span>
-	<span class="token punctuation">.</span>splice_read	<span class="token operator">=</span> generic_file_splice_read<span class="token punctuation">,</span>
-	<span class="token punctuation">.</span>splice_write	<span class="token operator">=</span> iter_file_splice_write<span class="token punctuation">,</span>
-	<span class="token punctuation">.</span>fallocate	<span class="token operator">=</span> blkdev_fallocate<span class="token punctuation">,</span>
-<span class="token punctuation">}</span><span class="token punctuation">;</span>
+<pre><code>const struct file_operations def_blk_fops = {
+	.open		= blkdev_open,
+	.release	= blkdev_close,
+	.llseek		= block_llseek,
+	.read_iter	= blkdev_read_iter,
+	.write_iter	= blkdev_write_iter,
+	.iopoll		= blkdev_iopoll,
+	.mmap		= generic_file_mmap,
+	.fsync		= blkdev_fsync,
+	.unlocked_ioctl	= block_ioctl,
+#ifdef CONFIG_COMPAT
+	.compat_ioctl	= compat_blkdev_ioctl,
+#endif
+	.splice_read	= generic_file_splice_read,
+	.splice_write	= iter_file_splice_write,
+	.fallocate	= blkdev_fallocate,
+};
 </code></pre>
 
 <p>当使用POLL IO时，大多数CPU时间花费在blkdev_iopoll上。即全速完成关键路径。</p>
 
-<pre class="  language-python" style="position: relative; z-index: 2;"><code class="prism  language-python">static <span class="token builtin">int</span> blkdev_iopoll<span class="token punctuation">(</span>struct kiocb <span class="token operator">*</span>kiocb<span class="token punctuation">,</span> <span class="token builtin">bool</span> wait<span class="token punctuation">)</span>
-<span class="token punctuation">{</span>
-	struct block_device <span class="token operator">*</span>bdev <span class="token operator">=</span> I_BDEV<span class="token punctuation">(</span>kiocb<span class="token operator">-</span><span class="token operator">&gt;</span>ki_filp<span class="token operator">-</span><span class="token operator">&gt;</span>f_mapping<span class="token operator">-</span><span class="token operator">&gt;</span>host<span class="token punctuation">)</span><span class="token punctuation">;</span>
-	struct request_queue <span class="token operator">*</span>q <span class="token operator">=</span> bdev_get_queue<span class="token punctuation">(</span>bdev<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<pre><code>static int blkdev_iopoll(struct kiocb *kiocb, bool wait)
+{
+	struct block_device *bdev = I_BDEV(kiocb-&gt;ki_filp-&gt;f_mapping-&gt;host);
+	struct request_queue *q = bdev_get_queue(bdev);
 
-	<span class="token keyword">return</span> blk_poll<span class="token punctuation">(</span>q<span class="token punctuation">,</span> READ_ONCE<span class="token punctuation">(</span>kiocb<span class="token operator">-</span><span class="token operator">&gt;</span>ki_cookie<span class="token punctuation">)</span><span class="token punctuation">,</span> wait<span class="token punctuation">)</span><span class="token punctuation">;</span>
-<span class="token punctuation">}</span>
+	return blk_poll(q, READ_ONCE(kiocb-&gt;ki_cookie), wait);
+}
 </code></pre>
 
 <h3 id="Kernel-Side-Polling">Kernel Side Polling</h3>
@@ -1958,70 +1958,70 @@ out_fput<span class="token punctuation">:</span>
 
 <p>liburing中，核心的结构有io_uring、io_uring_sq、io_uring_cq</p>
 
-<pre class="  language-python" style="position: relative; z-index: 2;"><code class="prism  language-python"><span class="token operator">/</span><span class="token operator">*</span>
- <span class="token operator">*</span> Library interface to io_uring
- <span class="token operator">*</span><span class="token operator">/</span>
-struct io_uring_sq <span class="token punctuation">{</span>
-	unsigned <span class="token operator">*</span>khead<span class="token punctuation">;</span>
-	unsigned <span class="token operator">*</span>ktail<span class="token punctuation">;</span>
-	unsigned <span class="token operator">*</span>kring_mask<span class="token punctuation">;</span>
-	unsigned <span class="token operator">*</span>kring_entries<span class="token punctuation">;</span>
-	unsigned <span class="token operator">*</span>kflags<span class="token punctuation">;</span>
-	unsigned <span class="token operator">*</span>kdropped<span class="token punctuation">;</span>
-	unsigned <span class="token operator">*</span>array<span class="token punctuation">;</span>
-	struct io_uring_sqe <span class="token operator">*</span>sqes<span class="token punctuation">;</span>
+<pre><code>/*
+ * Library interface to io_uring
+ */
+struct io_uring_sq {
+	unsigned *khead;
+	unsigned *ktail;
+	unsigned *kring_mask;
+	unsigned *kring_entries;
+	unsigned *kflags;
+	unsigned *kdropped;
+	unsigned *array;
+	struct io_uring_sqe *sqes;
 
-	unsigned sqe_head<span class="token punctuation">;</span>
-	unsigned sqe_tail<span class="token punctuation">;</span>
+	unsigned sqe_head;
+	unsigned sqe_tail;
 
-	size_t ring_sz<span class="token punctuation">;</span>
-<span class="token punctuation">}</span><span class="token punctuation">;</span>
+	size_t ring_sz;
+};
 
-struct io_uring_cq <span class="token punctuation">{</span>
-	unsigned <span class="token operator">*</span>khead<span class="token punctuation">;</span>
-	unsigned <span class="token operator">*</span>ktail<span class="token punctuation">;</span>
-	unsigned <span class="token operator">*</span>kring_mask<span class="token punctuation">;</span>
-	unsigned <span class="token operator">*</span>kring_entries<span class="token punctuation">;</span>
-	unsigned <span class="token operator">*</span>koverflow<span class="token punctuation">;</span>
-	struct io_uring_cqe <span class="token operator">*</span>cqes<span class="token punctuation">;</span>
+struct io_uring_cq {
+	unsigned *khead;
+	unsigned *ktail;
+	unsigned *kring_mask;
+	unsigned *kring_entries;
+	unsigned *koverflow;
+	struct io_uring_cqe *cqes;
 
-	size_t ring_sz<span class="token punctuation">;</span>
-<span class="token punctuation">}</span><span class="token punctuation">;</span>
+	size_t ring_sz;
+};
 
-struct io_uring <span class="token punctuation">{</span>
-	struct io_uring_sq sq<span class="token punctuation">;</span>
-	struct io_uring_cq cq<span class="token punctuation">;</span>
-	<span class="token builtin">int</span> ring_fd<span class="token punctuation">;</span>
-<span class="token punctuation">}</span><span class="token punctuation">;</span>
+struct io_uring {
+	struct io_uring_sq sq;
+	struct io_uring_cq cq;
+	int ring_fd;
+};
 </code></pre>
 
 <h2 id="核心接口">核心接口</h2>
 
 <p>相关接口在头文件linux/tools/io_uring/liburing.h，如果是通过标准方式安装的liburing，则在/usr/include/下。</p>
 
-<pre class="  language-cpp" style="position: relative; z-index: 2;"><code class="prism  language-cpp"><span class="token comment">/*
+<pre><code>/*
  * System calls
- */</span>
-<span class="token keyword">extern</span> <span class="token keyword">int</span> <span class="token function">io_uring_setup</span><span class="token punctuation">(</span><span class="token keyword">unsigned</span> entries<span class="token punctuation">,</span> <span class="token keyword">struct</span> <span class="token class-name">io_uring_params</span> <span class="token operator">*</span>p<span class="token punctuation">)</span><span class="token punctuation">;</span>
-<span class="token keyword">extern</span> <span class="token keyword">int</span> <span class="token function">io_uring_enter</span><span class="token punctuation">(</span><span class="token keyword">int</span> fd<span class="token punctuation">,</span> <span class="token keyword">unsigned</span> to_submit<span class="token punctuation">,</span>
-	<span class="token keyword">unsigned</span> min_complete<span class="token punctuation">,</span> <span class="token keyword">unsigned</span> flags<span class="token punctuation">,</span> sigset_t <span class="token operator">*</span>sig<span class="token punctuation">)</span><span class="token punctuation">;</span>
-<span class="token keyword">extern</span> <span class="token keyword">int</span> <span class="token function">io_uring_register</span><span class="token punctuation">(</span><span class="token keyword">int</span> fd<span class="token punctuation">,</span> <span class="token keyword">unsigned</span> <span class="token keyword">int</span> opcode<span class="token punctuation">,</span> <span class="token keyword">void</span> <span class="token operator">*</span>arg<span class="token punctuation">,</span>
-	<span class="token keyword">unsigned</span> <span class="token keyword">int</span> nr_args<span class="token punctuation">)</span><span class="token punctuation">;</span>
+ */
+extern int io_uring_setup(unsigned entries, struct io_uring_params *p);
+extern int io_uring_enter(int fd, unsigned to_submit,
+	unsigned min_complete, unsigned flags, sigset_t *sig);
+extern int io_uring_register(int fd, unsigned int opcode, void *arg,
+	unsigned int nr_args);
 
-<span class="token comment">/*
+/*
  * Library interface
- */</span>
-<span class="token keyword">extern</span> <span class="token keyword">int</span> <span class="token function">io_uring_queue_init</span><span class="token punctuation">(</span><span class="token keyword">unsigned</span> entries<span class="token punctuation">,</span> <span class="token keyword">struct</span> <span class="token class-name">io_uring</span> <span class="token operator">*</span>ring<span class="token punctuation">,</span>
-	<span class="token keyword">unsigned</span> flags<span class="token punctuation">)</span><span class="token punctuation">;</span>
-<span class="token keyword">extern</span> <span class="token keyword">int</span> <span class="token function">io_uring_queue_mmap</span><span class="token punctuation">(</span><span class="token keyword">int</span> fd<span class="token punctuation">,</span> <span class="token keyword">struct</span> <span class="token class-name">io_uring_params</span> <span class="token operator">*</span>p<span class="token punctuation">,</span>
-	<span class="token keyword">struct</span> <span class="token class-name">io_uring</span> <span class="token operator">*</span>ring<span class="token punctuation">)</span><span class="token punctuation">;</span>
-<span class="token keyword">extern</span> <span class="token keyword">void</span> <span class="token function">io_uring_queue_exit</span><span class="token punctuation">(</span><span class="token keyword">struct</span> <span class="token class-name">io_uring</span> <span class="token operator">*</span>ring<span class="token punctuation">)</span><span class="token punctuation">;</span>
-<span class="token keyword">extern</span> <span class="token keyword">int</span> <span class="token function">io_uring_peek_cqe</span><span class="token punctuation">(</span><span class="token keyword">struct</span> <span class="token class-name">io_uring</span> <span class="token operator">*</span>ring<span class="token punctuation">,</span>
-	<span class="token keyword">struct</span> <span class="token class-name">io_uring_cqe</span> <span class="token operator">*</span><span class="token operator">*</span>cqe_ptr<span class="token punctuation">)</span><span class="token punctuation">;</span>
-<span class="token keyword">extern</span> <span class="token keyword">int</span> <span class="token function">io_uring_wait_cqe</span><span class="token punctuation">(</span><span class="token keyword">struct</span> <span class="token class-name">io_uring</span> <span class="token operator">*</span>ring<span class="token punctuation">,</span>
-	<span class="token keyword">struct</span> <span class="token class-name">io_uring_cqe</span> <span class="token operator">*</span><span class="token operator">*</span>cqe_ptr<span class="token punctuation">)</span><span class="token punctuation">;</span>
-<span class="token keyword">extern</span> <span class="token keyword">int</span> <span class="token function">io_uring_submit</span><span class="token punctuation">(</span><span class="token keyword">struct</span> <span class="token class-name">io_uring</span> <span class="token operator">*</span>ring<span class="token punctuation">)</span><span class="token punctuation">;</span>
-<span class="token keyword">extern</span> <span class="token keyword">struct</span> <span class="token class-name">io_uring_sqe</span> <span class="token operator">*</span><span class="token function">io_uring_get_sqe</span><span class="token punctuation">(</span><span class="token keyword">struct</span> <span class="token class-name">io_uring</span> <span class="token operator">*</span>ring<span class="token punctuation">)</span><span class="token punctuation">;</span>
+ */
+extern int io_uring_queue_init(unsigned entries, struct io_uring *ring,
+	unsigned flags);
+extern int io_uring_queue_mmap(int fd, struct io_uring_params *p,
+	struct io_uring *ring);
+extern void io_uring_queue_exit(struct io_uring *ring);
+extern int io_uring_peek_cqe(struct io_uring *ring,
+	struct io_uring_cqe **cqe_ptr);
+extern int io_uring_wait_cqe(struct io_uring *ring,
+	struct io_uring_cqe **cqe_ptr);
+extern int io_uring_submit(struct io_uring *ring);
+extern struct io_uring_sqe *io_uring_get_sqe(struct io_uring *ring);
 </code></pre>
 
 <h2 id="主要流程">主要流程</h2>
@@ -2042,168 +2042,168 @@ struct io_uring <span class="token punctuation">{</span>
 
 <p>io_uring_queue_init的实现，前文已略有提及。其中的操作主要就是io_uring_setup和io_uring_queue_mmap，io_uring_setup前文已解析过，这里主要看io_uring_queue_mmap。</p>
 
-<pre class="  language-cpp" style="position: relative; z-index: 2;"><code class="prism  language-cpp"><span class="token comment">/*
+<pre><code>/*
  * Returns -1 on error, or zero on success. On success, 'ring'
  * contains the necessary information to read/write to the rings.
- */</span>
-<span class="token keyword">int</span> <span class="token function">io_uring_queue_init</span><span class="token punctuation">(</span><span class="token keyword">unsigned</span> entries<span class="token punctuation">,</span> <span class="token keyword">struct</span> <span class="token class-name">io_uring</span> <span class="token operator">*</span>ring<span class="token punctuation">,</span> <span class="token keyword">unsigned</span> flags<span class="token punctuation">)</span>
-<span class="token punctuation">{</span>
-	<span class="token keyword">struct</span> <span class="token class-name">io_uring_params</span> p<span class="token punctuation">;</span>
-	<span class="token keyword">int</span> fd<span class="token punctuation">,</span> ret<span class="token punctuation">;</span>
+ */
+int io_uring_queue_init(unsigned entries, struct io_uring *ring, unsigned flags)
+{
+	struct io_uring_params p;
+	int fd, ret;
 
-	<span class="token function">memset</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>p<span class="token punctuation">,</span> <span class="token number">0</span><span class="token punctuation">,</span> <span class="token keyword">sizeof</span><span class="token punctuation">(</span>p<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-	p<span class="token punctuation">.</span>flags <span class="token operator">=</span> flags<span class="token punctuation">;</span>
+	memset(&amp;p, 0, sizeof(p));
+	p.flags = flags;
 
-	fd <span class="token operator">=</span> <span class="token function">io_uring_setup</span><span class="token punctuation">(</span>entries<span class="token punctuation">,</span> <span class="token operator">&amp;</span>p<span class="token punctuation">)</span><span class="token punctuation">;</span>
-	<span class="token keyword">if</span> <span class="token punctuation">(</span>fd <span class="token operator">&lt;</span> <span class="token number">0</span><span class="token punctuation">)</span>
-		<span class="token keyword">return</span> fd<span class="token punctuation">;</span>
+	fd = io_uring_setup(entries, &amp;p);
+	if (fd &lt; 0)
+		return fd;
 
-	ret <span class="token operator">=</span> <span class="token function">io_uring_queue_mmap</span><span class="token punctuation">(</span>fd<span class="token punctuation">,</span> <span class="token operator">&amp;</span>p<span class="token punctuation">,</span> ring<span class="token punctuation">)</span><span class="token punctuation">;</span>
-	<span class="token keyword">if</span> <span class="token punctuation">(</span>ret<span class="token punctuation">)</span>
-		<span class="token function">close</span><span class="token punctuation">(</span>fd<span class="token punctuation">)</span><span class="token punctuation">;</span>
+	ret = io_uring_queue_mmap(fd, &amp;p, ring);
+	if (ret)
+		close(fd);
 
-	<span class="token keyword">return</span> ret<span class="token punctuation">;</span>
-<span class="token punctuation">}</span>
+	return ret;
+}
 </code></pre>
 
 <p>io_uring_queue_mmap初始化io_uring结构，然后主要调用io_uring_mmap。</p>
 
-<pre class="  language-python" style="position: relative; z-index: 2;"><code class="prism  language-python"><span class="token operator">/</span><span class="token operator">*</span>
- <span class="token operator">*</span> For users that want to specify sq_thread_cpu <span class="token keyword">or</span> sq_thread_idle<span class="token punctuation">,</span> this
- <span class="token operator">*</span> interface <span class="token keyword">is</span> a convenient helper <span class="token keyword">for</span> mmap<span class="token punctuation">(</span><span class="token punctuation">)</span>ing the rings<span class="token punctuation">.</span>
- <span class="token operator">*</span> Returns <span class="token operator">-</span><span class="token number">1</span> on error<span class="token punctuation">,</span> <span class="token keyword">or</span> zero on success<span class="token punctuation">.</span>  On success<span class="token punctuation">,</span> <span class="token string">'ring'</span>
- <span class="token operator">*</span> contains the necessary information to read<span class="token operator">/</span>write to the rings<span class="token punctuation">.</span>
- <span class="token operator">*</span><span class="token operator">/</span>
-<span class="token builtin">int</span> io_uring_queue_mmap<span class="token punctuation">(</span><span class="token builtin">int</span> fd<span class="token punctuation">,</span> struct io_uring_params <span class="token operator">*</span>p<span class="token punctuation">,</span> struct io_uring <span class="token operator">*</span>ring<span class="token punctuation">)</span>
-<span class="token punctuation">{</span>
-	<span class="token builtin">int</span> ret<span class="token punctuation">;</span>
+<pre><code>/*
+ * For users that want to specify sq_thread_cpu or sq_thread_idle, this
+ * interface is a convenient helper for mmap()ing the rings.
+ * Returns -1 on error, or zero on success.  On success, 'ring'
+ * contains the necessary information to read/write to the rings.
+ */
+int io_uring_queue_mmap(int fd, struct io_uring_params *p, struct io_uring *ring)
+{
+	int ret;
 
-	memset<span class="token punctuation">(</span>ring<span class="token punctuation">,</span> <span class="token number">0</span><span class="token punctuation">,</span> sizeof<span class="token punctuation">(</span><span class="token operator">*</span>ring<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-	ret <span class="token operator">=</span> io_uring_mmap<span class="token punctuation">(</span>fd<span class="token punctuation">,</span> p<span class="token punctuation">,</span> <span class="token operator">&amp;</span>ring<span class="token operator">-</span><span class="token operator">&gt;</span>sq<span class="token punctuation">,</span> <span class="token operator">&amp;</span>ring<span class="token operator">-</span><span class="token operator">&gt;</span>cq<span class="token punctuation">)</span><span class="token punctuation">;</span>
-	<span class="token keyword">if</span> <span class="token punctuation">(</span>!ret<span class="token punctuation">)</span>
-		ring<span class="token operator">-</span><span class="token operator">&gt;</span>ring_fd <span class="token operator">=</span> fd<span class="token punctuation">;</span>
-	<span class="token keyword">return</span> ret<span class="token punctuation">;</span>
-<span class="token punctuation">}</span>
+	memset(ring, 0, sizeof(*ring));
+	ret = io_uring_mmap(fd, p, &amp;ring-&gt;sq, &amp;ring-&gt;cq);
+	if (!ret)
+		ring-&gt;ring_fd = fd;
+	return ret;
+}
 </code></pre>
 
 <p>io_uring_mmap初始化io_uring_sq结构和io_uring_cq结构的内存，另外还会分配一个io_uring_sqe结构的数组。</p>
 
-<pre class="  language-python" style="position: relative; z-index: 2;"><code class="prism  language-python">static <span class="token builtin">int</span> io_uring_mmap<span class="token punctuation">(</span><span class="token builtin">int</span> fd<span class="token punctuation">,</span> struct io_uring_params <span class="token operator">*</span>p<span class="token punctuation">,</span>
-			 struct io_uring_sq <span class="token operator">*</span>sq<span class="token punctuation">,</span> struct io_uring_cq <span class="token operator">*</span>cq<span class="token punctuation">)</span>
-<span class="token punctuation">{</span>
-	size_t size<span class="token punctuation">;</span>
-	void <span class="token operator">*</span>ptr<span class="token punctuation">;</span>
-	<span class="token builtin">int</span> ret<span class="token punctuation">;</span>
+<pre><code>static int io_uring_mmap(int fd, struct io_uring_params *p,
+			 struct io_uring_sq *sq, struct io_uring_cq *cq)
+{
+	size_t size;
+	void *ptr;
+	int ret;
 
-	sq<span class="token operator">-</span><span class="token operator">&gt;</span>ring_sz <span class="token operator">=</span> p<span class="token operator">-</span><span class="token operator">&gt;</span>sq_off<span class="token punctuation">.</span>array <span class="token operator">+</span> p<span class="token operator">-</span><span class="token operator">&gt;</span>sq_entries <span class="token operator">*</span> sizeof<span class="token punctuation">(</span>unsigned<span class="token punctuation">)</span><span class="token punctuation">;</span>
-	ptr <span class="token operator">=</span> mmap<span class="token punctuation">(</span><span class="token number">0</span><span class="token punctuation">,</span> sq<span class="token operator">-</span><span class="token operator">&gt;</span>ring_sz<span class="token punctuation">,</span> PROT_READ <span class="token operator">|</span> PROT_WRITE<span class="token punctuation">,</span>
-			MAP_SHARED <span class="token operator">|</span> MAP_POPULATE<span class="token punctuation">,</span> fd<span class="token punctuation">,</span> IORING_OFF_SQ_RING<span class="token punctuation">)</span><span class="token punctuation">;</span>
-	<span class="token keyword">if</span> <span class="token punctuation">(</span>ptr <span class="token operator">==</span> MAP_FAILED<span class="token punctuation">)</span>
-		<span class="token keyword">return</span> <span class="token operator">-</span>errno<span class="token punctuation">;</span>
-	sq<span class="token operator">-</span><span class="token operator">&gt;</span>khead <span class="token operator">=</span> ptr <span class="token operator">+</span> p<span class="token operator">-</span><span class="token operator">&gt;</span>sq_off<span class="token punctuation">.</span>head<span class="token punctuation">;</span>
-	sq<span class="token operator">-</span><span class="token operator">&gt;</span>ktail <span class="token operator">=</span> ptr <span class="token operator">+</span> p<span class="token operator">-</span><span class="token operator">&gt;</span>sq_off<span class="token punctuation">.</span>tail<span class="token punctuation">;</span>
-	sq<span class="token operator">-</span><span class="token operator">&gt;</span>kring_mask <span class="token operator">=</span> ptr <span class="token operator">+</span> p<span class="token operator">-</span><span class="token operator">&gt;</span>sq_off<span class="token punctuation">.</span>ring_mask<span class="token punctuation">;</span>
-	sq<span class="token operator">-</span><span class="token operator">&gt;</span>kring_entries <span class="token operator">=</span> ptr <span class="token operator">+</span> p<span class="token operator">-</span><span class="token operator">&gt;</span>sq_off<span class="token punctuation">.</span>ring_entries<span class="token punctuation">;</span>
-	sq<span class="token operator">-</span><span class="token operator">&gt;</span>kflags <span class="token operator">=</span> ptr <span class="token operator">+</span> p<span class="token operator">-</span><span class="token operator">&gt;</span>sq_off<span class="token punctuation">.</span>flags<span class="token punctuation">;</span>
-	sq<span class="token operator">-</span><span class="token operator">&gt;</span>kdropped <span class="token operator">=</span> ptr <span class="token operator">+</span> p<span class="token operator">-</span><span class="token operator">&gt;</span>sq_off<span class="token punctuation">.</span>dropped<span class="token punctuation">;</span>
-	sq<span class="token operator">-</span><span class="token operator">&gt;</span>array <span class="token operator">=</span> ptr <span class="token operator">+</span> p<span class="token operator">-</span><span class="token operator">&gt;</span>sq_off<span class="token punctuation">.</span>array<span class="token punctuation">;</span>
+	sq-&gt;ring_sz = p-&gt;sq_off.array + p-&gt;sq_entries * sizeof(unsigned);
+	ptr = mmap(0, sq-&gt;ring_sz, PROT_READ | PROT_WRITE,
+			MAP_SHARED | MAP_POPULATE, fd, IORING_OFF_SQ_RING);
+	if (ptr == MAP_FAILED)
+		return -errno;
+	sq-&gt;khead = ptr + p-&gt;sq_off.head;
+	sq-&gt;ktail = ptr + p-&gt;sq_off.tail;
+	sq-&gt;kring_mask = ptr + p-&gt;sq_off.ring_mask;
+	sq-&gt;kring_entries = ptr + p-&gt;sq_off.ring_entries;
+	sq-&gt;kflags = ptr + p-&gt;sq_off.flags;
+	sq-&gt;kdropped = ptr + p-&gt;sq_off.dropped;
+	sq-&gt;array = ptr + p-&gt;sq_off.array;
 
-	size <span class="token operator">=</span> p<span class="token operator">-</span><span class="token operator">&gt;</span>sq_entries <span class="token operator">*</span> sizeof<span class="token punctuation">(</span>struct io_uring_sqe<span class="token punctuation">)</span><span class="token punctuation">;</span>
-	sq<span class="token operator">-</span><span class="token operator">&gt;</span>sqes <span class="token operator">=</span> mmap<span class="token punctuation">(</span><span class="token number">0</span><span class="token punctuation">,</span> size<span class="token punctuation">,</span> PROT_READ <span class="token operator">|</span> PROT_WRITE<span class="token punctuation">,</span>
-				MAP_SHARED <span class="token operator">|</span> MAP_POPULATE<span class="token punctuation">,</span> fd<span class="token punctuation">,</span>
-				IORING_OFF_SQES<span class="token punctuation">)</span><span class="token punctuation">;</span>
-	<span class="token keyword">if</span> <span class="token punctuation">(</span>sq<span class="token operator">-</span><span class="token operator">&gt;</span>sqes <span class="token operator">==</span> MAP_FAILED<span class="token punctuation">)</span> <span class="token punctuation">{</span>
-		ret <span class="token operator">=</span> <span class="token operator">-</span>errno<span class="token punctuation">;</span>
-err<span class="token punctuation">:</span>
-		munmap<span class="token punctuation">(</span>sq<span class="token operator">-</span><span class="token operator">&gt;</span>khead<span class="token punctuation">,</span> sq<span class="token operator">-</span><span class="token operator">&gt;</span>ring_sz<span class="token punctuation">)</span><span class="token punctuation">;</span>
-		<span class="token keyword">return</span> ret<span class="token punctuation">;</span>
-	<span class="token punctuation">}</span>
+	size = p-&gt;sq_entries * sizeof(struct io_uring_sqe);
+	sq-&gt;sqes = mmap(0, size, PROT_READ | PROT_WRITE,
+				MAP_SHARED | MAP_POPULATE, fd,
+				IORING_OFF_SQES);
+	if (sq-&gt;sqes == MAP_FAILED) {
+		ret = -errno;
+err:
+		munmap(sq-&gt;khead, sq-&gt;ring_sz);
+		return ret;
+	}
 
-	cq<span class="token operator">-</span><span class="token operator">&gt;</span>ring_sz <span class="token operator">=</span> p<span class="token operator">-</span><span class="token operator">&gt;</span>cq_off<span class="token punctuation">.</span>cqes <span class="token operator">+</span> p<span class="token operator">-</span><span class="token operator">&gt;</span>cq_entries <span class="token operator">*</span> sizeof<span class="token punctuation">(</span>struct io_uring_cqe<span class="token punctuation">)</span><span class="token punctuation">;</span>
-	ptr <span class="token operator">=</span> mmap<span class="token punctuation">(</span><span class="token number">0</span><span class="token punctuation">,</span> cq<span class="token operator">-</span><span class="token operator">&gt;</span>ring_sz<span class="token punctuation">,</span> PROT_READ <span class="token operator">|</span> PROT_WRITE<span class="token punctuation">,</span>
-			MAP_SHARED <span class="token operator">|</span> MAP_POPULATE<span class="token punctuation">,</span> fd<span class="token punctuation">,</span> IORING_OFF_CQ_RING<span class="token punctuation">)</span><span class="token punctuation">;</span>
-	<span class="token keyword">if</span> <span class="token punctuation">(</span>ptr <span class="token operator">==</span> MAP_FAILED<span class="token punctuation">)</span> <span class="token punctuation">{</span>
-		ret <span class="token operator">=</span> <span class="token operator">-</span>errno<span class="token punctuation">;</span>
-		munmap<span class="token punctuation">(</span>sq<span class="token operator">-</span><span class="token operator">&gt;</span>sqes<span class="token punctuation">,</span> p<span class="token operator">-</span><span class="token operator">&gt;</span>sq_entries <span class="token operator">*</span> sizeof<span class="token punctuation">(</span>struct io_uring_sqe<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-		goto err<span class="token punctuation">;</span>
-	<span class="token punctuation">}</span>
-	cq<span class="token operator">-</span><span class="token operator">&gt;</span>khead <span class="token operator">=</span> ptr <span class="token operator">+</span> p<span class="token operator">-</span><span class="token operator">&gt;</span>cq_off<span class="token punctuation">.</span>head<span class="token punctuation">;</span>
-	cq<span class="token operator">-</span><span class="token operator">&gt;</span>ktail <span class="token operator">=</span> ptr <span class="token operator">+</span> p<span class="token operator">-</span><span class="token operator">&gt;</span>cq_off<span class="token punctuation">.</span>tail<span class="token punctuation">;</span>
-	cq<span class="token operator">-</span><span class="token operator">&gt;</span>kring_mask <span class="token operator">=</span> ptr <span class="token operator">+</span> p<span class="token operator">-</span><span class="token operator">&gt;</span>cq_off<span class="token punctuation">.</span>ring_mask<span class="token punctuation">;</span>
-	cq<span class="token operator">-</span><span class="token operator">&gt;</span>kring_entries <span class="token operator">=</span> ptr <span class="token operator">+</span> p<span class="token operator">-</span><span class="token operator">&gt;</span>cq_off<span class="token punctuation">.</span>ring_entries<span class="token punctuation">;</span>
-	cq<span class="token operator">-</span><span class="token operator">&gt;</span>koverflow <span class="token operator">=</span> ptr <span class="token operator">+</span> p<span class="token operator">-</span><span class="token operator">&gt;</span>cq_off<span class="token punctuation">.</span>overflow<span class="token punctuation">;</span>
-	cq<span class="token operator">-</span><span class="token operator">&gt;</span>cqes <span class="token operator">=</span> ptr <span class="token operator">+</span> p<span class="token operator">-</span><span class="token operator">&gt;</span>cq_off<span class="token punctuation">.</span>cqes<span class="token punctuation">;</span>
-	<span class="token keyword">return</span> <span class="token number">0</span><span class="token punctuation">;</span>
-<span class="token punctuation">}</span>
+	cq-&gt;ring_sz = p-&gt;cq_off.cqes + p-&gt;cq_entries * sizeof(struct io_uring_cqe);
+	ptr = mmap(0, cq-&gt;ring_sz, PROT_READ | PROT_WRITE,
+			MAP_SHARED | MAP_POPULATE, fd, IORING_OFF_CQ_RING);
+	if (ptr == MAP_FAILED) {
+		ret = -errno;
+		munmap(sq-&gt;sqes, p-&gt;sq_entries * sizeof(struct io_uring_sqe));
+		goto err;
+	}
+	cq-&gt;khead = ptr + p-&gt;cq_off.head;
+	cq-&gt;ktail = ptr + p-&gt;cq_off.tail;
+	cq-&gt;kring_mask = ptr + p-&gt;cq_off.ring_mask;
+	cq-&gt;kring_entries = ptr + p-&gt;cq_off.ring_entries;
+	cq-&gt;koverflow = ptr + p-&gt;cq_off.overflow;
+	cq-&gt;cqes = ptr + p-&gt;cq_off.cqes;
+	return 0;
+}
 </code></pre>
 
 <h2 id="具体例程">具体例程</h2>
 
 <p>如下是一个基于liburing的helloworld示例。</p>
 
-<pre class="  language-cpp" style="position: relative; z-index: 2;"><code class="prism  language-cpp"><span class="token macro property">#<span class="token directive keyword">include</span> <span class="token string">&lt;unistd.h&gt;</span></span>
-<span class="token macro property">#<span class="token directive keyword">include</span> <span class="token string">&lt;fcntl.h&gt;</span></span>
-<span class="token macro property">#<span class="token directive keyword">include</span> <span class="token string">&lt;string.h&gt;</span></span>
-<span class="token macro property">#<span class="token directive keyword">include</span> <span class="token string">&lt;stdio.h&gt;</span></span>
-<span class="token macro property">#<span class="token directive keyword">include</span> <span class="token string">&lt;liburing.h&gt;</span></span>
+<pre><code>#include &lt;unistd.h&gt;
+#include &lt;fcntl.h&gt;
+#include &lt;string.h&gt;
+#include &lt;stdio.h&gt;
+#include &lt;liburing.h&gt;
 
-<span class="token macro property">#<span class="token directive keyword">define</span> ENTRIES 4</span>
+#define ENTRIES 4
 
-<span class="token keyword">int</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token keyword">int</span> argc<span class="token punctuation">,</span> <span class="token keyword">char</span> <span class="token operator">*</span>argv<span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token punctuation">)</span>
-<span class="token punctuation">{</span>
-    <span class="token keyword">struct</span> <span class="token class-name">io_uring</span> ring<span class="token punctuation">;</span>
-    <span class="token keyword">struct</span> <span class="token class-name">io_uring_sqe</span> <span class="token operator">*</span>sqe<span class="token punctuation">;</span>
-    <span class="token keyword">struct</span> <span class="token class-name">io_uring_cqe</span> <span class="token operator">*</span>cqe<span class="token punctuation">;</span>
-    <span class="token keyword">struct</span> <span class="token class-name">iovec</span> iov <span class="token operator">=</span> <span class="token punctuation">{</span>
-        <span class="token punctuation">.</span>iov_base <span class="token operator">=</span> <span class="token string">"Hello World"</span><span class="token punctuation">,</span>
-        <span class="token punctuation">.</span>iov_len <span class="token operator">=</span> <span class="token function">strlen</span><span class="token punctuation">(</span><span class="token string">"Hello World"</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
-    <span class="token punctuation">}</span><span class="token punctuation">;</span>
-    <span class="token keyword">int</span> fd<span class="token punctuation">,</span> ret<span class="token punctuation">;</span>
-    <span class="token keyword">if</span> <span class="token punctuation">(</span>argc <span class="token operator">!=</span> <span class="token number">2</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
-        <span class="token function">printf</span><span class="token punctuation">(</span><span class="token string">"%s: &lt;testfile&gt;\n"</span><span class="token punctuation">,</span> argv<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-        <span class="token keyword">return</span> <span class="token number">1</span><span class="token punctuation">;</span>
-    <span class="token punctuation">}</span>
-    <span class="token comment">/* setup io_uring and do mmap */</span>
-    ret <span class="token operator">=</span> <span class="token function">io_uring_queue_init</span><span class="token punctuation">(</span>ENTRIES<span class="token punctuation">,</span> <span class="token operator">&amp;</span>ring<span class="token punctuation">,</span> <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-    <span class="token keyword">if</span> <span class="token punctuation">(</span>ret <span class="token operator">&lt;</span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
-        <span class="token function">printf</span><span class="token punctuation">(</span><span class="token string">"io_uring_queue_init: %s\n"</span><span class="token punctuation">,</span> <span class="token function">strerror</span><span class="token punctuation">(</span><span class="token operator">-</span>ret<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-        <span class="token keyword">return</span> <span class="token number">1</span><span class="token punctuation">;</span>
-    <span class="token punctuation">}</span>
-    fd <span class="token operator">=</span> <span class="token function">open</span><span class="token punctuation">(</span><span class="token string">"testfile"</span><span class="token punctuation">,</span> O_WRONLY <span class="token operator">|</span> O_CREAT<span class="token punctuation">)</span><span class="token punctuation">;</span>
-    <span class="token keyword">if</span> <span class="token punctuation">(</span>fd <span class="token operator">&lt;</span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
-        <span class="token function">printf</span><span class="token punctuation">(</span><span class="token string">"open failed\n"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-        ret <span class="token operator">=</span> <span class="token number">1</span><span class="token punctuation">;</span>
-        <span class="token keyword">goto</span> exit<span class="token punctuation">;</span>
-    <span class="token punctuation">}</span>
-    <span class="token comment">/* get an sqe and fill in a WRITEV operation */</span>
-    sqe <span class="token operator">=</span> <span class="token function">io_uring_get_sqe</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>ring<span class="token punctuation">)</span><span class="token punctuation">;</span>
-    <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">!</span>sqe<span class="token punctuation">)</span> <span class="token punctuation">{</span>
-        <span class="token function">printf</span><span class="token punctuation">(</span><span class="token string">"io_uring_get_sqe failed\n"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-        ret <span class="token operator">=</span> <span class="token number">1</span><span class="token punctuation">;</span>
-        <span class="token keyword">goto</span> out<span class="token punctuation">;</span>
-    <span class="token punctuation">}</span>
-    <span class="token function">io_uring_prep_writev</span><span class="token punctuation">(</span>sqe<span class="token punctuation">,</span> fd<span class="token punctuation">,</span> <span class="token operator">&amp;</span>iov<span class="token punctuation">,</span> <span class="token number">1</span><span class="token punctuation">,</span> <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-    <span class="token comment">/* tell the kernel we have an sqe ready for consumption */</span>
-    ret <span class="token operator">=</span> <span class="token function">io_uring_submit</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>ring<span class="token punctuation">)</span><span class="token punctuation">;</span>
-    <span class="token keyword">if</span> <span class="token punctuation">(</span>ret <span class="token operator">&lt;</span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
-        <span class="token function">printf</span><span class="token punctuation">(</span><span class="token string">"io_uring_submit: %s\n"</span><span class="token punctuation">,</span> <span class="token function">strerror</span><span class="token punctuation">(</span><span class="token operator">-</span>ret<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-        <span class="token keyword">goto</span> out<span class="token punctuation">;</span>
-    <span class="token punctuation">}</span>
-    <span class="token comment">/* wait for the sqe to complete */</span>
-    ret <span class="token operator">=</span> <span class="token function">io_uring_wait_cqe</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>ring<span class="token punctuation">,</span> <span class="token operator">&amp;</span>cqe<span class="token punctuation">)</span><span class="token punctuation">;</span>
-    <span class="token keyword">if</span> <span class="token punctuation">(</span>ret <span class="token operator">&lt;</span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
-        <span class="token function">printf</span><span class="token punctuation">(</span><span class="token string">"io_uring_wait_cqe: %s\n"</span><span class="token punctuation">,</span> <span class="token function">strerror</span><span class="token punctuation">(</span><span class="token operator">-</span>ret<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-        <span class="token keyword">goto</span> out<span class="token punctuation">;</span>
-    <span class="token punctuation">}</span>
-    <span class="token comment">/* read and process cqe event */</span>
-    <span class="token function">io_uring_cqe_seen</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>ring<span class="token punctuation">,</span> cqe<span class="token punctuation">)</span><span class="token punctuation">;</span>
-out<span class="token operator">:</span>
-    <span class="token function">close</span><span class="token punctuation">(</span>fd<span class="token punctuation">)</span><span class="token punctuation">;</span>
-exit<span class="token operator">:</span>
-    <span class="token comment">/* tear down */</span>
-    <span class="token function">io_uring_queue_exit</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>ring<span class="token punctuation">)</span><span class="token punctuation">;</span>
-    <span class="token keyword">return</span> ret<span class="token punctuation">;</span>
-<span class="token punctuation">}</span>
+int main(int argc, char *argv[])
+{
+    struct io_uring ring;
+    struct io_uring_sqe *sqe;
+    struct io_uring_cqe *cqe;
+    struct iovec iov = {
+        .iov_base = "Hello World",
+        .iov_len = strlen("Hello World"),
+    };
+    int fd, ret;
+    if (argc != 2) {
+        printf("%s: &lt;testfile&gt;\n", argv[0]);
+        return 1;
+    }
+    /* setup io_uring and do mmap */
+    ret = io_uring_queue_init(ENTRIES, &amp;ring, 0);
+    if (ret &lt; 0) {
+        printf("io_uring_queue_init: %s\n", strerror(-ret));
+        return 1;
+    }
+    fd = open("testfile", O_WRONLY | O_CREAT);
+    if (fd &lt; 0) {
+        printf("open failed\n");
+        ret = 1;
+        goto exit;
+    }
+    /* get an sqe and fill in a WRITEV operation */
+    sqe = io_uring_get_sqe(&amp;ring);
+    if (!sqe) {
+        printf("io_uring_get_sqe failed\n");
+        ret = 1;
+        goto out;
+    }
+    io_uring_prep_writev(sqe, fd, &amp;iov, 1, 0);
+    /* tell the kernel we have an sqe ready for consumption */
+    ret = io_uring_submit(&amp;ring);
+    if (ret &lt; 0) {
+        printf("io_uring_submit: %s\n", strerror(-ret));
+        goto out;
+    }
+    /* wait for the sqe to complete */
+    ret = io_uring_wait_cqe(&amp;ring, &amp;cqe);
+    if (ret &lt; 0) {
+        printf("io_uring_wait_cqe: %s\n", strerror(-ret));
+        goto out;
+    }
+    /* read and process cqe event */
+    io_uring_cqe_seen(&amp;ring, cqe);
+out:
+    close(fd);
+exit:
+    /* tear down */
+    io_uring_queue_exit(&amp;ring);
+    return ret;
+}
 </code></pre>
 
 <p>更多的示例可参考：<br>
@@ -2237,7 +2237,7 @@ exit<span class="token operator">:</span>
 
 <p>io_uring polling mode测试实例：</p>
 
-<pre class="  language-bash" style="position: relative; z-index: 2;"><code class="prism  language-bash">fio -name<span class="token operator">=</span>testname -filename<span class="token operator">=</span>/mnt/vdd/testfilename -iodepth<span class="token operator">=</span><span class="token number">64</span> -thread -rw<span class="token operator">=</span>randread -ioengine<span class="token operator">=</span>io_uring -sqthread_poll<span class="token operator">=</span><span class="token number">1</span> -direct<span class="token operator">=</span><span class="token number">1</span> -bs<span class="token operator">=</span>4k -size<span class="token operator">=</span>10G -numjobs<span class="token operator">=</span><span class="token number">1</span> -runtime<span class="token operator">=</span><span class="token number">600</span> -group_reporting
+<pre><code>fio -name=testname -filename=/mnt/vdd/testfilename -iodepth=64 -thread -rw=randread -ioengine=io_uring -sqthread_poll=1 -direct=1 -bs=4k -size=10G -numjobs=1 -runtime=600 -group_reporting
 </code></pre>
 
 <h2 id="测试结果">测试结果</h2>
@@ -2329,7 +2329,7 @@ tlinux4基于5.4.23主线（<a href="https://git.code.oa.com/tlinux/tkernel4/com
 
 <p>开发者技术精选</p>
 
-<p style=""><img src="./《操作系统与存储：解析Linux内核全新异步IO引擎——io_uring设计与实现》 - 社交平台产品部 - KM平台_files/cos-file-url(6)" alt="" style="position: relative; z-index: 2;" class="amplify"></p>
+<p style=""><img src="/logbook/images/linux/《操作系统与存储：解析Linux内核全新异步IO引擎——io_uring设计与实现》/c08d38109ca8.png" alt="" style="position: relative; z-index: 2;" class="amplify"></p>
 
 <h1 id="参考">参考</h1>
 

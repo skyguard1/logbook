@@ -91,7 +91,7 @@ categories:
 
 <p>另外，客户一开始使用的是5.6.4版本的logstash，版本较老，使用过程中出现因为单个消息体过长导致logstash抛异常后直接退出的问题:</p>
 
-<pre class="  language-python" style="position: relative; z-index: 2;"><code class="prism  language-python">whose size <span class="token keyword">is</span> larger than the fetch size <span class="token number">4194304</span> <span class="token keyword">and</span> hence cannot be ever returned<span class="token punctuation">.</span> Increase the fetch size on the client <span class="token punctuation">(</span>using <span class="token builtin">max</span><span class="token punctuation">.</span>partition<span class="token punctuation">.</span>fetch<span class="token punctuation">.</span><span class="token builtin">bytes</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token keyword">or</span> decrease the maximum message size the broker will allow <span class="token punctuation">(</span>using message<span class="token punctuation">.</span><span class="token builtin">max</span><span class="token punctuation">.</span><span class="token builtin">bytes</span><span class="token punctuation">)</span>
+<pre><code>whose size is larger than the fetch size 4194304 and hence cannot be ever returned. Increase the fetch size on the client (using max.partition.fetch.bytes), or decrease the maximum message size the broker will allow (using message.max.bytes)
 
 </code></pre>
 
@@ -119,7 +119,7 @@ categories:
 
 <p>bellen: 。。。</p>
 
-<p style=""><img src="./PB级大规模Elasticsearch集群运维与调优实践 -  - KM平台_files/cos-file-url(2)" alt="" style="position: relative; z-index: 2;" class="amplify"></p>
+<p style=""></p>
 
 <p>通过查看集群监控，发现写入qps直接由50w降到1w，写入拒绝率猛增，通过查看集群日志，发现是因为当前小时的索引没有创建成功导致写入失败。</p>
 
@@ -140,26 +140,26 @@ categories:
 </li>
 <li>
 <p>现在通过GET _cluster/health看到迁移中的分片数量在逐渐减少，为了不增加新的迁移任务，把执行数据迁移的exclude配置取消掉：</p>
-<pre class="  language-python" style="position: relative; z-index: 2;"><code class="prism  language-python">PUT _cluster<span class="token operator">/</span>settings
-<span class="token punctuation">{</span>
-  <span class="token string">"transient"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span>
-    <span class="token string">"cluster.routing.allocation.exclude._name"</span><span class="token punctuation">:</span> <span class="token string">""</span>
-  <span class="token punctuation">}</span>
-<span class="token punctuation">}</span>
+<pre><code>PUT _cluster/settings
+{
+  "transient": {
+    "cluster.routing.allocation.exclude._name": ""
+  }
+}
 </code></pre>
 </li>
 <li>
 <p>同时调大分片恢复时节点进行数据传输的每秒最大字节数(默认为40MB)，加速存量的分片迁移任务的执行：</p>
-<pre class="  language-python" style="position: relative; z-index: 2;"><code class="prism  language-python">PUT _cluster<span class="token operator">/</span>settings
-<span class="token punctuation">{</span>
-  <span class="token string">"transient"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span>
-    <span class="token string">"indices"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span>
-      <span class="token string">"recovery"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span>
-        <span class="token string">"max_bytes_per_sec"</span><span class="token punctuation">:</span> <span class="token string">"200mb"</span>
-      <span class="token punctuation">}</span>
-    <span class="token punctuation">}</span>
-  <span class="token punctuation">}</span>
-<span class="token punctuation">}</span>
+<pre><code>PUT _cluster/settings
+{
+  "transient": {
+    "indices": {
+      "recovery": {
+        "max_bytes_per_sec": "200mb"
+      }
+    }
+  }
+}
 </code></pre>
 </li>
 <li>
@@ -191,7 +191,7 @@ categories:
 
 <p>通过cerebro查看集群，发现集群处于yellow状态，然后发现集群有大量的错误日志：</p>
 
-<pre class="  language-python" style="position: relative; z-index: 2;"><code class="prism  language-python"><span class="token punctuation">{</span><span class="token string">"message"</span><span class="token punctuation">:</span><span class="token string">"blocked by: [SERVICE_UNAVAILABLE/1/state not recovered / initialized];: [cluster_block_exception] blocked by: [SERVICE_UNAVAILABLE/1/state not recovered / initialized];"</span><span class="token punctuation">,</span><span class="token string">"statusCode"</span><span class="token punctuation">:</span><span class="token number">503</span><span class="token punctuation">,</span><span class="token string">"error"</span><span class="token punctuation">:</span><span class="token string">"Service Unavailable"</span><span class="token punctuation">}</span>
+<pre><code>{"message":"blocked by: [SERVICE_UNAVAILABLE/1/state not recovered / initialized];: [cluster_block_exception] blocked by: [SERVICE_UNAVAILABLE/1/state not recovered / initialized];","statusCode":503,"error":"Service Unavailable"}
 </code></pre>
 
 <p>然后再进一步查看集群日志，发现有"master not discovered yet…"之类的错误日志，检查三个master节点，发现有两个master挂掉，只剩一个了，集群无法选主。</p>
@@ -220,7 +220,7 @@ categories:
 <p>在场景5中，虽然通过临时给master节点增加内存，抗住了10w分片，但是不能从根本上解决问题。客户的数据是计划保留一年的，如果不进行优化，集群必然扛不住数十万个分片。所以接下来需要着重解决集群整体分片数量过多的问题，在场景5的最后提到了，用户可以接受开启shrink以及降低索引创建粒度(经过调整后，每两个小时创建一个索引)，这在一定程度上减少了分片的数量，能够使集群暂时稳定一阵。</p>
 
 <p style="">辅助客户在kibana上配置了如下的ILM策略：<br>
-<img src="./PB级大规模Elasticsearch集群运维与调优实践 -  - KM平台_files/cos-file-url(3)" alt="" style="position: relative; z-index: 2;" class="amplify"><br>
+<br>
 在warm phase, 把创建时间超过360小时的索引从hot节点迁移到warm节点上，保持索引的副本数量为1，之所以使用360小时作为条件，而不是15天作为条件，是因为客户的索引是按小时创建的，如果以15天作为迁移条件，则在每天凌晨都会同时触发15天前的24个索引一共24*120=2880个分片同时开始迁移索引，容易引发场景4中介绍的由于迁移分片数量过多导致创建索引被阻塞的问题，所以以360小时作为条件，则在每个小时只会执行一个索引的迁移，这样把24个索引的迁移任务打平，避免其它任务被阻塞的情况发生。<br>
 </p>
 
@@ -239,24 +239,24 @@ categories:
 </li>
 <li>
 <p>在warm phase同时执行索引迁移和shrink会触发es的bug， 如上图中的ILM策略，索引本身包含60分片1副本，初始时都在hot节点上，在创建完成360小时之后，会执行迁移，把索引都迁移到warm节点上，同时又需要把分片shrink到5，在实际执行中，发现一段时间后有大量的unassigned shards，分片无法分配的原因如下：</p>
-<pre class="  language-python" style="position: relative; z-index: 2;"><code class="prism  language-python"><span class="token string">"deciders"</span> <span class="token punctuation">:</span> <span class="token punctuation">[</span>
-        <span class="token punctuation">{</span>
-          <span class="token string">"decider"</span> <span class="token punctuation">:</span> <span class="token string">"same_shard"</span><span class="token punctuation">,</span>
-          <span class="token string">"decision"</span> <span class="token punctuation">:</span> <span class="token string">"NO"</span><span class="token punctuation">,</span>
-          <span class="token string">"explanation"</span> <span class="token punctuation">:</span> <span class="token string">"the shard cannot be allocated to the same node on which a copy of the shard already exists [[x-2020.06.19-13][58], node[LKsSwrDsSrSPRZa-EPBJPg], [P], s[STARTED], a[id=iRiG6mZsQUm5Z_xLiEtKqg]]"</span>
-        <span class="token punctuation">}</span><span class="token punctuation">,</span>
-        <span class="token punctuation">{</span>
-          <span class="token string">"decider"</span> <span class="token punctuation">:</span> <span class="token string">"awareness"</span><span class="token punctuation">,</span>
-          <span class="token string">"decision"</span> <span class="token punctuation">:</span> <span class="token string">"NO"</span><span class="token punctuation">,</span>
-          <span class="token string">"explanation"</span> <span class="token punctuation">:</span> <span class="token string">"there are too many copies of the shard allocated to nodes with attribute [ip], there are [2] total configured shard copies for this shard id and [130] total attribute values, expected the allocated shard count per attribute [2] to be less than or equal to the upper bound of the required number of shards per attribute [1]"</span>
-        <span class="token punctuation">}</span>
+<pre><code>"deciders" : [
+        {
+          "decider" : "same_shard",
+          "decision" : "NO",
+          "explanation" : "the shard cannot be allocated to the same node on which a copy of the shard already exists [[x-2020.06.19-13][58], node[LKsSwrDsSrSPRZa-EPBJPg], [P], s[STARTED], a[id=iRiG6mZsQUm5Z_xLiEtKqg]]"
+        },
+        {
+          "decider" : "awareness",
+          "decision" : "NO",
+          "explanation" : "there are too many copies of the shard allocated to nodes with attribute [ip], there are [2] total configured shard copies for this shard id and [130] total attribute values, expected the allocated shard count per attribute [2] to be less than or equal to the upper bound of the required number of shards per attribute [1]"
+        }
 
 </code></pre>
 </li>
 </ol>
 
 <p>这是因为shrink操作需要新把索引完整的一份数据都迁移到一个节点上，然后在内存中构建新的分片元数据，把新的分片通过软链接指向到几个老的分片的数据，在ILM中执行shrink时，ILM会对索引进行如下配置：</p>
-<pre style="position: relative; z-index: 2;"><code>```
+<pre><code>```
 {
   "index.routing" : {
           "allocation" : {
@@ -271,7 +271,7 @@ categories:
 </code></pre>
 
 <p>问题是索引包含副本，而主分片和副本分片又不能在同一个节点上，所以会出现部分分片无法分配的情况(不是全部，只有一部分)，这里应该是触发了6.8版本的ILM的bug，需要查看源码才能定位解决这个bug，目前还在研究中。当前的workaround是通过脚本定期扫描出现unassigned shards的索引，修改其settings:</p>
-<pre style="position: relative; z-index: 2;"><code>```
+<pre><code>```
 {
   "index.routing" : {
           "allocation" : {
