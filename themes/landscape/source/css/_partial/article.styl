@@ -47,6 +47,13 @@
   // make the sidebar drop below. Only applies inside single-post body.
   max-width: 100%
   min-width: 0
+  // Some KM articles contain extremely long unbroken CJK+ASCII token chains
+  // (e.g. "Module：ScriptModule、AnalysisModule、…") that browsers don't always
+  // treat as breakable. This forces wrapping at any position when nothing else
+  // fits, preventing the article column from pushing the sidebar to the next
+  // row in the flex layout.
+  overflow-wrap: anywhere
+  word-break: break-word
   pre
     max-width: 100%
     overflow-x: auto
