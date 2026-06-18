@@ -6,6 +6,11 @@ on:
       - develop
       - main
 
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -18,19 +23,13 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "20"
-      - name: Cache NPM dependencies
-        uses: actions/cache@v4
-        with:
-          path: node_modules
-          key: ${{ runner.OS }}-npm-cache
-          restore-keys: |
-            ${{ runner.OS }}-npm-cache
+          cache: npm
       - name: Install Dependencies
-        run: npm install
-      - name: Install theme
-        run: git clone https://github.com/hexojs/hexo-theme-landscape.git themes/landscape
+        run: npm ci
+      - name: Verify landscape theme is resolvable
+        run: node -e "console.log(require.resolve('hexo-theme-landscape/package.json'))"
       - name: Build Hexo
-        run: npx hexo generate
+        run: npx hexo generate --debug
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
@@ -38,9 +37,6 @@ jobs:
 
   deploy:
     needs: build
-    permissions:
-      pages: write
-      id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -49,5 +45,3 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
-      - name: Get the output
-        run: echo "${{ steps.deploy.outputs.notify }}"
