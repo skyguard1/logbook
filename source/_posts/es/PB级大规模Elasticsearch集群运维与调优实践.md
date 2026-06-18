@@ -1,0 +1,368 @@
+---
+title: "PB级大规模Elasticsearch集群运维与调优实践"
+date: 2022-06-16 21:47:35
+categories:
+  - es
+---
+
+<h2 id="背景">背景</h2>
+
+<p>某中型互联网公司的游戏业务，使用了的Elasticsearch产品，采用ELK架构存储业务日志。因为游戏业务本身的日志数据量非常大(写入峰值在100w qps)，在服务客户的几个月中，踩了不少坑，经过数次优化与调整，把客户的ES集群调整的比较稳定，避免了在业务高峰时客户集群的读写异常，并且降低了客户的资金成本和使用成本。下面把服务客户过程中遇到的典型问题进行梳理，总结经验，避免再次踩坑。</p>
+
+<h2 id="场景1-初次交锋">场景1：初次交锋</h2>
+
+<p>解决方案架构师A: bellen, XX要上线一款新游戏，日志存储决定用ELK架构，他们决定在XX云和我们之间二选一，我们首先去他们公司和他们交流一下，争取拿下！</p>
+
+<p>bellen: 好，随时有空！</p>
+
+<p>。。。</p>
+
+<p>和架构师一起前往该公司，跟负责底层组件的运维部门的负责人进行沟通。</p>
+
+<p>XX公司运维老大：不要讲你们的PPT了，先告诉我你们能给我们带来什么！</p>
+
+<p>bellen: 。。。呃，我们有很多优势。。。比如灵活地扩容缩容集群，还可以一键平滑升级集群版本，并且提供有跨机房容灾的集群从而实现高可用。。</p>
+
+<p>XX公司运维老大：你说的这些别的厂商也有，我就问一个问题，我们现在要存储一年的游戏日志，不能删除数据，每天就按10TB的数据量算，一年也得有个3PB多的数据，这么大的数量，都放在SSD云盘上，我们的成本太高了，你们有什么方案既能够满足我们存储这么大数据量的需求，同时能够降低我们的成本吗？</p>
+
+<p>bellen: 我们本身提供的有冷热模式的集群，热节点采用SSD云硬盘，冷节点采用SATA盘，采用ES自带的ILM索引生命周期管理功能定期把较老的索引从热节点迁移到冷节点上，这样从整体上可以降低成本。另外一方面，也可以定期把更老的索引通过snapshot快照备份到COS对象存储中，然后删除索引，这样成本就更低了。</p>
+
+<p>XX公司运维老大：存储到COS就是冷存储呗，我们需要查询COS里的数据时，还得再把数据恢复到ES里？这样不行，速度太慢了，业务等不了那么长时间，我们的数据不能删除，只能放在ES里！你们能不能给我们提供一个API, 让老的索引数据虽然存储在COS里，但是通过这个API依然可以查询到数据，而不是先恢复到ES， 再进行查询？</p>
+
+<p>bellen: 。。。呃，这个可以做，但是需要时间。是否可以采用hadoop on COS的架构，把存量的老的索引数据通过工具导入到COS，通过hive去查询，这样成本会非常低，数据依然是随时可查的。</p>
+
+<p>XX公司运维老大：那不行，我们只想用成熟的ELK架构来做，再增加hadoop那一套东西，我们没那么多人力搞这个事!</p>
+
+<p>bellen: 好吧，那可以先搞一个集群测试起来，看看性能怎么样。关于存量数据放在COS里但是也需要查询的问题，我们可以先制定方案，尽快实施起来。</p>
+
+<p>XX公司运维老大：行吧，我们现在按每天10TB数据量预估，先购买一个集群，能撑3个月的数据量就行，能给一个集群配置的建议吗？</p>
+
+<p>bellen: 目前支持单节点磁盘最大6TB, cpu和内存的话可以放到8核32G单节点，单节点跑2w qps写入没有问题，后面也可以进行纵向扩容和横向扩容。</p>
+
+<p>XX公司运维老大：好，我们先测试一下。</p>
+
+<h2 id="场景2-没有评估好节点配置和规模-上线后集群扛不住压力">场景2：没有评估好节点配置和规模，上线后集群扛不住压力</h2>
+
+<p>N 天后，架构师A直接在群里反馈：“bellen, 客户反馈这边的ES集群性能不行啊，使用logstash消费kafka中的日志数据，跑了快一天了数据还没追平，这是线上的集群，麻烦紧急看一下吧。。”</p>
+
+<p>我一看，一脸懵, 什么时候已经上线了啊，不是还在测试中吗？</p>
+
+<p>XX公司运维小B: 我们购买了8核32G*10节点的集群，单节点磁盘6TB, 索引设置的10分片1副本，现在使用logstash消费kafka中的数据，一直没有追平，kafka中还有很多数据积压，感觉是ES的写入性能有问题。</p>
+
+<p>随后我立即查看了集群的监控数据，发现cpu和load都很高，jvm堆内存使用率平均都到了90%，节点jvm gc非常频繁了，部分节点因为响应缓慢，不停的离线又上线。。</p>
+
+<p>经过沟通，发现用户的使用姿势是filebeat+kafka+logstash+elasticsearch, 当前已经在kafka中存储了有10天的日志数据，启动了20台logstash进行消费，logstash的batch size也调到了5000，性能瓶颈是在ES这一侧。客户8核32G*10节点的集群，理论上跑10w qps没有问题，但是logstash消费积压的数据往ES写入的qps远不止10w，所以是ES扛不住写入压力了，所以只能对ES集群进行扩容，为了加快存量数据的消费速度，先纵向扩容单节点的配置到32核64GB，之后再横向增加节点，以保证ES集群能够最大支持100w qps的写入(这里需要注意的是，增加节点后索引的分片数量也需要调整)。</p>
+
+<p>所以一般新客户接入使用ES时，必须要事先评估好节点配置和集群规模，可以从以下几个方面进行评估：</p>
+
+<ul>
+<li>存储容量：要考虑索引副本数量、数据膨胀、ES内部任务额外占用的磁盘空间(比如segment merge)以及操作系统占用的磁盘空间等因素，如果再需要预留50%的空闲磁盘空间，那么集群总的存储容量大约为源数据量的4倍</li>
+<li>计算资源：主要考虑写入，2核8GB的节点可以支持5000qps的写入，随着节点数量和节点规格的提升，写入能力基本呈线性增长</li>
+<li>索引和分片数量评估：一般一个shard的数据量在30-50GB为宜，可以以此确定索引的分片数量以及确定按天还是按月建索引。需要控制单节点总的分片数量，1GB堆内存支持20-30个分片为宜；另外需要控制集群整体的分片数量，集群总体的分片数量一般不要超过3w。</li>
+</ul>
+
+<h2 id="场景3-logstash消费kafka性能调优">场景3：logstash消费kafka性能调优</h2>
+
+<p>上述场景2遇到的问题是业务上线前没有对集群配置和规模进行合理的评估，导致上线后ES集群扛不住了，通过合理的扩容处理，集群最终抗住了写入压力。但是又有新的问题出现了。</p>
+
+<p>因为kafka积压的数据比较多，客户使用logstash消费kafka数据时，反馈有两个问题：</p>
+
+<ol>
+<li>增加多台logstash消费kafka数据，消费速度没有线性提升</li>
+<li>kafka的不同topic消费速度不均匀、topic内不同partition消费的速度也不均匀</li>
+</ol>
+
+<p>经过分析客户logstash的配置文件，发现问题出现的原因主要是：</p>
+
+<ol>
+<li>topic的partition数量少，虽然logstash机器数量多，但是却没有充分利用机器资源并行消费数据，导致消费速度一直上不去</li>
+<li>所有logstash的配置文件都相同，使用一个group同时消费所有的topic，存在资源竞争的问题</li>
+</ol>
+
+<p>分析后，对kafka和logstash进行了如下优化：</p>
+
+<ol>
+<li>提高kafka topic的分区数量</li>
+<li>对logstash进行分组；对于数据量较大的topic，可以单独设置一个消费组进行消费，有一组logstash单独使用这个消费组对该topic进行消费；其它的数据量较小的topic，可以共用一个消费组和一组logstash</li>
+<li>每组logstash中总的consumer_threads数量和消费组总的partion数量保持一致，比如有3个logstash进程，消费的topic的partition数量为24， 那么每个logstash配置文件中的consumer_threads就设置为8</li>
+</ol>
+
+<p>通过上述优化，最终使得logstash机器资源都被充分利用上，很快消费完堆积的kafka数据，待消费速度追平生成速度后，logstash消费kafka一直稳定运行，没有出现积压。</p>
+
+<p>另外，客户一开始使用的是5.6.4版本的logstash，版本较老，使用过程中出现因为单个消息体过长导致logstash抛异常后直接退出的问题:</p>
+
+<pre class="  language-python" style="position: relative; z-index: 2;"><code class="prism  language-python">whose size <span class="token keyword">is</span> larger than the fetch size <span class="token number">4194304</span> <span class="token keyword">and</span> hence cannot be ever returned<span class="token punctuation">.</span> Increase the fetch size on the client <span class="token punctuation">(</span>using <span class="token builtin">max</span><span class="token punctuation">.</span>partition<span class="token punctuation">.</span>fetch<span class="token punctuation">.</span><span class="token builtin">bytes</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token keyword">or</span> decrease the maximum message size the broker will allow <span class="token punctuation">(</span>using message<span class="token punctuation">.</span><span class="token builtin">max</span><span class="token punctuation">.</span><span class="token builtin">bytes</span><span class="token punctuation">)</span>
+
+</code></pre>
+
+<p>通过把logstash升级至高版本6.8避免了这个问题(6.x版本的logstash修复了这个问题，避免了crash)。</p>
+
+<h2 id="场景4-磁盘要满了-紧急扩容-">场景4：磁盘要满了，紧急扩容？</h2>
+
+<p>客户的游戏上线有一个月了，原先预估每天最多有10TB的数据量，实际则是在运营活动期间每天产生20TB的数据，原先6TB*60=360TB总量的数据盘使用率也达到了80%。针对这种情况，我们建议客户使用冷热分离的集群架构，在原先60个热节点的基础上，增加一批warm节点存储冷数据，利用ILM(索引生命周期管理)功能定期迁移热节点上的索引到warm节点上。</p>
+
+<p>通过增加warm节点的方式，客户的集群磁盘总量达到了780TB， 可以满足最多三个月的存储需求。但是客户的需求还没有满足：</p>
+
+<p>XX公司运维老大：给我们一个能存放一年数据的方案吧，总是通过加节点扩容磁盘的方式不是长久之计，我们得天天盯着这个集群，运维成本很高！并且一直加节点，ES会扛不住吧？</p>
+
+<p>bellen: 可以尝试使用我们新上线的支持本地盘的机型，热节点最大支持7.2TB的本地SSD盘，warm节点最大支持48TB的本地SATA盘。一方面热节点的性能相比云盘提高了，另外warm节点可以支持更大的磁盘容量。单节点可以支持的磁盘容量增大了，节点数量就不用太多了，可以避免踩到因为节点数量太多而触发的坑。</p>
+
+<p>XX公司运维老大：现在用的是云盘，能替换成本地盘吗，怎么替换？</p>
+
+<p>bellen: 不能直接替换，需要在集群中新加入带本地盘的节点，把数据从老的云盘节点迁移到新的节点上，迁移完成后再剔除掉旧的节点，这样可以保证服务不会中断，读写都可以正常进行。</p>
+
+<p>XX公司运维老大：好，可以实施，尽快搞起来！</p>
+
+<p>云盘切换为本地盘，是通过调用云服务后台的API自动实施的。在实施之后，触发了数据从旧节点迁移到新节点的流程，但是大约半个小时候，问题又出现了：</p>
+
+<p>XX公司运维小B: bellen, 快看一下，ES的写入快掉0了。</p>
+
+<p>bellen: 。。。</p>
+
+<p style=""><img src="./PB级大规模Elasticsearch集群运维与调优实践 -  - KM平台_files/cos-file-url(2)" alt="" style="position: relative; z-index: 2;" class="amplify"></p>
+
+<p>通过查看集群监控，发现写入qps直接由50w降到1w，写入拒绝率猛增，通过查看集群日志，发现是因为当前小时的索引没有创建成功导致写入失败。</p>
+
+<p>紧急情况下，执行了以下操作定位到了原因：</p>
+
+<ol>
+<li>
+<p>GET _cluster/health; 发现集群健康状态是green，但是有大约6500个relocating_shards， number_of_pending_tasks数量达到了数万。</p>
+</li>
+<li>
+<p>GET _cat/pending_tasks?v; 发现大量的"shard-started"任务在执行中，任务优先级是"URGENT", 以及大量的排在后面的"put mapping"的任务，任务优先级是"HIGH"；"URGENT"优先级比"HIGH"优先级要高，因为大量的分片从旧的节点迁移到新的节点上，造成了索引创建的任务被阻塞，从而导致写入数据失败。</p>
+</li>
+<li>
+<p>为什么会有这么多的分片在迁移中？通过GET _cluster/settings发现"cluster.routing.allocation.node_concurrent_recoveries"的值为50,而目前有130个旧节点在把分片迁移到130个新节点中，所以有130*50=6500个迁移中的分片。而"cluster.routing.allocation.node_concurrent_recoveries"参数的值默认为2，应该是之前在执行纵向扩容集群时为了加快分片迁移速度人为修改了这个值(因为集群一开始节点数量没有很多，索引同时迁移中的分片也不会太多，所以创建新索引不会被阻塞)。</p>
+</li>
+<li>
+<p>现在通过PUT _cluster/settings把"cluster.routing.allocation.node_concurrent_recoveries"参数修改为2。但是因为"put settings"任务的优先级也是"HIGH"， 低于"shard-started"任务的优先级，所以更新该参数的操作还是会被阻塞，ES报错执行任务超时。此时，进行了多次重试，最终成功把把"cluster.routing.allocation.node_concurrent_recoveries"参数修改为了2。</p>
+</li>
+<li>
+<p>现在通过GET _cluster/health看到迁移中的分片数量在逐渐减少，为了不增加新的迁移任务，把执行数据迁移的exclude配置取消掉：</p>
+<pre class="  language-python" style="position: relative; z-index: 2;"><code class="prism  language-python">PUT _cluster<span class="token operator">/</span>settings
+<span class="token punctuation">{</span>
+  <span class="token string">"transient"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span>
+    <span class="token string">"cluster.routing.allocation.exclude._name"</span><span class="token punctuation">:</span> <span class="token string">""</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre>
+</li>
+<li>
+<p>同时调大分片恢复时节点进行数据传输的每秒最大字节数(默认为40MB)，加速存量的分片迁移任务的执行：</p>
+<pre class="  language-python" style="position: relative; z-index: 2;"><code class="prism  language-python">PUT _cluster<span class="token operator">/</span>settings
+<span class="token punctuation">{</span>
+  <span class="token string">"transient"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span>
+    <span class="token string">"indices"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span>
+      <span class="token string">"recovery"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span>
+        <span class="token string">"max_bytes_per_sec"</span><span class="token punctuation">:</span> <span class="token string">"200mb"</span>
+      <span class="token punctuation">}</span>
+    <span class="token punctuation">}</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre>
+</li>
+<li>
+<p>现在看到迁移中的分片数量慢慢减少，新索引已经创建成功了，写入恢复正常了。到下个整点时，发现新建索引还是比较慢，因为还有几百个分片在迁移中，创建新索引大概耗时5分钟，这5分钟内写入也是失败的。<br>
+</p>
+</li>
+<li>
+<p>等几百个迁移中的分片都执行完毕后，新建索引就比较快了，也不会再写入失败了。但是问题是当前正在执行云盘节点切换为本地盘的流程，需要把数据从旧的130个节点上迁移到新的130个节点上，数据迁移的任务不能停，那该怎么办？既然新创建索引比较慢，那就只好提前把索引都创建好，避免了在每个整点数据写入失败的情况。通过编写python脚本，每天执行一次，提前把第二天的每个小时的索引创建好，创建完成了再把"cluster.routing.allocation.exclude._name"更改为所有的旧节点，保证数据迁移任务能够正常执行。</p>
+</li>
+<li>
+<p>总量400TB的数据，大约经过10天左右，终于完成迁移了；配合提前新建索引的python脚本，这10天内也没有出现写入失败的情况。</p>
+</li>
+</ol>
+
+<p>经过了这次扩容操作，总结了如下经验：</p>
+
+<ol>
+<li>分片数量过多时，如果同时进行迁移的分片数量过多，会阻塞索引创建和其它配置更新操作，所以在进行数据迁移时，要保证"cluster.routing.allocation.node_concurrent_recoveries"参数和"cluster.routing.allocation.cluster_concurrent_rebalance"为较小的值。</li>
+<li>如果必须要进行数据迁移，则可以提前创建好索引，避免ES自动创建索引时耗时较久，从而导致写入失败。</li>
+</ol>
+
+<h2 id="场景5-10万个分片-">场景5：10万个分片？</h2>
+
+<p>在稳定运行了一阵后，集群又出问题了。。</p>
+
+<p>XX公司运维小B: bellen, 昨晚凌晨1点钟之后，集群就没有写入了，现在kafka里有大量的数据堆积，麻烦尽快看一下？</p>
+
+<p>bellen: 。。。</p>
+
+<p>通过cerebro查看集群，发现集群处于yellow状态，然后发现集群有大量的错误日志：</p>
+
+<pre class="  language-python" style="position: relative; z-index: 2;"><code class="prism  language-python"><span class="token punctuation">{</span><span class="token string">"message"</span><span class="token punctuation">:</span><span class="token string">"blocked by: [SERVICE_UNAVAILABLE/1/state not recovered / initialized];: [cluster_block_exception] blocked by: [SERVICE_UNAVAILABLE/1/state not recovered / initialized];"</span><span class="token punctuation">,</span><span class="token string">"statusCode"</span><span class="token punctuation">:</span><span class="token number">503</span><span class="token punctuation">,</span><span class="token string">"error"</span><span class="token punctuation">:</span><span class="token string">"Service Unavailable"</span><span class="token punctuation">}</span>
+</code></pre>
+
+<p>然后再进一步查看集群日志，发现有"master not discovered yet…"之类的错误日志，检查三个master节点，发现有两个master挂掉，只剩一个了，集群无法选主。</p>
+
+<p>登陆到挂了了master节点机器上，发现保活程序无法启动es进程，第一直觉是es进程oom了；此时也发现master节点磁盘使用率100%， 检查了JVM堆内存快照文件目录，发现有大量的快照文件，于是删除了一部分文件，重启es进程，进程正常启动了；但是问题是堆内存使用率太高，gc非常频繁，master节点响应非常慢，大量的创建索引的任务都超时，阻塞在任务队列中，集群还是无法恢复正常。</p>
+
+<p>看到集群master节点的配置是16核32GB内存，JVM实际只分配了16GB内存，此时只好通过对master节点原地增加内存到64GB(虚拟机，使用的CVM， 可以调整机器规格，需要重启)，master节点机器重启之后，修改了es目录jvm.options文件，调整了堆内存大小，重新启动了es进程。</p>
+
+<p>3个master节点都恢复正常了，但是分片还需要进行恢复，通过GET _cluster/health看到集群当前有超过10w个分片，而这些分片恢复还需要一段时间，通过调大"cluster.routing.allocation.node_concurrent_recoveries"， 增大分片恢复的并发数量。实际上5w个主分片恢复的是比较快的了，但是副本分片的恢复就相对慢很多，因为部分副本分片需要从主分片上同步数据才能恢复。此时可以采取的方式是把部分旧的索引副本数量调为0， 让大量副本分片恢复的任务尽快结束，保证新索引能够正常创建，从而使得集群能够正常写入。</p>
+
+<p>总结这次故障的根本原因是集群的索引和分片数量太多，集群元数据占用了大量的堆内存，而master节点本身的JVM内存只有16GB(数据节点有32GB)， master节点频繁full gc导致master节点异常，从而最终导致整个集群异常。所以要解决这个问题，还是得从根本上解决集群的分片数量过多的问题。</p>
+
+<p>目前日志索引是按照小时创建，60分片1副本，每天有24*60*2=2880个分片，每个月就产生86400个分片，这么多的分片可能会带来严重的问题。有以下几种方式解决分片数量过多的问题：</p>
+
+<ol>
+<li>可以在ILM的warm phase中开启shrink功能，对老的索引从60分片shrink到5分片，分片数量可以降低12倍</li>
+<li>业务可以把每小时创建索引修改为每两个小时或者更长，可以根据每个分片数量最多支持50GB的数据推算多长时间创建新索引合适</li>
+<li>对老的索引设置副本为0，只保留主分片，分片数量能够再下降近一倍，存储量也下降近一倍</li>
+<li>定期关闭最老的索引，执行{index}/_close</li>
+</ol>
+
+<p>和客户沟通过后，客户表示可以接受方式1和方式2，但是方式3和4不能接受，因为考虑到存在磁盘故障的可能性，必须保留一个副本来保证数据的可靠性；另外还必须保证所有数据都是随时可查询的，不能关闭。</p>
+
+<h2 id="场景6-有点坑的ILM">场景6：有点坑的ILM</h2>
+
+<p>在场景5中，虽然通过临时给master节点增加内存，抗住了10w分片，但是不能从根本上解决问题。客户的数据是计划保留一年的，如果不进行优化，集群必然扛不住数十万个分片。所以接下来需要着重解决集群整体分片数量过多的问题，在场景5的最后提到了，用户可以接受开启shrink以及降低索引创建粒度(经过调整后，每两个小时创建一个索引)，这在一定程度上减少了分片的数量，能够使集群暂时稳定一阵。</p>
+
+<p style="">辅助客户在kibana上配置了如下的ILM策略：<br>
+<img src="./PB级大规模Elasticsearch集群运维与调优实践 -  - KM平台_files/cos-file-url(3)" alt="" style="position: relative; z-index: 2;" class="amplify"><br>
+在warm phase, 把创建时间超过360小时的索引从hot节点迁移到warm节点上，保持索引的副本数量为1，之所以使用360小时作为条件，而不是15天作为条件，是因为客户的索引是按小时创建的，如果以15天作为迁移条件，则在每天凌晨都会同时触发15天前的24个索引一共24*120=2880个分片同时开始迁移索引，容易引发场景4中介绍的由于迁移分片数量过多导致创建索引被阻塞的问题，所以以360小时作为条件，则在每个小时只会执行一个索引的迁移，这样把24个索引的迁移任务打平，避免其它任务被阻塞的情况发生。<br>
+</p>
+
+<p>同时，也在warm phase阶段，设置索引shrink，把索引的分片数缩成5个，因为老的索引已经不执行写入了，所以也可以执行force merge, 强制把segment文件合并为1个，可以获得更好的查询性能。</p>
+
+<p>另外，设置了ILM策略后，可以在索引模板里增加index.lifecycle.name配置，使得所有新创建的索引都可以和新添加的ILM策略关联，从而使得ILM能够正常运行。</p>
+
+<p>客户使用的ES版本是6.8.2， 在运行ILM的过程中， 也发现一些问题：</p>
+
+<ol>
+<li>
+<p>新添加的策略只能对新创建的索引生效，存量的索引只能通过批量修改索引settings里的index.lifecycle.name执行策略。</p>
+</li>
+<li>
+<p>如果一个策略进行了修改，那么所有存量的索引，不管是有没有执行过该策略，都不会执行修改后的策略，也即修改后的策略只对修改成功后新创建的索引生效。比如一开始的策略没有开启shrink, 现在修改策略内容添加了shrink操作，那么只有之后新创建的索引在达到策略触发条件(比如索引已经创建超过360个小时)后才会执行shrink, 而之前的所有索引都不会执行shrink，此时若想对存量的索引也执行shrink，只能够通过脚本批量执行了。</p>
+</li>
+<li>
+<p>在warm phase同时执行索引迁移和shrink会触发es的bug， 如上图中的ILM策略，索引本身包含60分片1副本，初始时都在hot节点上，在创建完成360小时之后，会执行迁移，把索引都迁移到warm节点上，同时又需要把分片shrink到5，在实际执行中，发现一段时间后有大量的unassigned shards，分片无法分配的原因如下：</p>
+<pre class="  language-python" style="position: relative; z-index: 2;"><code class="prism  language-python"><span class="token string">"deciders"</span> <span class="token punctuation">:</span> <span class="token punctuation">[</span>
+        <span class="token punctuation">{</span>
+          <span class="token string">"decider"</span> <span class="token punctuation">:</span> <span class="token string">"same_shard"</span><span class="token punctuation">,</span>
+          <span class="token string">"decision"</span> <span class="token punctuation">:</span> <span class="token string">"NO"</span><span class="token punctuation">,</span>
+          <span class="token string">"explanation"</span> <span class="token punctuation">:</span> <span class="token string">"the shard cannot be allocated to the same node on which a copy of the shard already exists [[x-2020.06.19-13][58], node[LKsSwrDsSrSPRZa-EPBJPg], [P], s[STARTED], a[id=iRiG6mZsQUm5Z_xLiEtKqg]]"</span>
+        <span class="token punctuation">}</span><span class="token punctuation">,</span>
+        <span class="token punctuation">{</span>
+          <span class="token string">"decider"</span> <span class="token punctuation">:</span> <span class="token string">"awareness"</span><span class="token punctuation">,</span>
+          <span class="token string">"decision"</span> <span class="token punctuation">:</span> <span class="token string">"NO"</span><span class="token punctuation">,</span>
+          <span class="token string">"explanation"</span> <span class="token punctuation">:</span> <span class="token string">"there are too many copies of the shard allocated to nodes with attribute [ip], there are [2] total configured shard copies for this shard id and [130] total attribute values, expected the allocated shard count per attribute [2] to be less than or equal to the upper bound of the required number of shards per attribute [1]"</span>
+        <span class="token punctuation">}</span>
+
+</code></pre>
+</li>
+</ol>
+
+<p>这是因为shrink操作需要新把索引完整的一份数据都迁移到一个节点上，然后在内存中构建新的分片元数据，把新的分片通过软链接指向到几个老的分片的数据，在ILM中执行shrink时，ILM会对索引进行如下配置：</p>
+<pre style="position: relative; z-index: 2;"><code>```
+{
+  "index.routing" : {
+          "allocation" : {
+            "require" : {
+              "temperature" : "warm",
+              "_id" : "LKsSwrDsSrSPRZa-EPBJPg"
+            }
+          }
+        }
+}
+```
+</code></pre>
+
+<p>问题是索引包含副本，而主分片和副本分片又不能在同一个节点上，所以会出现部分分片无法分配的情况(不是全部，只有一部分)，这里应该是触发了6.8版本的ILM的bug，需要查看源码才能定位解决这个bug，目前还在研究中。当前的workaround是通过脚本定期扫描出现unassigned shards的索引，修改其settings:</p>
+<pre style="position: relative; z-index: 2;"><code>```
+{
+  "index.routing" : {
+          "allocation" : {
+            "require" : {
+              "temperature" : "warm",
+              "_id" : null
+            }
+          }
+        }
+}
+```
+</code></pre>
+
+<p>优先保证分片先从hot节点迁移到warm节点，这样后续的shrink才能顺利执行(也可能执行失败，因为60个分片都在一个节点上，可能会触发rebalance, 导致分片迁移走，shrink的前置条件又不满足，导致执行失败)。要完全规避这个问题，还得在ILM策略中设置，满足创建时间超过360个小时的索引，副本直接调整为0，但是客户又不接受，没办法。</p>
+
+<h2 id="场景7-自己实现SLM">场景7：自己实现SLM</h2>
+
+<p>在场景5和6中，介绍了10w个分片会给集群带来的影响和通过开启shrink来降低分片数量，但是仍然有两个需要重点解决的问题：</p>
+
+<ol>
+<li>索引不断新建，如何保证一年内，集群总的分片数量不高于10w，稳定在一个较低的水位</li>
+<li>ILM中执行shrink可能会导致部分分片未分配以及shrink执行失败，怎么彻底解决</li>
+</ol>
+
+<p>可以估算一下，按小时建索引，60分片1副本，一年的分片数为24*120*365=1051200个分片，执行shrink后分片数量24*10*350 + 24*120*15 = 127200(15天内的新索引为了保障写入性能和数据可靠性，仍然保持60分片1副本，旧的索引shrink为5分片1副本), 仍然有超过10w个分片。结合集群一年总的存储量和单个分片可以支持的数据量大小进行评估，我们期望集群总体的分片数量可以稳定为6w~8w，怎么优化？</p>
+
+<p>可以想到的方案是执行数据冷备份，把比较老的索引都冷备到其它的存储介质上比如HDFS，S3，的COS对象存储等，但是问题是这些冷备的数据如果也要查询，需要先恢复到ES中才可查，恢复速度比较慢，客户无法接受。由此也产生了新的想法，目前老的索引仍然是1副本，可以把老索引先进行冷备份，再把副本调为0，这样做有以下几点好处：</p>
+
+<ol>
+<li>集群整体分片数量能降低一半</li>
+<li>数据存储量也能降低一半，集群可以存储更多数据</li>
+<li>老的索引仍然随时可查</li>
+<li>极端情况下，磁盘故障引起只有一个副本的索引数据无法恢复时，可以从冷备介质中进行恢复</li>
+</ol>
+
+<p>经过和客户沟通，客户接受了上述方案，计划把老索引冷备到的对象存储COS中，实施步骤为：</p>
+
+<ol>
+<li>所有存量的老索引，需要批量处理，尽快地备份到COS中，然后批量修改副本数量为0</li>
+<li>最近新建的索引，采用按天备份的策略，结合ILM, 修改策略，在ILM执行过程中修改索引副本数为0(ILM的warm phase 和cold phase都支持设置副本数量)</li>
+</ol>
+
+<p>其中步骤1的实施可以通过脚本实现，本案例中采用SCF云函数进行实施，方便快捷可监控。实施要点有：</p>
+
+<ol>
+<li>按天创建snapshot，批量备份每天产生的24个索引，如果是按月或者更大粒度创建快照，因数据量太大如果执行快照过程中出现中断，则必须全部重来，耗时耗力；按小时创建快照也不适用，会造成快照数量太多，可能会踩到坑</li>
+<li>每创建一个快照，后续需要轮询快照的状态，保证前一个快照state为"SUCCESS"之后，再创建下一个快照；因为快照是按天创建的，快照名字可以为snapshot-2020.06.01, 该快照只备份6月1号的所有索引。而在检查到snapshot-2020.06.01快照执行成功后，然后新建下一个快照时，需要知道要对哪天的索引打快照，因此需要记录当前正在执行哪一个快照。有两种方式记录，一是把当前正在执行的快照日期后缀"2020.06.01"写入到文件中, 脚本通过定时任务轮询时，每次都读文件；另外一种方式是创建一个临时的索引，把"2020.06.01"写入到这个临时索引的一个doc中，之后对该doc进行查询或者更新。</li>
+<li>创建快照时，可以把"include_global_state"置为false, 不对集群的全局状态信息进行备份。</li>
+</ol>
+
+<p>在实施完步骤1之后，就可以批量把对索引进行过备份的索引副本数都调为0， 这样一次性释放了很多磁盘空间，并且显著降低了集群整体的分片数量。</p>
+
+<p>接下来实施步骤2，需要每天执行一次快照，多创建时间较久的索引进行备份，实施比较简单，可以通过crontab定时执行脚本或者使用SCF执行。</p>
+
+<p>步骤2实施之后，就可以修改ILM策略，开启cold phase, 修改索引副本数量为0:</p>
+
+<p></p>
+
+<p>此处的timing是创建时间20天后，需要保证步骤2中对过去老索引数据备份先执行完成才可以进入到cold phase.</p>
+
+<p>通过老索引数据冷备并且降低索引副本，我们可以把集群整体的分片数量维持在一个较低的水位，但是还有另外一个问题待解决，也即shrink失败的问题。刚好，我们可以利用对老索引数据冷备并且降低索引副本的方案，来彻底解决shrink失败的问题。</p>
+
+<p>在场景5中有提到，shrink失败归根接地是因为索引的副本数量为1， 现在我们可以吧数据备份和降低副本提前，让老索引进入到ILM的warm phase中时已经是0副本，之后再执行shrink操作就不会有问题了；同时，因为副本降低了，索引从hot节点迁移到warm节点迁移的数据量也减少了一半，从而降低了集群负载，一举两得。</p>
+
+<p>因此，我们需要修改ILM策略，在warm phase就把索引的副本数量调整为0， 然后去除cold phase。</p>
+
+<p>另外一个可选的优化项是，对老的索引进行冻结，冻结索引是指把索引常驻内存的一些数据从内存中清理掉(比如FST, 元数据等)， 从而降低内存使用量，而在查询已经冻结的索引时，会重新构建出临时的索引数据结构存放在内存中，查询完毕再清理掉；需要注意的是，默认情况下是无法查询已经冻结的索引的，需要在查询时显式的增加"ignore_throttled=false"参数。</p>
+
+<p>经过上述优化，我们最终解决了集群整体分片数量过多和shrink失败的问题。在实施过程中引入了额外的定时任务脚本实施自动化快照，实际上在7.4版本的ES中，已经有这个功能了，特性名称为<a href="https://www.elastic.co/guide/en/elasticsearch/reference/master/getting-started-snapshot-lifecycle-management.html" target="_blank">SLM</a>(快照生命周期管理)，并且可以结合ILM使用，在ILM中增加了"wait_for_snapshot"的ACTION, 但是却只能在delete phase中使用，不满足我们的场景。</p>
+
+<h2 id="场景8-客户十分喜欢的Searchable Snapshots-">场景8：客户十分喜欢的Searchable Snapshots!</h2>
+
+<p>在上述的场景4-7中，我们花费大量的精力去解决问题和优化使用方式，保证ES集群能够稳定运行，支持PB级别的存储。溯本回原，如果我们能有一个方案使得客户只需要把热数据放在SSD盘上，然后冷数据存储到COS/S3上，但同时又使冷数据能够支持按需随时可查，那我们前面碰到的所有问题都迎刃而解了。可以想象得到的好处有：</p>
+
+<ol>
+<li>只需要更小规模的集群和非常廉价的COS/S3对象存储就可以支持PB级别的数据量，客户的资金成本非常低</li>
+<li>小规模的集群只需要能够支撑热索引的写入和查询即可，集群整体的分片数不会太多，从而避免了集群不稳定现象的发生</li>
+</ol>
+
+<p>而这正是目前es开源社区正在开发中的Searchable Snapshots功能，从<a href="https://www.elastic.co/guide/en/elasticsearch/reference/master/searchable-snapshots-apis.html" target="_blank">Searchable Snapshots API</a>的官方文档上可以看到，我们可以创建一个索引，将其挂载到一个指定的快照中，这个新的索引是可查询的，虽然查询时间可能会慢点，但是在日志场景中，对一些较老的索引进行查询时，延迟大点一般都是可以接受的。</p>
+
+<p>所以我认为，Searchable Snapshots解决了很多痛点，将会给ES带了新的繁荣！</p>
+
+<h2 id="总结">总结</h2>
+
+<p>经历过上述运维和优化ES集群的实践，我们总结到的经验有：</p>
+
+<ol>
+<li>新集群上线前务必做好集群规模和节点规格的评估</li>
+<li>集群整体的分片数量不能太多，可以通过调整使用方式并且借助ES本身的能力不断进行优化，使得集群总体的分片数维持在一个较低的水位，保证集群的稳定性</li>
+<li>Searchable Snapshots利器会给ES带来新的生命力，需要重点关注并研究其实现原理</li>
+</ol>
+
+<p>从一开始和客户进行接触，了解客户诉求，逐步解决ES集群的问题，最终使得ES集群能够保持稳定，这中间的经历让我真真正正的领悟到"实践出真知"，只有不断实践，才能对异常情况迅速做出反应，以及对客户提的优化需求迅速反馈。</p>
