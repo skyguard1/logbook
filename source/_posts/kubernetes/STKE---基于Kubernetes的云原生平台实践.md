@@ -123,7 +123,7 @@ categories:
 <h3 id="1-5 现状">1.5 现状</h3>
 
 <p style="">Docker自2013年诞生已经有6年的时间，已经成为一个相对稳定成熟的产品，也越来越被开发者接受。<br>
-<img src="./【k8s 开源协同】STKE---基于Kubernetes的云原生平台实践 - Kubernetes - KM平台_files/cos-file-url(2)" alt="" style="position: relative; z-index: 2;" class="amplify"></p>
+<img src="/logbook/images/kubernetes/STKE---基于Kubernetes的云原生平台实践/e1ef6107b1a6.jpg" alt="" style="position: relative; z-index: 2;" class="amplify"></p>
 
 <p>虽然，在构建docker镜像的时候，到底以运行单个进程和多个进程，存在着争议，但都是以简洁，轻量级为目标构建。</p>
 
@@ -180,7 +180,7 @@ categories:
 <li>开放原生API。</li>
 </ul>
 
-<p style=""><img src="./【k8s 开源协同】STKE---基于Kubernetes的云原生平台实践 - Kubernetes - KM平台_files/cos-file-url(3)" alt="" style="position: relative; z-index: 2;" class="amplify"></p>
+<p style=""><img src="/logbook/images/kubernetes/STKE---基于Kubernetes的云原生平台实践/fba0c918d97f.png" alt="" style="position: relative; z-index: 2;" class="amplify"></p>
 
 <h3 id="2-1 设计原则">2.1 设计原则</h3>
 
@@ -215,9 +215,9 @@ categories:
 
 <h3 id="2-2 产品架构">2.2 产品架构</h3>
 
-<p style=""><img src="./【k8s 开源协同】STKE---基于Kubernetes的云原生平台实践 - Kubernetes - KM平台_files/cos-file-url(4)" alt="" style="position: relative; z-index: 2;" class="amplify"></p>
+<p style=""><img src="/logbook/images/kubernetes/STKE---基于Kubernetes的云原生平台实践/631bb036931f.png" alt="" style="position: relative; z-index: 2;" class="amplify"></p>
 
-<p style=""><img src="./【k8s 开源协同】STKE---基于Kubernetes的云原生平台实践 - Kubernetes - KM平台_files/cos-file-url(5)" alt="" style="position: relative; z-index: 2;" class="amplify"></p>
+<p style=""><img src="/logbook/images/kubernetes/STKE---基于Kubernetes的云原生平台实践/8623952d2fa1.png" alt="" style="position: relative; z-index: 2;" class="amplify"></p>
 
 <ul>
 <li>STKE所有资源全部来自云上，拥有专有VPC，平台通过TKE生产出集群后，根据生产环境实际情况，对集群节点、Kubernetes参数等重新做了初始化，优化了部分配置。</li>
@@ -294,7 +294,7 @@ categories:
 <li>不经过 NAT 转换</li>
 </ul>
 
-<p style=""><img src="./【k8s 开源协同】STKE---基于Kubernetes的云原生平台实践 - Kubernetes - KM平台_files/cos-file-url(6)" alt="" style="position: relative; z-index: 2;" class="amplify"><br>
+<p style=""><img src="/logbook/images/kubernetes/STKE---基于Kubernetes的云原生平台实践/a97d5da1aeb6.png" alt="" style="position: relative; z-index: 2;" class="amplify"><br>
 简单来说，每个Pod绑定了一个弹性网卡，弹性网卡的IP为VPC内的网段的IP，因此，既能实现跨主机间的通信，又可以与云VPC内其他服务的IP互相通信。</p>
 
 <p>对于问题2，我们会在<a href="https://km.woa.com/group/31235/articles/show/395767?kmref=search&amp;from_page=1&amp;no=1#router">路由与服务发现</a>一节具体介绍。</p>
@@ -314,7 +314,7 @@ categories:
 <p>当有 StatefulsetPlus/Statefulset 新建/更新/删除，IPAMD 会监听到该事件，为该 StatefulsetPlus/Statefulset 预留/解预留 IP。<br>
 以下为 IPAMD 实现 StatefulsetPlus/Statefulset Pod 固定 IP 原理图：</p>
 
-<p style=""><img src="./【k8s 开源协同】STKE---基于Kubernetes的云原生平台实践 - Kubernetes - KM平台_files/cos-file-url(7)" alt="" style="position: relative; z-index: 2;" class="amplify"></p>
+<p style=""><img src="/logbook/images/kubernetes/STKE---基于Kubernetes的云原生平台实践/5d191aecd25c.png" alt="" style="position: relative; z-index: 2;" class="amplify"></p>
 
 <h5 id="3-1-2-3 具体实现传送门">3.1.2.3 具体实现传送门</h5>
 
@@ -330,7 +330,7 @@ categories:
 
 <p>自研上云过程中，会有人担心公司各个网络区域之间的通讯问题，自研团队从去年开始，就与公司各基础团队打通云VPC与IDC的专线，目前已经实现IDC，云支撑与云VPC（自研上云的区域）的网络互通。</p>
 
-<p style=""><img src="./【k8s 开源协同】STKE---基于Kubernetes的云原生平台实践 - Kubernetes - KM平台_files/cos-file-url(8)" alt="" style="position: relative; z-index: 2;" class="amplify"></p>
+<p style=""><img src="/logbook/images/kubernetes/STKE---基于Kubernetes的云原生平台实践/ef954272eaee.png" alt="" style="position: relative; z-index: 2;" class="amplify"></p>
 
 <ol>
 <li>
@@ -352,7 +352,7 @@ categories:
 
 <p>通过以上改造各地网络延迟也有明显下降。网络延迟拓扑：</p>
 
-<p style=""><img src="./【k8s 开源协同】STKE---基于Kubernetes的云原生平台实践 - Kubernetes - KM平台_files/cos-file-url(9)" alt="" style="position: relative; z-index: 2;" class="amplify"></p>
+<p style=""><img src="/logbook/images/kubernetes/STKE---基于Kubernetes的云原生平台实践/dc764ef834ff.png" alt="" style="position: relative; z-index: 2;" class="amplify"></p>
 
 <ul>
 <li>
@@ -383,7 +383,7 @@ categories:
 
 <p>首先，因为业务场景不通，其实没有一个绝对合理的组织形式，每个服务都可能根据自己的实际状况组织不同的形式。</p>
 
-<p style=""><img src="./【k8s 开源协同】STKE---基于Kubernetes的云原生平台实践 - Kubernetes - KM平台_files/cos-file-url(10)" alt="" style="position: relative; z-index: 2;" class="amplify"></p>
+<p style=""><img src="/logbook/images/kubernetes/STKE---基于Kubernetes的云原生平台实践/12117b7c2ccc.png" alt="" style="position: relative; z-index: 2;" class="amplify"></p>
 
 <p>STKE用户在进入后，首先需要创建一个业务，通过业务这个集合的概念，去管理下面的服务。</p>
 
@@ -404,7 +404,7 @@ categories:
 
 <p>下图是基于STKE + Serice Mesh在base命名空间的服务调用拓扑。</p>
 
-<p style=""><img src="./【k8s 开源协同】STKE---基于Kubernetes的云原生平台实践 - Kubernetes - KM平台_files/cos-file-url(11)" alt="" style="position: relative; z-index: 2;" class="amplify"></p>
+<p style=""><img src="/logbook/images/kubernetes/STKE---基于Kubernetes的云原生平台实践/294a3ece5f83.png" alt="" style="position: relative; z-index: 2;" class="amplify"></p>
 
 <h5 id="3-2-2-1 CMDB绑定">3.2.2.1 CMDB绑定</h5>
 
@@ -416,9 +416,9 @@ categories:
 <li>基础组件依赖(tnm2等)</li>
 </ul>
 
-<p style=""><img src="./【k8s 开源协同】STKE---基于Kubernetes的云原生平台实践 - Kubernetes - KM平台_files/cos-file-url(12)" alt="" style="position: relative; z-index: 2;" class="amplify"></p>
+<p style=""><img src="/logbook/images/kubernetes/STKE---基于Kubernetes的云原生平台实践/12fd54d2f8e2.png" alt="" style="position: relative; z-index: 2;" class="amplify"></p>
 
-<p style=""><img src="./【k8s 开源协同】STKE---基于Kubernetes的云原生平台实践 - Kubernetes - KM平台_files/cos-file-url(13)" alt="" style="position: relative; z-index: 2;" class="amplify"></p>
+<p style=""><img src="/logbook/images/kubernetes/STKE---基于Kubernetes的云原生平台实践/442c006efaee.png" alt="" style="position: relative; z-index: 2;" class="amplify"></p>
 
 <p>如上图所示：</p>
 
@@ -436,7 +436,7 @@ categories:
 
 <h5 id="3-2-2-2 业务管理">3.2.2.2 业务管理</h5>
 
-<p style=""><img src="./【k8s 开源协同】STKE---基于Kubernetes的云原生平台实践 - Kubernetes - KM平台_files/cos-file-url(14)" alt="" style="position: relative; z-index: 2;" class="amplify"></p>
+<p style=""><img src="/logbook/images/kubernetes/STKE---基于Kubernetes的云原生平台实践/0d45ed407678.png" alt="" style="position: relative; z-index: 2;" class="amplify"></p>
 
 <p>为了实现以业务级别的管理，STKE在开源TKE的基础上进行了二次开发。</p>
 
@@ -444,7 +444,7 @@ categories:
 
 <p>平台通过Project Manager去管理业务，业务与NsSet相关联，以此达到了基于业务的多集群多环境管理的效果。</p>
 
-<p style=""><img src="./【k8s 开源协同】STKE---基于Kubernetes的云原生平台实践 - Kubernetes - KM平台_files/cos-file-url(15)" alt="" style="position: relative; z-index: 2;" class="amplify"></p>
+<p style=""><img src="/logbook/images/kubernetes/STKE---基于Kubernetes的云原生平台实践/f73729e3e462.png" alt="" style="position: relative; z-index: 2;" class="amplify"></p>
 </div><center>业务列表</center>
 ![](http://km.oa.com/files/photos/pictures/201909/1568689507_77_w2114_h1100.png)
 </div><center>服务多集群部署</center>
@@ -510,7 +510,7 @@ categories:
 
 <p>STKE开发了L5-Controller，用户在部署服务时，同时可以选择L5/CL5/CMLB类型的Service与workload进行绑定，就可以实现相应的访问，主调方直接根据ID即可获取到对应Pod IP:Port，提供访问。</p>
 
-<p style=""><img src="./【k8s 开源协同】STKE---基于Kubernetes的云原生平台实践 - Kubernetes - KM平台_files/cos-file-url(16)" alt="" style="position: relative; z-index: 2;" class="amplify"></p>
+<p style=""><img src="/logbook/images/kubernetes/STKE---基于Kubernetes的云原生平台实践/d92c6fd23cef.png" alt="" style="position: relative; z-index: 2;" class="amplify"></p>
 </div><center>选择L5</center>
 ![](http://km.oa.com/files/photos/pictures/201909/1568689567_15_w846_h400.png)
 <center>L5-Service yaml</center>
@@ -531,9 +531,9 @@ categories:
 
 <p>另外一种可以实现集群内/外访问的方式，就是是用CLB，即上文提到的LoadBalancer类型的Service，CLB是的负载均衡。</p>
 
-<p style=""><img src="./【k8s 开源协同】STKE---基于Kubernetes的云原生平台实践 - Kubernetes - KM平台_files/cos-file-url(17)" alt="" style="position: relative; z-index: 2;" class="amplify"></p>
+<p style=""><img src="/logbook/images/kubernetes/STKE---基于Kubernetes的云原生平台实践/43679c2d1148.png" alt="" style="position: relative; z-index: 2;" class="amplify"></p>
 
-<p style=""><img src="./【k8s 开源协同】STKE---基于Kubernetes的云原生平台实践 - Kubernetes - KM平台_files/cos-file-url(18)" alt="" style="position: relative; z-index: 2;" class="amplify"></p>
+<p style=""><img src="/logbook/images/kubernetes/STKE---基于Kubernetes的云原生平台实践/fb972f0e48dc.png" alt="" style="position: relative; z-index: 2;" class="amplify"></p>
 
 <p>他的实现也的与L5类似，也是通过监听绑定Service的Pod变化，将后端实际Pod IP动态的与CLB后端的RS信息同步，达到通过访问一个VIP，即可路由到后端Pod的效果。同时，STKE的公网的CLB还支持各类运营商网络，以满足业务接入需求。</p>
 
@@ -564,11 +564,11 @@ categories:
 
 <p>STKE对于这种情况，使用了Kubernetes的InitContainer机制，预先在容器启动之前，先拿到Pod的IP，去各类平台进行鉴权，保证权限已经下发之后，再启动之后用户的Container。</p>
 
-<p style=""><img src="./【k8s 开源协同】STKE---基于Kubernetes的云原生平台实践 - Kubernetes - KM平台_files/cos-file-url(19)" alt="" style="position: relative; z-index: 2;" class="amplify"></p>
+<p style=""><img src="/logbook/images/kubernetes/STKE---基于Kubernetes的云原生平台实践/16b1704946e0.png" alt="" style="position: relative; z-index: 2;" class="amplify"></p>
 
-<p style=""><img src="./【k8s 开源协同】STKE---基于Kubernetes的云原生平台实践 - Kubernetes - KM平台_files/cos-file-url(20)" alt="" style="position: relative; z-index: 2;" class="amplify"></p>
+<p style=""><img src="/logbook/images/kubernetes/STKE---基于Kubernetes的云原生平台实践/af14d619a8ce.png" alt="" style="position: relative; z-index: 2;" class="amplify"></p>
 
-<p style=""><img src="./【k8s 开源协同】STKE---基于Kubernetes的云原生平台实践 - Kubernetes - KM平台_files/cos-file-url(21)" alt="" style="position: relative; z-index: 2;" class="amplify"></p>
+<p style=""><img src="/logbook/images/kubernetes/STKE---基于Kubernetes的云原生平台实践/5c173b500b66.png" alt="" style="position: relative; z-index: 2;" class="amplify"></p>
 
 <p>同时，例如OIDB，VAS_KEY这里鉴权，平台也跟响应的开发同学联合优化，使得鉴权同步时间从十几分钟缩短到5分钟以内。</p>
 
@@ -603,7 +603,7 @@ categories:
 </li>
 </ul>
 
-<p style=""><img src="./【k8s 开源协同】STKE---基于Kubernetes的云原生平台实践 - Kubernetes - KM平台_files/cos-file-url(22)" alt="" style="position: relative; z-index: 2;" class="amplify"></p>
+<p style=""><img src="/logbook/images/kubernetes/STKE---基于Kubernetes的云原生平台实践/99706cf2dae1.png" alt="" style="position: relative; z-index: 2;" class="amplify"></p>
 
 <ul>
 <li>用户可选择应用分几批次进行更新。</li>
@@ -643,7 +643,7 @@ categories:
 
 <p>基于上述问题，在TencentHub团队帮助下，建立了csighub.oa.com镜像仓库。一方面可以将内部使用问题反馈给开发团队，另一方面也得到了运营上的支持，遇到问题能够更加高效的解决。</p>
 
-<p style=""><img src="./【k8s 开源协同】STKE---基于Kubernetes的云原生平台实践 - Kubernetes - KM平台_files/cos-file-url(23)" alt="" style="position: relative; z-index: 2;" class="amplify"></p>
+<p style=""><img src="/logbook/images/kubernetes/STKE---基于Kubernetes的云原生平台实践/34adf9f83963.png" alt="" style="position: relative; z-index: 2;" class="amplify"></p>
 
 <ol>
 <li>为了解决Https及证书问题，我们签发了公网证书，为了能够保证访问，浏览器端使用csighub.oa.com登录，<a href="http://xn--csighub-oc6k521zscmtjk892blx1a.tencentyun.com/" target="_blank">终端访问使用csighub.tencentyun.com</a>。</li>
@@ -659,7 +659,7 @@ categories:
 
 <p>于此同时，STKE也为大家提供了公司tlinux的基础镜像，即tlinux的镜像版本</p>
 
-<pre class="  language-bash" style="position: relative; z-index: 2;"><code class="prism  language-bash">csighub.tencentyun.com/admin/tlinux2.2-bridge-tcloud-underlay:latest
+<pre><code>csighub.tencentyun.com/admin/tlinux2.2-bridge-tcloud-underlay:latest
 </code></pre>
 
 <p>对于通用的公共组件，STKE平台还提供了l5_protocol_32os，monitor_agent，tjg_agent等镜像，可以作为sidecar与主镜像共同编排在同一个Pod中提供服务。</p>
@@ -680,13 +680,13 @@ categories:
 <li>挂载Filebeat SideCar为用户上报日志；</li>
 </ol>
 
-<p style=""><img src="./【k8s 开源协同】STKE---基于Kubernetes的云原生平台实践 - Kubernetes - KM平台_files/cos-file-url(24)" alt="" style="position: relative; z-index: 2;" class="amplify"></p>
+<p style=""><img src="/logbook/images/kubernetes/STKE---基于Kubernetes的云原生平台实践/5c44d4387cbb.png" alt="" style="position: relative; z-index: 2;" class="amplify"></p>
 
 <p>用户可以通过平台连接，直接跳转到<a href="http://uta.oa.com/" target="_blank">UTA</a>查看自己的日志流水</p>
 
-<p style=""><img src="./【k8s 开源协同】STKE---基于Kubernetes的云原生平台实践 - Kubernetes - KM平台_files/cos-file-url(25)" alt="" style="position: relative; z-index: 2;" class="amplify"></p>
+<p style=""><img src="/logbook/images/kubernetes/STKE---基于Kubernetes的云原生平台实践/c682967a630a.png" alt="" style="position: relative; z-index: 2;" class="amplify"></p>
 
-<p style=""><img src="./【k8s 开源协同】STKE---基于Kubernetes的云原生平台实践 - Kubernetes - KM平台_files/cos-file-url(26)" alt="" style="position: relative; z-index: 2;" class="amplify"></p>
+<p style=""><img src="/logbook/images/kubernetes/STKE---基于Kubernetes的云原生平台实践/b37ab44dd5d1.png" alt="" style="position: relative; z-index: 2;" class="amplify"></p>
 
 <h5 id="具体实现及应用文档">具体实现及应用文档</h5>
 
@@ -708,11 +708,11 @@ categories:
 
 <p>平台通过基础上报组件，与监控告警平台打通，支持了用户自定义指标告警。</p>
 
-<p style=""><img src="./【k8s 开源协同】STKE---基于Kubernetes的云原生平台实践 - Kubernetes - KM平台_files/cos-file-url(27)" alt="" style="position: relative; z-index: 2;" class="amplify"></p>
+<p style=""><img src="/logbook/images/kubernetes/STKE---基于Kubernetes的云原生平台实践/e90449993917.png" alt="" style="position: relative; z-index: 2;" class="amplify"></p>
 
 <h4 id="3-8-2 基础指标监控-告警">3.8.2 基础指标监控/告警</h4>
 
-<p style=""><img src="./【k8s 开源协同】STKE---基于Kubernetes的云原生平台实践 - Kubernetes - KM平台_files/cos-file-url(28)" alt="" style="position: relative; z-index: 2;" class="amplify"></p>
+<p style=""><img src="/logbook/images/kubernetes/STKE---基于Kubernetes的云原生平台实践/677847a07878.png" alt="" style="position: relative; z-index: 2;" class="amplify"></p>
 
 <p>关于基础指标，平台使用prometheus作为基础监控，并对Kubelet做了改进，修正了部分上报参数（<a href="http://km.oa.com/articles/show/423025" target="_blank">kubernetes上报Pod已用内存不准问题分析</a>）。</p>
 
@@ -740,7 +740,7 @@ categories:
 
 <p>平台提供的Tlinux_base镜像中，默认集成了铁将军模块，用户部署服务后，默认拥有机器权限，可以通过实名免密的方式，直接登录到容器中，无需输入密码。</p>
 
-<pre class="  language-bash" style="position: relative; z-index: 2;"><code class="prism  language-bash"><span class="token function">ssh</span> rtx@PodIP
+<pre><code>ssh rtx@PodIP
 </code></pre>
 
 <h4 id="3-9-2 WebConsole">3.9.2 WebConsole</h4>
@@ -761,11 +761,11 @@ categories:
 
 <p>因此基于这写场景，经过安全部门同学的协助与评估，逐渐开放了内部合规的Webconsole登录的功能，方便用户直接登录容器。</p>
 
-<p style=""><img src="./【k8s 开源协同】STKE---基于Kubernetes的云原生平台实践 - Kubernetes - KM平台_files/cos-file-url(29)" alt="" style="position: relative; z-index: 2;" class="amplify"></p>
+<p style=""><img src="/logbook/images/kubernetes/STKE---基于Kubernetes的云原生平台实践/b7dfc95b9140.png" alt="" style="position: relative; z-index: 2;" class="amplify"></p>
 
-<p style=""><img src="./【k8s 开源协同】STKE---基于Kubernetes的云原生平台实践 - Kubernetes - KM平台_files/cos-file-url(30)" alt="" style="position: relative; z-index: 2;" class="amplify"></p>
+<p style=""><img src="/logbook/images/kubernetes/STKE---基于Kubernetes的云原生平台实践/6a68dfe435ee.png" alt="" style="position: relative; z-index: 2;" class="amplify"></p>
 
-<p style=""><img src="./【k8s 开源协同】STKE---基于Kubernetes的云原生平台实践 - Kubernetes - KM平台_files/cos-file-url(31)" alt="" style="position: relative; z-index: 2;" class="amplify"></p>
+<p style=""><img src="/logbook/images/kubernetes/STKE---基于Kubernetes的云原生平台实践/31516e4ac5a0.png" alt="" style="position: relative; z-index: 2;" class="amplify"></p>
 
 <h3 id="3-10 CI-CD">3.10 CI/CD</h3>
 
@@ -773,40 +773,40 @@ categories:
 
 <p>同时，也将之前的zhiyun服务，可以保有原来构建PKG的流程，再将这些织云PKG组合构建出相应的镜像，发布到STKE（长尾服务迁移困难，最好的办法还是直接构建为镜像）。</p>
 
-<p style=""><img src="./【k8s 开源协同】STKE---基于Kubernetes的云原生平台实践 - Kubernetes - KM平台_files/cos-file-url(32)" alt="" style="position: relative; z-index: 2;" class="amplify"></p>
+<p style=""><img src="/logbook/images/kubernetes/STKE---基于Kubernetes的云原生平台实践/18115215dbb9.png" alt="" style="position: relative; z-index: 2;" class="amplify"></p>
 
-<p style=""><img src="./【k8s 开源协同】STKE---基于Kubernetes的云原生平台实践 - Kubernetes - KM平台_files/cos-file-url(33)" alt="" style="position: relative; z-index: 2;" class="amplify"></p>
+<p style=""><img src="/logbook/images/kubernetes/STKE---基于Kubernetes的云原生平台实践/78b37891c6a7.png" alt="" style="position: relative; z-index: 2;" class="amplify"></p>
 
 <h4 id="3-10-1 OrangeCI插件">3.10.1 OrangeCI插件</h4>
 
-<pre class="  language-yaml" style="position: relative; z-index: 2;"><code class="prism  language-yaml"><span class="token key atrule">master</span><span class="token punctuation">:</span>
-  <span class="token key atrule">push</span><span class="token punctuation">:</span>
-    <span class="token punctuation">-</span>
-      <span class="token key atrule">stages</span><span class="token punctuation">:</span>
-        <span class="token comment"># ...省略中间构建docker的部分</span>
-        <span class="token punctuation">-</span> <span class="token key atrule">name</span><span class="token punctuation">:</span> stke update
-          <span class="token key atrule">type</span><span class="token punctuation">:</span> stke<span class="token punctuation">:</span>update
-          <span class="token key atrule">options</span><span class="token punctuation">:</span>
-            <span class="token key atrule">kind</span><span class="token punctuation">:</span> statefulsetplus
-            <span class="token key atrule">projectName</span><span class="token punctuation">:</span> prj<span class="token punctuation">-</span>3e6ckrwpkoyy
-            <span class="token key atrule">namespaces</span><span class="token punctuation">:</span> prj<span class="token punctuation">-</span>3e6ckrwpkoyy
-            <span class="token key atrule">clusterId</span><span class="token punctuation">:</span> cls<span class="token punctuation">-</span>98zz20xk
-            <span class="token key atrule">resourceIns</span><span class="token punctuation">:</span>  deployment<span class="token punctuation">-</span>runner
-            <span class="token key atrule">name</span><span class="token punctuation">:</span>  demo<span class="token punctuation">-</span>container
-            <span class="token key atrule">image</span><span class="token punctuation">:</span> csighub.tencentyun.com/demo/demo<span class="token punctuation">:</span>$<span class="token punctuation">{</span>ORANGE_BUILD_ID<span class="token punctuation">}</span>
+<pre><code>master:
+  push:
+    -
+      stages:
+        # ...省略中间构建docker的部分
+        - name: stke update
+          type: stke:update
+          options:
+            kind: statefulsetplus
+            projectName: prj-3e6ckrwpkoyy
+            namespaces: prj-3e6ckrwpkoyy
+            clusterId: cls-98zz20xk
+            resourceIns:  deployment-runner
+            name:  demo-container
+            image: csighub.tencentyun.com/demo/demo:${ORANGE_BUILD_ID}
 </code></pre>
 
 <p><a href="http://doc.orange-ci.oa.com/internal-steps/stke/update.html#%E8%BE%93%E5%87%BA" target="_blank">OrangeCI STKE Update</a></p>
 
 <h4 id="3-10-2 QCI插件">3.10.2 QCI插件</h4>
 
-<p style=""><img src="./【k8s 开源协同】STKE---基于Kubernetes的云原生平台实践 - Kubernetes - KM平台_files/cos-file-url(34)" alt="" style="position: relative; z-index: 2;"></p>
+<p style=""><img src="/logbook/images/kubernetes/STKE---基于Kubernetes的云原生平台实践/391558c746e6.png" alt="" style="position: relative; z-index: 2;"></p>
 
 <p><a href="http://qci.oa.com/#/plugins_market/STKE_update" target="_blank">QCI STKE Update</a></p>
 
 <h4 id="3-10-3 蓝盾插件">3.10.3 蓝盾插件</h4>
 
-<p style=""><img src="./【k8s 开源协同】STKE---基于Kubernetes的云原生平台实践 - Kubernetes - KM平台_files/cos-file-url(35)" alt="" style="position: relative; z-index: 2;" class="amplify"></p>
+<p style=""><img src="/logbook/images/kubernetes/STKE---基于Kubernetes的云原生平台实践/57a9492c44c5.png" alt="" style="position: relative; z-index: 2;" class="amplify"></p>
 
 <p><a href="http://devops.oa.com/console/store/atomStore/detail/atom/stkeAtom" target="_blank">蓝盾 STKE Update</a></p>
 

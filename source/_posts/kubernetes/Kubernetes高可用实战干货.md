@@ -19,7 +19,7 @@ categories:
 
 <p>管理节点采用kubeadm搭建的3节点标准高可用方案(<a href="https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/ha-topology/#stacked-etcd-topology" target="_blank">Stacked etcd topology</a>)：</p>
 
-<p style=""><img src="./Kubernetes高可用实战干货 - CSIG新人专区（已转至云知） - KM平台_files/cos-file-url(2)" alt="" style="position: relative; z-index: 2;" class="amplify"></p>
+<p style=""><img src="/logbook/images/kubernetes/Kubernetes高可用实战干货/b77eff04747d.png" alt="" style="position: relative; z-index: 2;" class="amplify"></p>
 
 <p>该方案中，所有管理节点都部署kube-apiserver，kube-controller-manager，kube-scheduler，以及etcd等组件；kube-apiserver均与本地的etcd进行通信，etcd在三个节点间同步数据；而kube-controller-manager和kube-scheduler也只与本地的kube-apiserver进行通信(或者通过LB访问)</p>
 
@@ -45,7 +45,7 @@ categories:
 
 <p>这里答案是会有问题。因为service不会马上剔除掉宕机上对应的nginx pod，同时由于service常用的<a href="https://kubernetes.io/docs/concepts/services-networking/service/#proxy-mode-iptables" target="_blank">iptables代理模式</a>没有实现<a href="https://kubernetes.io/docs/concepts/services-networking/service/#proxy-mode-iptables" target="_blank">retry with another backend</a>特性，所以在一段时间内访问会出现间歇性问题(如果请求轮询到挂掉的nginx pod上)，也就是说会存在一个访问失败间隔期</p>
 
-<p style=""><img src="./Kubernetes高可用实战干货 - CSIG新人专区（已转至云知） - KM平台_files/cos-file-url(3)" alt="" style="position: relative; z-index: 2;" class="amplify"></p>
+<p style=""><img src="/logbook/images/kubernetes/Kubernetes高可用实战干货/186534efb052.png" alt="" style="position: relative; z-index: 2;" class="amplify"></p>
 
 <p>这个间隔期取决于service对应的endpoint什么时候踢掉宕机的pod。之后，kube-proxy会watch到endpoint变化，然后更新对应的iptables规则，使service访问后端列表恢复正常(也就是踢掉该pod)</p>
 
@@ -59,11 +59,11 @@ categories:
 
 <p>也就是说在母机宕机后，在node-monitor-grace-period间隔内访问service会有间歇性问题，我们可以通过调整相关参数来缩小这个窗口期，如下：</p>
 
-<pre class="  language-python" style="position: relative; z-index: 2;"><code class="prism  language-python"><span class="token punctuation">(</span>kubelet<span class="token punctuation">)</span>node<span class="token operator">-</span>status<span class="token operator">-</span>update<span class="token operator">-</span>frequency：default 10s
-<span class="token punctuation">(</span>kube<span class="token operator">-</span>controller<span class="token operator">-</span>manager<span class="token punctuation">)</span>node<span class="token operator">-</span>monitor<span class="token operator">-</span>period：default 5s
-<span class="token punctuation">(</span>kube<span class="token operator">-</span>controller<span class="token operator">-</span>manager<span class="token punctuation">)</span>node<span class="token operator">-</span>monitor<span class="token operator">-</span>grace<span class="token operator">-</span>period：default 40s
-<span class="token operator">-</span> Amount of time which we allow running Node to be unresponsive before marking it unhealthy<span class="token punctuation">.</span> Must be N times more than kubelet's nodeStatusUpdateFrequency<span class="token punctuation">,</span> where N means number of retries allowed <span class="token keyword">for</span> kubelet to post node status<span class="token punctuation">.</span>
-<span class="token operator">-</span> Currently nodeStatusUpdateRetry <span class="token keyword">is</span> constantly <span class="token builtin">set</span> to <span class="token number">5</span> <span class="token keyword">in</span> kubelet<span class="token punctuation">.</span>go
+<pre><code>(kubelet)node-status-update-frequency：default 10s
+(kube-controller-manager)node-monitor-period：default 5s
+(kube-controller-manager)node-monitor-grace-period：default 40s
+- Amount of time which we allow running Node to be unresponsive before marking it unhealthy. Must be N times more than kubelet's nodeStatusUpdateFrequency, where N means number of retries allowed for kubelet to post node status.
+- Currently nodeStatusUpdateRetry is constantly set to 5 in kubelet.go
 </code></pre>
 
 <h3 id="连接复用-长连接-">连接复用(长连接)</h3>
@@ -94,8 +94,8 @@ categories:
 </blockquote>
 
 <blockquote>
-<pre class="  language-bash" style="position: relative; z-index: 2;"><code class="prism  language-bash"><span class="token comment"># 0.2+0.4+0.8+1.6+3.2+6.4+12.8+25.6+51.2+102.4 = 222.6s</span>
-$ <span class="token builtin class-name">echo</span> <span class="token number">9</span> <span class="token operator">&gt;</span> /proc/sys/net/ipv4/tcp_retries2
+<pre><code># 0.2+0.4+0.8+1.6+3.2+6.4+12.8+25.6+51.2+102.4 = 222.6s
+$ echo 9 &gt; /proc/sys/net/ipv4/tcp_retries2
 </code></pre>
 </blockquote>
 
@@ -104,10 +104,10 @@ $ <span class="token builtin class-name">echo</span> <span class="token number">
 </blockquote>
 
 <blockquote>
-<pre class="  language-bash" style="position: relative; z-index: 2;"><code class="prism  language-bash"><span class="token comment"># 30 + 30*5 = 180s</span>
-$ <span class="token builtin class-name">echo</span> <span class="token number">30</span> <span class="token operator">&gt;</span>  /proc/sys/net/ipv4/tcp_keepalive_time
-$ <span class="token builtin class-name">echo</span> <span class="token number">30</span> <span class="token operator">&gt;</span> /proc/sys/net/ipv4/tcp_keepalive_intvl
-$ <span class="token builtin class-name">echo</span> <span class="token number">5</span> <span class="token operator">&gt;</span> /proc/sys/net/ipv4/tcp_keepalive_probes
+<pre><code># 30 + 30*5 = 180s
+$ echo 30 &gt;  /proc/sys/net/ipv4/tcp_keepalive_time
+$ echo 30 &gt; /proc/sys/net/ipv4/tcp_keepalive_intvl
+$ echo 5 &gt; /proc/sys/net/ipv4/tcp_keepalive_probes
 </code></pre>
 </blockquote>
 
@@ -116,17 +116,17 @@ $ <span class="token builtin class-name">echo</span> <span class="token number">
 </blockquote>
 
 <blockquote>
-<pre class="  language-yaml" style="position: relative; z-index: 2;"><code class="prism  language-yaml"><span class="token punctuation">-</span> <span class="token key atrule">name</span><span class="token punctuation">:</span> init<span class="token punctuation">-</span>sysctl
-  <span class="token key atrule">image</span><span class="token punctuation">:</span> busybox
-  <span class="token key atrule">command</span><span class="token punctuation">:</span>
-  <span class="token punctuation">-</span> /bin/sh
-  <span class="token punctuation">-</span> <span class="token punctuation">-</span>c
-  <span class="token punctuation">-</span> <span class="token punctuation">|</span><span class="token scalar string">
+<pre><code>- name: init-sysctl
+  image: busybox
+  command:
+  - /bin/sh
+  - -c
+  - |
     sysctl -w net.ipv4.tcp_keepalive_time=30
     sysctl -w net.ipv4.tcp_keepalive_intvl=30
-    sysctl -w net.ipv4.tcp_keepalive_probes=5</span>
-  <span class="token key atrule">securityContext</span><span class="token punctuation">:</span>
-    <span class="token key atrule">privileged</span><span class="token punctuation">:</span> <span class="token boolean important">true</span>
+    sysctl -w net.ipv4.tcp_keepalive_probes=5
+  securityContext:
+    privileged: true
 </code></pre>
 </blockquote>
 
@@ -142,8 +142,8 @@ $ <span class="token builtin class-name">echo</span> <span class="token number">
 
 <p>pod驱逐可以使服务自动恢复副本数量。如上所述，node controller会在节点心跳超时之后一段时间(默认5mins)驱逐该节点上的pod，这个时间由如下参数决定：</p>
 
-<pre class="  language-python" style="position: relative; z-index: 2;"><code class="prism  language-python"><span class="token punctuation">(</span>kube<span class="token operator">-</span>apiserver<span class="token punctuation">)</span>default<span class="token operator">-</span><span class="token keyword">not</span><span class="token operator">-</span>ready<span class="token operator">-</span>toleration<span class="token operator">-</span>seconds：default <span class="token number">300</span>
-<span class="token punctuation">(</span>kube<span class="token operator">-</span>apiserver<span class="token punctuation">)</span>default<span class="token operator">-</span>unreachable<span class="token operator">-</span>toleration<span class="token operator">-</span>seconds：default <span class="token number">300</span>
+<pre><code>(kube-apiserver)default-not-ready-toleration-seconds：default 300
+(kube-apiserver)default-unreachable-toleration-seconds：default 300
 </code></pre>
 
 <blockquote>
@@ -159,28 +159,28 @@ $ <span class="token builtin class-name">echo</span> <span class="token number">
 <li><a href="http://node.kubernetes.io/unreachable:" target="_blank">node.kubernetes.io/unreachable:</a> Node is unreachable from the node controller. This corresponds to the NodeCondition Ready being “Unknown”.</li>
 </ul>
 
-<pre class="  language-yaml" style="position: relative; z-index: 2;"><code class="prism  language-yaml"><span class="token key atrule">tolerations</span><span class="token punctuation">:</span>
-  <span class="token punctuation">-</span> <span class="token key atrule">effect</span><span class="token punctuation">:</span> NoExecute
-    <span class="token key atrule">key</span><span class="token punctuation">:</span> node.kubernetes.io/not<span class="token punctuation">-</span>ready
-    <span class="token key atrule">operator</span><span class="token punctuation">:</span> Exists
-    <span class="token key atrule">tolerationSeconds</span><span class="token punctuation">:</span> <span class="token number">300</span>
-  <span class="token punctuation">-</span> <span class="token key atrule">effect</span><span class="token punctuation">:</span> NoExecute
-    <span class="token key atrule">key</span><span class="token punctuation">:</span> node.kubernetes.io/unreachable
-    <span class="token key atrule">operator</span><span class="token punctuation">:</span> Exists
-    <span class="token key atrule">tolerationSeconds</span><span class="token punctuation">:</span> <span class="token number">300</span>
+<pre><code>tolerations:
+  - effect: NoExecute
+    key: node.kubernetes.io/not-ready
+    operator: Exists
+    tolerationSeconds: 300
+  - effect: NoExecute
+    key: node.kubernetes.io/unreachable
+    operator: Exists
+    tolerationSeconds: 300
 </code></pre>
 
 <p>当节点心跳超时(ConditionUnknown)之后，node controller会给该node添加如下taints：</p>
 
-<pre class="  language-yaml" style="position: relative; z-index: 2;"><code class="prism  language-yaml"><span class="token key atrule">spec</span><span class="token punctuation">:</span>
-  <span class="token punctuation">...</span>
-  <span class="token key atrule">taints</span><span class="token punctuation">:</span>
-  <span class="token punctuation">-</span> <span class="token key atrule">effect</span><span class="token punctuation">:</span> NoSchedule
-    <span class="token key atrule">key</span><span class="token punctuation">:</span> node.kubernetes.io/unreachable
-    <span class="token key atrule">timeAdded</span><span class="token punctuation">:</span> <span class="token string">"2020-07-02T03:50:47Z"</span>
-  <span class="token punctuation">-</span> <span class="token key atrule">effect</span><span class="token punctuation">:</span> NoExecute
-    <span class="token key atrule">key</span><span class="token punctuation">:</span> node.kubernetes.io/unreachable
-    <span class="token key atrule">timeAdded</span><span class="token punctuation">:</span> <span class="token string">"2020-07-02T03:50:53Z"</span>
+<pre><code>spec:
+  ...
+  taints:
+  - effect: NoSchedule
+    key: node.kubernetes.io/unreachable
+    timeAdded: "2020-07-02T03:50:47Z"
+  - effect: NoExecute
+    key: node.kubernetes.io/unreachable
+    timeAdded: "2020-07-02T03:50:53Z"
 </code></pre>
 
 <p>由于pod对<code>node.kubernetes.io/unreachable:NoExecute</code> taint容忍时间为300s，因此node controller会在5mins之后驱逐该节点上的pod</p>
@@ -215,29 +215,29 @@ $ <span class="token builtin class-name">echo</span> <span class="token number">
 
 <p>daemonset则更加特殊，默认情况下daemonset pod会被设置多个tolerations，使其可以容忍节点几乎所有异常的状态，所以不会出现驱逐的情况。这也很好理解，因为daemonset本来就是一个node部署一个pod，如下：</p>
 
-<pre class="  language-yaml" style="position: relative; z-index: 2;"><code class="prism  language-yaml"><span class="token key atrule">tolerations</span><span class="token punctuation">:</span>
-  <span class="token punctuation">-</span> <span class="token key atrule">effect</span><span class="token punctuation">:</span> NoSchedule
-    <span class="token key atrule">key</span><span class="token punctuation">:</span> dns
-    <span class="token key atrule">operator</span><span class="token punctuation">:</span> Equal
-    <span class="token key atrule">value</span><span class="token punctuation">:</span> <span class="token string">"false"</span>
-  <span class="token punctuation">-</span> <span class="token key atrule">effect</span><span class="token punctuation">:</span> NoExecute
-    <span class="token key atrule">key</span><span class="token punctuation">:</span> node.kubernetes.io/not<span class="token punctuation">-</span>ready
-    <span class="token key atrule">operator</span><span class="token punctuation">:</span> Exists
-  <span class="token punctuation">-</span> <span class="token key atrule">effect</span><span class="token punctuation">:</span> NoExecute
-    <span class="token key atrule">key</span><span class="token punctuation">:</span> node.kubernetes.io/unreachable
-    <span class="token key atrule">operator</span><span class="token punctuation">:</span> Exists
-  <span class="token punctuation">-</span> <span class="token key atrule">effect</span><span class="token punctuation">:</span> NoSchedule
-    <span class="token key atrule">key</span><span class="token punctuation">:</span> node.kubernetes.io/disk<span class="token punctuation">-</span>pressure
-    <span class="token key atrule">operator</span><span class="token punctuation">:</span> Exists
-  <span class="token punctuation">-</span> <span class="token key atrule">effect</span><span class="token punctuation">:</span> NoSchedule
-    <span class="token key atrule">key</span><span class="token punctuation">:</span> node.kubernetes.io/memory<span class="token punctuation">-</span>pressure
-    <span class="token key atrule">operator</span><span class="token punctuation">:</span> Exists
-  <span class="token punctuation">-</span> <span class="token key atrule">effect</span><span class="token punctuation">:</span> NoSchedule
-    <span class="token key atrule">key</span><span class="token punctuation">:</span> node.kubernetes.io/pid<span class="token punctuation">-</span>pressure
-    <span class="token key atrule">operator</span><span class="token punctuation">:</span> Exists
-  <span class="token punctuation">-</span> <span class="token key atrule">effect</span><span class="token punctuation">:</span> NoSchedule
-    <span class="token key atrule">key</span><span class="token punctuation">:</span> node.kubernetes.io/unschedulable
-    <span class="token key atrule">operator</span><span class="token punctuation">:</span> Exists
+<pre><code>tolerations:
+  - effect: NoSchedule
+    key: dns
+    operator: Equal
+    value: "false"
+  - effect: NoExecute
+    key: node.kubernetes.io/not-ready
+    operator: Exists
+  - effect: NoExecute
+    key: node.kubernetes.io/unreachable
+    operator: Exists
+  - effect: NoSchedule
+    key: node.kubernetes.io/disk-pressure
+    operator: Exists
+  - effect: NoSchedule
+    key: node.kubernetes.io/memory-pressure
+    operator: Exists
+  - effect: NoSchedule
+    key: node.kubernetes.io/pid-pressure
+    operator: Exists
+  - effect: NoSchedule
+    key: node.kubernetes.io/unschedulable
+    operator: Exists
 </code></pre>
 
 <ul>
@@ -246,9 +246,9 @@ $ <span class="token builtin class-name">echo</span> <span class="token number">
 
 <p>static pod类型类似daemonset会设置tolerations容忍节点异常状态，如下：</p>
 
-<pre class="  language-yaml" style="position: relative; z-index: 2;"><code class="prism  language-yaml"><span class="token key atrule">tolerations</span><span class="token punctuation">:</span>
-  <span class="token punctuation">-</span> <span class="token key atrule">effect</span><span class="token punctuation">:</span> NoExecute
-    <span class="token key atrule">operator</span><span class="token punctuation">:</span> Exists
+<pre><code>tolerations:
+  - effect: NoExecute
+    operator: Exists
 </code></pre>
 
 <p>因此在节点宕机后，static pod也不会发生驱逐</p>
@@ -257,43 +257,43 @@ $ <span class="token builtin class-name">echo</span> <span class="token number">
 
 <p>当pod使用的volume只支持RWO读写模式时，如果pod所在母机宕机了，并且随后在其它母机上产生了替换副本，则该替换副本的创建会阻塞，如下所示：</p>
 
-<pre class="  language-bash" style="position: relative; z-index: 2;"><code class="prism  language-bash">$ kubectl get pods -o wide
-nginx-7b4d5d9fd-bmc8g       <span class="token number">0</span>/1     ContainerCreating   <span class="token number">0</span>          0s    <span class="token operator">&lt;</span>none<span class="token operator">&gt;</span>         <span class="token number">10.0</span>.0.1   <span class="token operator">&lt;</span>none<span class="token operator">&gt;</span>           <span class="token operator">&lt;</span>none<span class="token operator">&gt;</span>
-nginx-7b4d5d9fd-nqgfz       <span class="token number">1</span>/1     Terminating         <span class="token number">0</span>          19m   <span class="token number">192.28</span>.1.165   <span class="token number">10.0</span>.0.2   <span class="token operator">&lt;</span>none<span class="token operator">&gt;</span>           <span class="token operator">&lt;</span>none<span class="token operator">&gt;</span>
+<pre><code>$ kubectl get pods -o wide
+nginx-7b4d5d9fd-bmc8g       0/1     ContainerCreating   0          0s    &lt;none&gt;         10.0.0.1   &lt;none&gt;           &lt;none&gt;
+nginx-7b4d5d9fd-nqgfz       1/1     Terminating         0          19m   192.28.1.165   10.0.0.2   &lt;none&gt;           &lt;none&gt;
 $ kubectl describe pods/nginx-7b4d5d9fd-bmc8g
-<span class="token punctuation">[</span><span class="token punctuation">..</span>.truncate<span class="token punctuation">..</span>.<span class="token punctuation">]</span>
+[...truncate...]
 Events:
   Type     Reason              Age   From                     Message
   ----     ------              ----  ----                     -------
-  Normal   Scheduled           3m5s  default-scheduler        Successfully assigned default/nginx-7b4d5d9fd-bmc8g to <span class="token number">10.0</span>.0.1
-  Warning  FailedAttachVolume  3m5s  attachdetach-controller  Multi-Attach error <span class="token keyword">for</span> volume <span class="token string">"pvc-7f68c087-9e56-11ea-a2ef-5254002f7cc9"</span> Volume is already used by pod<span class="token punctuation">(</span>s<span class="token punctuation">)</span> nginx-7b4d5d9fd-nqgfz
-  Warning  FailedMount         62s   kubelet, <span class="token number">10.0</span>.0.1        Unable to <span class="token function">mount</span> volumes <span class="token keyword">for</span> pod <span class="token string">"nginx-7b4d5d9fd-bmc8g_default(bb5501ca-9fea-11ea-9730-5254002f7cc9)"</span><span class="token builtin class-name">:</span> <span class="token function">timeout</span> expired waiting <span class="token keyword">for</span> volumes to attach or <span class="token function">mount</span> <span class="token keyword">for</span> pod <span class="token string">"default"</span>/<span class="token string">"nginx-7b4d5d9fd-nqgfz"</span><span class="token builtin class-name">.</span> list of unmounted <span class="token assign-left variable">volumes</span><span class="token operator">=</span><span class="token punctuation">[</span>nginx-data<span class="token punctuation">]</span>. list of unattached <span class="token assign-left variable">volumes</span><span class="token operator">=</span><span class="token punctuation">[</span>root-certificate default-token-q2vft nginx-data<span class="token punctuation">]</span>
+  Normal   Scheduled           3m5s  default-scheduler        Successfully assigned default/nginx-7b4d5d9fd-bmc8g to 10.0.0.1
+  Warning  FailedAttachVolume  3m5s  attachdetach-controller  Multi-Attach error for volume "pvc-7f68c087-9e56-11ea-a2ef-5254002f7cc9" Volume is already used by pod(s) nginx-7b4d5d9fd-nqgfz
+  Warning  FailedMount         62s   kubelet, 10.0.0.1        Unable to mount volumes for pod "nginx-7b4d5d9fd-bmc8g_default(bb5501ca-9fea-11ea-9730-5254002f7cc9)": timeout expired waiting for volumes to attach or mount for pod "default"/"nginx-7b4d5d9fd-nqgfz". list of unmounted volumes=[nginx-data]. list of unattached volumes=[root-certificate default-token-q2vft nginx-data]
 </code></pre>
 
 <p>这是因为只支持RWO(ReadWriteOnce – the volume can be mounted as read-write by a single node)的volume正常情况下在Kubernetes集群中只能被一个母机attach，由于宕机母机无法执行volume detach操作，其它母机上的pod如果使用相同的volume会被挂住，最终导致容器创建一直阻塞并报错：</p>
 
-<pre class="  language-bash" style="position: relative; z-index: 2;"><code class="prism  language-bash">Multi-Attach error <span class="token keyword">for</span> volume <span class="token string">"pvc-7f68c087-9e56-11ea-a2ef-5254002f7cc9"</span> Volume is already used by pod<span class="token punctuation">(</span>s<span class="token punctuation">)</span> nginx-7b4d5d9fd-nqgfz
+<pre><code>Multi-Attach error for volume "pvc-7f68c087-9e56-11ea-a2ef-5254002f7cc9" Volume is already used by pod(s) nginx-7b4d5d9fd-nqgfz
 </code></pre>
 
 <p>解决办法是采用支持RWX(ReadWriteMany – the volume can be mounted as read-write by many nodes)读写模式的volume。另外如果必须采用只支持RWO模式的volume，则可以执行如下命令强制删除pod，如下：</p>
 
-<pre class="  language-bash" style="position: relative; z-index: 2;"><code class="prism  language-bash">$ kubectl delete pods/nginx-7b4d5d9fd-nqgfz --force --grace-period<span class="token operator">=</span><span class="token number">0</span>
+<pre><code>$ kubectl delete pods/nginx-7b4d5d9fd-nqgfz --force --grace-period=0
 </code></pre>
 
 <p>之后，对于新创建的pod，attachDetachController会在6mins(代码写死)后强制detach volume，并正常attach，如下：</p>
 
-<pre class="  language-bash" style="position: relative; z-index: 2;"><code class="prism  language-bash">W0811 04:01:25.024422       <span class="token number">1</span> reconciler.go:328<span class="token punctuation">]</span> Multi-Attach error <span class="token keyword">for</span> volume <span class="token string">"pvc-e97c6ce6-d8a6-11ea-b832-7a866c097df1"</span> <span class="token punctuation">(</span>UniqueName: <span class="token string">"kubernetes.io/rbd/k8s:kubernetes-dynamic-pvc-f35fc6fa-d8a6-11ea-bd98-aeb6842de1e3"</span><span class="token punctuation">)</span> from node <span class="token string">"10.0.0.3"</span> Volume is already exclusively attached to node <span class="token number">10.0</span>.0.2 and can<span class="token string">'t be attached to another
-I0811 04:01:25.024480       1 event.go:209] Event(v1.ObjectReference{Kind:"Pod", Namespace:"default", Name:"default-nginx-6584f7ddb7-jx9s2", UID:"5322240f-db87-11ea-b832-7a866c097df1", APIVersion:"v1", ResourceVersion:"28275287", FieldPath:""}): type: '</span>Warning<span class="token string">' reason: '</span>FailedAttachVolume<span class="token string">' Multi-Attach error for volume "pvc-e97c6ce6-d8a6-11ea-b832-7a866c097df1" Volume is already exclusively attached to one node and can'</span>t be attached to another
-W0811 04:07:25.047767       <span class="token number">1</span> reconciler.go:232<span class="token punctuation">]</span> attacherDetacher.DetachVolume started <span class="token keyword">for</span> volume <span class="token string">"pvc-e97c6ce6-d8a6-11ea-b832-7a866c097df1"</span> <span class="token punctuation">(</span>UniqueName: <span class="token string">"kubernetes.io/rbd/k8s:kubernetes-dynamic-pvc-f35fc6fa-d8a6-11ea-bd98-aeb6842de1e3"</span><span class="token punctuation">)</span> on node <span class="token string">"10.0.0.2"</span> This volume is not safe to detach, but maxWaitForUnmountDuration 6m0s expired, force detaching
-I0811 04:07:25.047860       <span class="token number">1</span> operation_generator.go:500<span class="token punctuation">]</span> DetachVolume.Detach succeeded <span class="token keyword">for</span> volume <span class="token string">"pvc-e97c6ce6-d8a6-11ea-b832-7a866c097df1"</span> <span class="token punctuation">(</span>UniqueName: <span class="token string">"kubernetes.io/rbd/k8s:kubernetes-dynamic-pvc-f35fc6fa-d8a6-11ea-bd98-aeb6842de1e3"</span><span class="token punctuation">)</span> on node <span class="token string">"10.0.0.2"</span>
-I0811 04:07:25.148094       <span class="token number">1</span> reconciler.go:288<span class="token punctuation">]</span> attacherDetacher.AttachVolume started <span class="token keyword">for</span> volume <span class="token string">"pvc-e97c6ce6-d8a6-11ea-b832-7a866c097df1"</span> <span class="token punctuation">(</span>UniqueName: <span class="token string">"kubernetes.io/rbd/k8s:kubernetes-dynamic-pvc-f35fc6fa-d8a6-11ea-bd98-aeb6842de1e3"</span><span class="token punctuation">)</span> from node <span class="token string">"10.0.0.3"</span>
-I0811 04:07:25.148180       <span class="token number">1</span> operation_generator.go:377<span class="token punctuation">]</span> AttachVolume.Attach succeeded <span class="token keyword">for</span> volume <span class="token string">"pvc-e97c6ce6-d8a6-11ea-b832-7a866c097df1"</span> <span class="token punctuation">(</span>UniqueName: <span class="token string">"kubernetes.io/rbd/k8s:kubernetes-dynamic-pvc-f35fc6fa-d8a6-11ea-bd98-aeb6842de1e3"</span><span class="token punctuation">)</span> from node <span class="token string">"10.0.0.3"</span>
-I0811 04:07:25.148266       <span class="token number">1</span> event.go:209<span class="token punctuation">]</span> Event<span class="token punctuation">(</span>v1.ObjectReference<span class="token punctuation">{</span>Kind:<span class="token string">"Pod"</span>, Namespace:<span class="token string">"default"</span>, Name:<span class="token string">"default-nginx-6584f7ddb7-jx9s2"</span>, <span class="token environment constant">UID</span><span class="token builtin class-name">:</span><span class="token string">"5322240f-db87-11ea-b832-7a866c097df1"</span>, APIVersion:<span class="token string">"v1"</span>, ResourceVersion:<span class="token string">"28275287"</span>, FieldPath:<span class="token string">""</span><span class="token punctuation">}</span><span class="token punctuation">)</span>: type: <span class="token string">'Normal'</span> reason: <span class="token string">'SuccessfulAttachVolume'</span> AttachVolume.Attach succeeded <span class="token keyword">for</span> volume <span class="token string">"pvc-e97c6ce6-d8a6-11ea-b832-7a866c097df1"</span>
+<pre><code>W0811 04:01:25.024422       1 reconciler.go:328] Multi-Attach error for volume "pvc-e97c6ce6-d8a6-11ea-b832-7a866c097df1" (UniqueName: "kubernetes.io/rbd/k8s:kubernetes-dynamic-pvc-f35fc6fa-d8a6-11ea-bd98-aeb6842de1e3") from node "10.0.0.3" Volume is already exclusively attached to node 10.0.0.2 and can't be attached to another
+I0811 04:01:25.024480       1 event.go:209] Event(v1.ObjectReference{Kind:"Pod", Namespace:"default", Name:"default-nginx-6584f7ddb7-jx9s2", UID:"5322240f-db87-11ea-b832-7a866c097df1", APIVersion:"v1", ResourceVersion:"28275287", FieldPath:""}): type: 'Warning' reason: 'FailedAttachVolume' Multi-Attach error for volume "pvc-e97c6ce6-d8a6-11ea-b832-7a866c097df1" Volume is already exclusively attached to one node and can't be attached to another
+W0811 04:07:25.047767       1 reconciler.go:232] attacherDetacher.DetachVolume started for volume "pvc-e97c6ce6-d8a6-11ea-b832-7a866c097df1" (UniqueName: "kubernetes.io/rbd/k8s:kubernetes-dynamic-pvc-f35fc6fa-d8a6-11ea-bd98-aeb6842de1e3") on node "10.0.0.2" This volume is not safe to detach, but maxWaitForUnmountDuration 6m0s expired, force detaching
+I0811 04:07:25.047860       1 operation_generator.go:500] DetachVolume.Detach succeeded for volume "pvc-e97c6ce6-d8a6-11ea-b832-7a866c097df1" (UniqueName: "kubernetes.io/rbd/k8s:kubernetes-dynamic-pvc-f35fc6fa-d8a6-11ea-bd98-aeb6842de1e3") on node "10.0.0.2"
+I0811 04:07:25.148094       1 reconciler.go:288] attacherDetacher.AttachVolume started for volume "pvc-e97c6ce6-d8a6-11ea-b832-7a866c097df1" (UniqueName: "kubernetes.io/rbd/k8s:kubernetes-dynamic-pvc-f35fc6fa-d8a6-11ea-bd98-aeb6842de1e3") from node "10.0.0.3"
+I0811 04:07:25.148180       1 operation_generator.go:377] AttachVolume.Attach succeeded for volume "pvc-e97c6ce6-d8a6-11ea-b832-7a866c097df1" (UniqueName: "kubernetes.io/rbd/k8s:kubernetes-dynamic-pvc-f35fc6fa-d8a6-11ea-bd98-aeb6842de1e3") from node "10.0.0.3"
+I0811 04:07:25.148266       1 event.go:209] Event(v1.ObjectReference{Kind:"Pod", Namespace:"default", Name:"default-nginx-6584f7ddb7-jx9s2", UID:"5322240f-db87-11ea-b832-7a866c097df1", APIVersion:"v1", ResourceVersion:"28275287", FieldPath:""}): type: 'Normal' reason: 'SuccessfulAttachVolume' AttachVolume.Attach succeeded for volume "pvc-e97c6ce6-d8a6-11ea-b832-7a866c097df1"
 </code></pre>
 
 <p>而默认的6mins对于生产环境来说太长了，而且Kubernetes并没有提供参数进行配置，因此我向官方提了一个<a href="https://github.com/kubernetes/kubernetes/pull/93776" target="_blank">PR</a>用于解决这个问题，如下：</p>
 
-<pre class="  language-bash" style="position: relative; z-index: 2;"><code class="prism  language-bash">--attach-detach-reconcile-max-wait-unmount-duration duration   maximum amount of <span class="token function">time</span> the attach detach controller will <span class="token function">wait</span> <span class="token keyword">for</span> a volume to be safely unmounted from its node. Once this <span class="token function">time</span> has expired, the controller will assume the node or kubelet are unresponsive and will detach the volume anyway. <span class="token punctuation">(</span>default 6m0s<span class="token punctuation">)</span>
+<pre><code>--attach-detach-reconcile-max-wait-unmount-duration duration   maximum amount of time the attach detach controller will wait for a volume to be safely unmounted from its node. Once this time has expired, the controller will assume the node or kubelet are unresponsive and will detach the volume anyway. (default 6m0s)
 </code></pre>
 
 <p>通过配置<code>attach-detach-reconcile-max-wait-unmount-duration</code>，可以缩短替换pod成功运行的时间</p>
@@ -308,7 +308,7 @@ I0811 04:07:25.148266       <span class="token number">1</span> event.go:209<spa
 
 <p>etcd使用<a href="https://ramcloud.atlassian.net/wiki/download/attachments/6586375/raft.pdf" target="_blank">Raft一致性算法</a>(leader selection + log replication + safety)中的leader selection来实现节点宕机下的高可用问题，如下：</p>
 
-<p style=""><img src="./Kubernetes高可用实战干货 - CSIG新人专区（已转至云知） - KM平台_files/cos-file-url(4)" alt="" style="position: relative; z-index: 2;"></p>
+<p style=""><img src="/logbook/images/kubernetes/Kubernetes高可用实战干货/8007b8bb34a7.png" alt="" style="position: relative; z-index: 2;"></p>
 
 <h3 id="应用存储 - persistent volume">应用存储 - persistent volume</h3>
 
@@ -316,7 +316,7 @@ I0811 04:07:25.148266       <span class="token number">1</span> event.go:209<spa
 
 <p>而对于Kubernetes存储本身组件功能(in-tree, flexVolume, external-storage以及csi)的影响实际上可以归纳为对存储插件应用的影响，这里以csi为例子进行说明：</p>
 
-<p style=""><img src="./Kubernetes高可用实战干货 - CSIG新人专区（已转至云知） - KM平台_files/cos-file-url(5)" alt="" style="position: relative; z-index: 2;" class="amplify"></p>
+<p style=""><img src="/logbook/images/kubernetes/Kubernetes高可用实战干货/abcb5c60dba5.png" alt="" style="position: relative; z-index: 2;" class="amplify"></p>
 
 <p>通过实现对上述StatefulSet/Deployment工作负载类型应用(CSI Driver+Identity Controller以及external-attacher+external-provisioner)的高可用即可</p>
 
@@ -326,33 +326,33 @@ I0811 04:07:25.148266       <span class="token number">1</span> event.go:209<spa
 
 <p>对于无状态的服务(通常部署为deployment工作负载)，我们可以直接通过设置反亲和+多副本来实现高可用，例如nginx服务：</p>
 
-<pre class="  language-yaml" style="position: relative; z-index: 2;"><code class="prism  language-yaml"><span class="token key atrule">apiVersion</span><span class="token punctuation">:</span> apps/v1
-<span class="token key atrule">kind</span><span class="token punctuation">:</span> Deployment
-<span class="token key atrule">metadata</span><span class="token punctuation">:</span>
-<span class="token key atrule">name</span><span class="token punctuation">:</span> web<span class="token punctuation">-</span>server
-<span class="token key atrule">spec</span><span class="token punctuation">:</span>
-<span class="token key atrule">selector</span><span class="token punctuation">:</span>
-  <span class="token key atrule">matchLabels</span><span class="token punctuation">:</span>
-    <span class="token key atrule">app</span><span class="token punctuation">:</span> web<span class="token punctuation">-</span>store
-<span class="token key atrule">replicas</span><span class="token punctuation">:</span> <span class="token number">3</span>
-<span class="token key atrule">template</span><span class="token punctuation">:</span>
-  <span class="token key atrule">metadata</span><span class="token punctuation">:</span>
-    <span class="token key atrule">labels</span><span class="token punctuation">:</span>
-      <span class="token key atrule">app</span><span class="token punctuation">:</span> web<span class="token punctuation">-</span>store
-  <span class="token key atrule">spec</span><span class="token punctuation">:</span>
-    <span class="token key atrule">affinity</span><span class="token punctuation">:</span>
-      <span class="token key atrule">podAntiAffinity</span><span class="token punctuation">:</span>
-        <span class="token key atrule">requiredDuringSchedulingIgnoredDuringExecution</span><span class="token punctuation">:</span>
-        <span class="token punctuation">-</span> <span class="token key atrule">labelSelector</span><span class="token punctuation">:</span>
-            <span class="token key atrule">matchExpressions</span><span class="token punctuation">:</span>
-            <span class="token punctuation">-</span> <span class="token key atrule">key</span><span class="token punctuation">:</span> app
-              <span class="token key atrule">operator</span><span class="token punctuation">:</span> In
-              <span class="token key atrule">values</span><span class="token punctuation">:</span>
-              <span class="token punctuation">-</span> web<span class="token punctuation">-</span>store
-          <span class="token key atrule">topologyKey</span><span class="token punctuation">:</span> <span class="token string">"kubernetes.io/hostname"</span>
-    <span class="token key atrule">containers</span><span class="token punctuation">:</span>
-    <span class="token punctuation">-</span> <span class="token key atrule">name</span><span class="token punctuation">:</span> web<span class="token punctuation">-</span>app
-      <span class="token key atrule">image</span><span class="token punctuation">:</span> nginx<span class="token punctuation">:</span>1.16<span class="token punctuation">-</span>alpine
+<pre><code>apiVersion: apps/v1
+kind: Deployment
+metadata:
+name: web-server
+spec:
+selector:
+  matchLabels:
+    app: web-store
+replicas: 3
+template:
+  metadata:
+    labels:
+      app: web-store
+  spec:
+    affinity:
+      podAntiAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+        - labelSelector:
+            matchExpressions:
+            - key: app
+              operator: In
+              values:
+              - web-store
+          topologyKey: "kubernetes.io/hostname"
+    containers:
+    - name: web-app
+      image: nginx:1.16-alpine
 </code></pre>
 
 <p>如果其中一个pod所在母机宕机了，则在endpoint controller踢掉该pod backend后，服务访问正常</p>
@@ -381,11 +381,11 @@ I0811 04:07:25.148266       <span class="token number">1</span> event.go:209<spa
 
 <p>其中，redis，postgres，以及各类db都基本是这种模式，如下是redis一主两从三哨高可用方案：</p>
 
-<p style=""><img src="./Kubernetes高可用实战干货 - CSIG新人专区（已转至云知） - KM平台_files/cos-file-url(6)" alt="" style="position: relative; z-index: 2;"></p>
+<p style=""><img src="/logbook/images/kubernetes/Kubernetes高可用实战干货/01998bae0f61.png" alt="" style="position: relative; z-index: 2;"></p>
 
 <p>还有更加复杂的高可用方案，例如etcd的<a href="https://ramcloud.atlassian.net/wiki/download/attachments/6586375/raft.pdf" target="_blank">Raft一致性算法</a>：</p>
 
-<p style=""><img src="./Kubernetes高可用实战干货 - CSIG新人专区（已转至云知） - KM平台_files/cos-file-url(7)" alt="" style="position: relative; z-index: 2;"></p>
+<p style=""><img src="/logbook/images/kubernetes/Kubernetes高可用实战干货/2b7600b0e3fa.png" alt="" style="position: relative; z-index: 2;"></p>
 
 <ul>
 <li>Distributed Lock Type</li>

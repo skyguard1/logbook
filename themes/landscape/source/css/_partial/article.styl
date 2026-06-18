@@ -43,6 +43,16 @@
   clearfix()
   color: color-default
   padding: 0 article-padding
+  // Hard width clamp so wide code blocks / tables don't push #main wider and
+  // make the sidebar drop below. Only applies inside single-post body.
+  max-width: 100%
+  min-width: 0
+  pre
+    max-width: 100%
+    overflow-x: auto
+  table
+    display: block
+    overflow-x: auto
   p, table
     line-height: line-height
     margin: line-height 0
