@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import re
 import subprocess
 import sys
 import tempfile
@@ -15,7 +16,7 @@ from pathlib import Path
 
 # The legacy helper has a tracked bytecode cache: never modify it on import.
 sys.dont_write_bytecode = True
-from import_km_html import clean_title, safe_filename
+from import_km_html import build_front_matter, clean_title, safe_filename
 from import_algorithm_html import (
     REPO, DROP, Scrubber, clean_dom, copy_images, digest, extract,
     publish_stage, site_root, source_files,
@@ -24,6 +25,19 @@ from import_algorithm_html import (
 POSTS = Path('source/_posts/deep-learning')
 IMAGES = Path('source/images/deep-learning')
 MANIFEST = Path('tools/deep-learning-import-manifest.json')
+
+
+def article_front_matter(current: str, title: str, source_path: Path) -> str:
+    # Only a standalone --- line ends YAML. Titles can legitimately contain ----.
+    match = re.match(r'\A---\r?\n.*?\r?\n---[ \t]*(?:\r?\n|$)', current, re.S)
+    if match:
+        return match.group(0).rstrip('\r\n')
+    # Repair only the known output of the previous split('---', 2) bug.
+    prefix = title.split('---', 1)[0]
+    broken = f'---\ntitle: "{prefix}---\n\n{{% raw %}}'
+    if '---' in title and current.startswith(broken):
+        return build_front_matter(title, 'deep-learning', source_path).rstrip('\r\n')
+    raise ValueError('Invalid front matter; refusing to replace unknown metadata')
 
 
 def legacy_baseline(repo: Path, adopt: bool) -> dict:
@@ -84,9 +98,7 @@ def run(source: Path, repo: Path, adopt: bool = False, dry_run: bool = False):
                 continue  # Do not add unrelated, previously skipped articles.
             matched.add(rel.as_posix())
             current = target.read_text(encoding='utf-8')
-            parts = current.split('---', 2)
-            if len(parts) != 3 or parts[0].strip():
-                raise ValueError(f'Invalid front matter: {rel}')
+            front = article_front_matter(current, title, path)
             result = extract(path, source)
             if not result:
                 report['skipped'].append({'title': title, 'path': rel.as_posix(), 'reason': '源文件只有文档预览；保留现有说明，无法从中恢复图片'})
@@ -105,7 +117,7 @@ def run(source: Path, repo: Path, adopt: bool = False, dry_run: bool = False):
             text = body.decode_contents().replace('{%', '&#123;%').replace('{{', '&#123;{')
             output = stage / rel
             output.parent.mkdir(parents=True, exist_ok=True)
-            output.write_text('---' + parts[1] + '---\n\n{% raw %}\n' + text + '\n{% endraw %}\n', encoding='utf-8')
+            output.write_text(front + '\n\n{% raw %}\n' + text + '\n{% endraw %}\n', encoding='utf-8')
             report['articles'].append({'title': title, 'path': rel.as_posix(), 'source_chars': chars_before,
                                        'output_chars': len(body.get_text(strip=True)), 'images': dict(images)})
         if matched != {p.relative_to(repo).as_posix() for p in existing}:

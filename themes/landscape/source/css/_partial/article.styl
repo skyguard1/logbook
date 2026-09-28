@@ -27,6 +27,15 @@
 
 .article-header
   padding: article-padding article-padding 0
+  min-width: 0
+  .article-title
+    white-space: normal
+    overflow-wrap: anywhere
+    word-break: normal
+    max-width: 100%
+    a
+      white-space: inherit
+      overflow-wrap: inherit
 
 .article-title
   text-decoration: none
@@ -37,6 +46,23 @@
   transition: color 0.2s
   a&:hover
     color: color-link
+
+.article-detail
+  .article-header .article-title
+    margin: 0
+    font-size: 2em
+    line-height: 1.4
+    @media mq-mobile
+      font-size: 1.6em
+  .article-meta
+    display: flex
+    flex-wrap: wrap
+    align-items: baseline
+    gap: 0 8px
+    .article-date, .article-category
+      float: none
+    .article-category
+      line-height: 1.5
 
 .article-entry
   @extend $base-style

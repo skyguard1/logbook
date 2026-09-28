@@ -6,7 +6,7 @@ from argparse import Namespace
 from pathlib import Path
 from unittest.mock import patch
 
-from repair_deep_learning_images import MANIFEST, POSTS, run
+from repair_deep_learning_images import MANIFEST, POSTS, article_front_matter, run
 from test_import_algorithm_html import tiny_png
 
 
@@ -86,6 +86,25 @@ class RepairTests(unittest.TestCase):
             with self.assertRaisesRegex(SystemExit, 'image-preserving importer'):
                 legacy.main()
         self.assertEqual(before, self.post.read_bytes())
+
+    def test_title_hyphens_are_not_front_matter_delimiters(self):
+        title = '推荐全链路----精粗排一致性'
+        header = self.front.replace('文章', title)
+        text = header + '\n\n{% raw %}\n<p>body---text</p>\n{% endraw %}\n'
+        self.assertEqual(article_front_matter(text, title, self.post), header)
+        crlf = text.replace('\n', '\r\n')
+        self.assertEqual(article_front_matter(crlf, title, self.post), header.replace('\n', '\r\n'))
+
+    def test_recover_only_known_truncated_header(self):
+        title = '推荐全链路----用户个性化和负载的自适应调研'
+        text = '---\ntitle: "推荐全链路---\n\n{% raw %}\n<p>body</p>'
+        header = article_front_matter(text, title, self.post)
+        self.assertIn('title: "' + title + '"', header)
+        self.assertIn('\ndate: ', header)
+        self.assertIn('\ncategories:\n  - deep-learning\n---', header)
+        self.assertEqual(article_front_matter(header + '\nbody', title, self.post), header)
+        with self.assertRaisesRegex(ValueError, 'Invalid front matter'):
+            article_front_matter('---\ntitle: unknown\n', title, self.post)
 
 
 if __name__ == '__main__':
