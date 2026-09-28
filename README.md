@@ -2,6 +2,16 @@
 
 个人知识库（Hexo）。
 
+## 推荐算法知识库
+
+`~/Documents/推荐算法` 的 HTML 整理在 **推荐算法 → 技术主题** 分类下：
+文章位于 `source/_posts/recommendation/`，图片位于 `source/images/recommendation/`。
+使用独立入口 `tools/import_recommendation_html.py`，不会覆盖算法、深度学习等已有分类。
+
+详见 [导入与验证说明](tools/README-recommendation-import.md)及
+[逐篇导入清单](tools/recommendation-import-manifest.json)。
+已清理识别出的公司/部门文本与内部链接，图片内水印和业务信息仍需发布前人工审核。
+
 ## 算法知识库
 
 `~/Documents/算法` 的资料按 **算法 → 技术主题** 分级，保存在

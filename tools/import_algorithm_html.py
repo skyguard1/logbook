@@ -296,10 +296,10 @@ def safe_slug(title: str) -> str:
     return title.encode('utf-8')[:170].decode('utf-8', errors='ignore') or 'article'
 
 
-def write_post(stage: Path, rel: Path, title: str, topic: str, path: Path, body):
+def write_post(stage: Path, rel: Path, title: str, topic: str, path: Path, body, category_label: str = '算法'):
     timestamp = datetime.fromtimestamp(path.stat().st_mtime).strftime('%Y-%m-%d %H:%M:%S')
     content = body.decode_contents().replace('{%', '&#123;%').replace('{{', '&#123;{')
-    front = f'---\ntitle: {json.dumps(title, ensure_ascii=False)}\ndate: {timestamp}\ncategories:\n  - 算法\n  - {topic}\n---\n\n'
+    front = f'---\ntitle: {json.dumps(title, ensure_ascii=False)}\ndate: {timestamp}\ncategories:\n  - {category_label}\n  - {topic}\n---\n\n'
     target = stage / rel
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_text(front + '{% raw %}\n' + content + '\n{% endraw %}\n', encoding='utf-8')
@@ -328,10 +328,12 @@ def publish_stage(stage: Path, repo: Path, manifest: dict, manifest_path: Path =
     (repo / manifest_path).write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
 
 
-def run(source: Path, repo: Path, dry_run: bool = False) -> dict:
+def run(source: Path, repo: Path, dry_run: bool = False, *, post_root: Path = POSTS,
+        images_root: Path = IMAGES, manifest_path: Path = MANIFEST,
+        category_label: str = '算法', classify_title=classify, scrubber_class=Scrubber) -> dict:
     source = source.expanduser().resolve()
     files = source_files(source)
-    scrub = Scrubber(files)
+    scrub = scrubber_class(files)
     report = {'sources': len(files), 'articles': [], 'skipped': [], 'topics': {}, 'images': {}, 'files': {}}
     stats, topics = Counter(), Counter()
     with tempfile.TemporaryDirectory(prefix='logbook-algorithm-') as temp:
@@ -348,12 +350,12 @@ def run(source: Path, repo: Path, dry_run: bool = False) -> dict:
                 if tag.parent:
                     tag.decompose()
             original_chars = len(body.get_text(strip=True))
-            article_images = copy_images(body, content_path, source, stage, site_root(repo), scrub)
+            article_images = copy_images(body, content_path, source, stage, site_root(repo), scrub, images_root)
             stats.update(article_images)
             clean_dom(body, scrub)
-            topic = classify(title)
-            rel = POSTS / topic / f'{safe_slug(title)}--{identity}.md'
-            write_post(stage, rel, title, topic, path, body)
+            topic = classify_title(title)
+            rel = post_root / topic / f'{safe_slug(title)}--{identity}.md'
+            write_post(stage, rel, title, topic, path, body, category_label)
             topics[topic] += 1
             report['articles'].append({'id': identity, 'title': title, 'path': rel.as_posix(), 'source_chars': original_chars, 'output_chars': len(body.get_text(strip=True)), 'images': dict(article_images)})
         if not report['articles']:
@@ -361,10 +363,10 @@ def run(source: Path, repo: Path, dry_run: bool = False) -> dict:
         report['topics'] = dict(sorted(topics.items()))
         report['images'] = dict(stats)
         report['files'] = {p.relative_to(stage).as_posix(): digest(p.read_bytes()) for p in sorted(stage.rglob('*')) if p.is_file()}
-        report['unique_images'] = sum(p.startswith(str(IMAGES) + '/') for p in report['files'])
+        report['unique_images'] = sum(p.startswith(str(images_root) + '/') for p in report['files'])
         report['review_required'] = '图片内的公司水印、姓名及业务数据未作 OCR 审核；文本清理不代表已获公开发布授权。'
         if not dry_run:
-            publish_stage(stage, repo, report)
+            publish_stage(stage, repo, report, manifest_path, post_root, images_root)
     return report
 
 
