@@ -1,0 +1,9 @@
+// Hide the duplicate slide-out mobile navigation at every viewport.
+// The top header already provides Home / Archives links, and leaving the
+// extra <nav id="mobile-nav"> in the DOM was bleeding through the layout
+// on narrow article pages.
+#mobile-nav
+  display: none
+
+.mobile-nav-link
+  display: none
