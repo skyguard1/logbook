@@ -654,7 +654,13 @@ def main() -> None:
     if args.only:
         sources = {category: sources[category] for category in args.only}
     if args.replace_category and not args.only:
-        parser.error("--replace-category requires at least one --only category")
+        raise SystemExit("--replace-category requires at least one --only category")
+    if "deep-learning" in sources and (REPO_ROOT / "tools/deep-learning-import-manifest.json").exists():
+        raise SystemExit(
+            "Deep Learning is now managed by the image-preserving importer. "
+            "Run tools/repair_deep_learning_images.py instead; "
+            "use --only es/linux/kubernetes here for other categories. No files changed."
+        )
 
     imported: list[ImportedArticle] = []
     for category, source_dir in sources.items():

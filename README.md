@@ -2,6 +2,16 @@
 
 个人知识库（Hexo）。
 
+## 算法知识库
+
+`~/Documents/算法` 的资料按 **算法 → 技术主题** 分级，保存在
+`source/_posts/algorithm/<主题>/`；本地图片保存在 `source/images/algorithm/`。
+正文清理公司/部门信息及内部链接，图片内文字仍需人工复核。
+
+安装、导入与测试步骤见 [算法 HTML 导入说明](tools/README-algorithm-import.md)。
+导入统计、缺失图片计数与跳过条目见 [导入清单](tools/algorithm-import-manifest.json)。
+算法资料使用独立的 `tools/import_algorithm_html.py`，不会重导入下面的已有分类。
+
 ## 导入 HTML 文章
 
 来源目录默认使用：
@@ -14,10 +24,13 @@
 执行导入：
 
 ```zsh
-python3 tools/import_km_html.py
-# 仅导入深度学习资料
-python3 tools/import_km_html.py --only deep-learning
+python3 tools/import_km_html.py --only es --only linux --only kubernetes
+# 深度学习使用保留原链接、恢复本地图像的新入口（需安装 Python 导入依赖）
+/tmp/logbook-import-venv/bin/python tools/repair_deep_learning_images.py
 ```
+
+深度学习图片恢复及浏览器/HTTP 检查说明见 [图片修复说明](tools/README-image-repair.md)。
+旧导入器已禁止覆盖迁移后的深度学习分类，避免再次丢失图片。
 
 本地预览：
 
