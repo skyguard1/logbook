@@ -21,6 +21,7 @@ from typing import Iterable, Optional
 from urllib.parse import unquote
 
 
+
 DEFAULT_SOURCES = {
     "deep-learning": Path("/Users/ab000664/Documents/深度学习"),
     "kubernetes": Path("/Users/ab000664/Documents/kubernetes"),
@@ -236,34 +237,44 @@ CONTENT_TRUNCATION_MARKERS = [
 
 
 class ElementInnerHTMLExtractor(HTMLParser):
+    VOID_TAGS = {"area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "param", "source", "track", "wbr"}
+
     def __init__(self, target_id: str):
         super().__init__(convert_charrefs=False)
         self.target_id = target_id
         self.depth = 0
         self.capturing = False
+        self.finished = False
+        self.target_tag = None
         self.parts: list[str] = []
 
     def handle_starttag(self, tag: str, attrs):
         attrs_dict = dict(attrs)
-        if not self.capturing and attrs_dict.get("id") == self.target_id:
+        if not self.finished and not self.capturing and attrs_dict.get("id") == self.target_id:
             self.capturing = True
+            self.target_tag = tag
             self.depth = 1
             return
         if self.capturing:
-            self.depth += 1
+            if tag == self.target_tag and tag not in self.VOID_TAGS:
+                self.depth += 1
             self.parts.append(self.get_starttag_text())
 
     def handle_startendtag(self, tag: str, attrs):
         if self.capturing:
+            if tag == self.target_tag and tag not in self.VOID_TAGS:
+                self.depth += 1
             self.parts.append(self.get_starttag_text())
 
     def handle_endtag(self, tag: str):
         if not self.capturing:
             return
-        self.depth -= 1
-        if self.depth == 0:
-            self.capturing = False
-            return
+        if tag == self.target_tag:
+            self.depth -= 1
+            if self.depth == 0:
+                self.capturing = False
+                self.finished = True
+                return
         self.parts.append(f"</{tag}>")
 
     def handle_data(self, data: str):
