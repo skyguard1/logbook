@@ -1,9 +1,29 @@
-// Hide the duplicate slide-out mobile navigation at every viewport.
-// The top header already provides Home / Archives links, and leaving the
-// extra <nav id="mobile-nav"> in the DOM was bleeding through the layout
-// on narrow article pages.
+// Keep the drawer out of the layout until explicitly opened on mobile.
 #mobile-nav
   display: none
+  @media mq-mobile
+    position: fixed
+    top: 0
+    bottom: 0
+    left: 0
+    width: mobile-nav-width
+    padding: 20px 0
+    box-sizing: border-box
+    overflow-y: auto
+    background: color-mobile-nav-background
+    z-index: 2
+    .mobile-nav-on &
+      display: block
 
 .mobile-nav-link
-  display: none
+  display: block
+  padding: 14px 20px
+  color: #ddd
+  text-decoration: none
+  line-height: 1.5
+  &:hover, &:focus-visible
+    color: #fff
+    background: #303030
+  &:focus-visible
+    outline: 2px solid color-link
+    outline-offset: -2px

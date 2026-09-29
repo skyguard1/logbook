@@ -2,7 +2,7 @@
   <div id="top-nav">
     <div class="top-nav-inner">
       <nav id="main-nav">
-        <a id="main-nav-toggle" class="nav-icon"><span class="fa fa-bars"></span></a>
+        <button id="main-nav-toggle" class="nav-icon" type="button" aria-label="导航菜单" aria-controls="mobile-nav" aria-expanded="false">菜单</button>
         <% for (var i in theme.menu){ %>
           <a class="main-nav-link" href="<%- url_for(theme.menu[i]) %>"><%= i %></a>
         <% } %>

@@ -109,30 +109,36 @@
 
   // Mobile nav
   var $container = $('#container'),
-    isMobileNavAnim = false,
-    mobileNavAnimDuration = 200;
+    $navToggle = $('#main-nav-toggle'),
+    mobileViewport = window.matchMedia('(max-width: 479px)');
 
-  var startMobileNavAnim = function(){
-    isMobileNavAnim = true;
+  var setMobileNav = function(open){
+    open = open && mobileViewport.matches;
+    $container.toggleClass('mobile-nav-on', open);
+    $navToggle.attr('aria-expanded', String(open));
   };
 
-  var stopMobileNavAnim = function(){
-    setTimeout(function(){
-      isMobileNavAnim = false;
-    }, mobileNavAnimDuration);
-  }
-
-  $('#main-nav-toggle').on('click', function(){
-    if (isMobileNavAnim) return;
-
-    startMobileNavAnim();
-    $container.toggleClass('mobile-nav-on');
-    stopMobileNavAnim();
+  $navToggle.on('click', function(e){
+    e.stopPropagation();
+    setMobileNav(!$container.hasClass('mobile-nav-on'));
   });
 
   $('#wrap').on('click', function(){
-    if (isMobileNavAnim || !$container.hasClass('mobile-nav-on')) return;
+    setMobileNav(false);
+  });
 
-    $container.removeClass('mobile-nav-on');
+  $('#mobile-nav a').on('click', function(){
+    setMobileNav(false);
+  });
+
+  $(document).on('keydown', function(e){
+    if (e.key === 'Escape' && $container.hasClass('mobile-nav-on')){
+      setMobileNav(false);
+      $navToggle.trigger('focus');
+    }
+  });
+
+  $(window).on('resize pageshow', function(){
+    if (!mobileViewport.matches) setMobileNav(false);
   });
 })(jQuery);
