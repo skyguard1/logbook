@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Import KM-exported HTML articles into this Hexo knowledge base.
 
-- Reads HTML files from ~/Documents/kubernetes and ~/Documents/linux by default
+ - Reads HTML files from configured ~/Documents categories by default
 - Extracts the main article body from the KM export HTML
 - Cleans title metadata to remove company / department / platform suffixes
 - Writes imported articles into source/_posts/<category>/
@@ -21,7 +21,9 @@ from typing import Iterable, Optional
 from urllib.parse import unquote
 
 
+
 DEFAULT_SOURCES = {
+    "deep-learning": Path("/Users/ab000664/Documents/深度学习"),
     "kubernetes": Path("/Users/ab000664/Documents/kubernetes"),
     "linux": Path("/Users/ab000664/Documents/linux"),
     "es": Path("/Users/ab000664/Documents/es"),
@@ -137,6 +139,16 @@ def _normalize_code_blocks(content: str) -> str:
 
 
 TITLE_FILTER_PATTERNS = [
+    r"公司级",
+    r"公司内",
+    r"卓越研发奖",
+    r"腾讯微创新奖(?:\d+期)?",
+    r"PCG",
+    r"OMG",
+    r"SNG",
+    r"IEG",
+    r"AMS",
+    r"CDG",
     r"字节跳动旗下产品",
     r"字节跳动",
     r"今日头条",
@@ -151,8 +163,42 @@ TITLE_FILTER_PATTERNS = [
 # Company / department / team phrases that may appear in body content as
 # attribution and should be scrubbed when importing into the personal repo.
 CONTENT_ORG_PATTERNS = [
+    r"腾讯iWiki",
+    r"KM平台",
+    r"腾讯卓越技术激励吧",
+    r"腾讯广告技术团队",
+    r"腾讯视频(?:-小视频推荐团队)?",
+    r"腾讯新闻产品技术",
+    r"腾讯游戏知识库",
+    r"腾讯网财富库",
+    r"腾讯算法论坛",
+    r"WXG技术架构部",
     r"WXG技术能力提升",
     r"WXG",
+    r"PCG(?:视频理解中台|画像中台)?",
+    r"OMG网媒家园",
+    r"SNG社交网络运营部数据中心",
+    r"技术工程事业群",
+    r"无线基础框架和组件",
+    r"手机QQ浏览器大数据",
+    r"MTT搜索中心",
+    r"平台营销部",
+    r"数据平台部",
+    r"CSIG运营部",
+    r"互娱增值服务部",
+    r"搜狗商业平台事业部技术团队",
+    r"信息流内容理解",
+    r"内容实验室",
+    r"内平内容算法圈",
+    r"实时画像",
+    r"社交平台部(?:（new）)?",
+    r"公共研发运营体系",
+    r"应用宝",
+    r"AI\+计划",
+    r"AI Club",
+    r"创新俱乐部",
+    r"Delta Space 增量智坊",
+    r"丕思安翋吾",
     r"PCG\s*Kbang\s*知识分享平台",
     r"Elasticsearch实验室",
     r"基础架构部",
@@ -191,34 +237,44 @@ CONTENT_TRUNCATION_MARKERS = [
 
 
 class ElementInnerHTMLExtractor(HTMLParser):
+    VOID_TAGS = {"area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "param", "source", "track", "wbr"}
+
     def __init__(self, target_id: str):
         super().__init__(convert_charrefs=False)
         self.target_id = target_id
         self.depth = 0
         self.capturing = False
+        self.finished = False
+        self.target_tag = None
         self.parts: list[str] = []
 
     def handle_starttag(self, tag: str, attrs):
         attrs_dict = dict(attrs)
-        if not self.capturing and attrs_dict.get("id") == self.target_id:
+        if not self.finished and not self.capturing and attrs_dict.get("id") == self.target_id:
             self.capturing = True
+            self.target_tag = tag
             self.depth = 1
             return
         if self.capturing:
-            self.depth += 1
+            if tag == self.target_tag and tag not in self.VOID_TAGS:
+                self.depth += 1
             self.parts.append(self.get_starttag_text())
 
     def handle_startendtag(self, tag: str, attrs):
         if self.capturing:
+            if tag == self.target_tag and tag not in self.VOID_TAGS:
+                self.depth += 1
             self.parts.append(self.get_starttag_text())
 
     def handle_endtag(self, tag: str):
         if not self.capturing:
             return
-        self.depth -= 1
-        if self.depth == 0:
-            self.capturing = False
-            return
+        if tag == self.target_tag:
+            self.depth -= 1
+            if self.depth == 0:
+                self.capturing = False
+                self.finished = True
+                return
         self.parts.append(f"</{tag}>")
 
     def handle_data(self, data: str):
@@ -266,6 +322,17 @@ def clean_title(raw_name: str) -> str:
         title = re.sub(r"\s*-\s*[^-]+$", "", title)
     for pattern in TITLE_FILTER_PATTERNS:
         title = re.sub(pattern, "", title)
+    for pattern in CONTENT_ORG_PATTERNS:
+        title = re.sub(pattern, "", title)
+    # KM filenames commonly append several organisation/team suffixes. Remove
+    # trailing metadata segments without touching meaningful title separators.
+    title_parts = [part.strip() for part in title.split(" - ")]
+    org_suffix = re.compile(
+        r"(?:部门|事业群|团队|中心|平台|知识库|技术能力|技术藏经阁|家园|俱乐部|算法圈|计划|实验室|产品技术|运营体系|浏览器|应用宝|内容理解|画像中台|推荐团队|数据吧)"
+    )
+    while len(title_parts) > 1 and org_suffix.search(title_parts[-1]):
+        title_parts.pop()
+    title = " - ".join(title_parts)
     title = re.sub(r"([，、（(])\s*[，、]\s*", r"\1", title)
     title = re.sub(r"\s+", " ", title)
     title = re.sub(r"([，、（(])\s+", r"\1", title)
@@ -304,10 +371,34 @@ def cleanup_article_html(content: str) -> str:
         r"<div[^>]*id=\"related-posts\"[\s\S]*?</div>\s*(?=<|$)",
         r'<div[^>]*class="related_posts[^"]*"[\s\S]*?</div>',
         r"<link[^>]+rel=\"stylesheet\"[^>]*>",
-        r"<img[^>]*src=\"\./[^\"]+_files/[^\"]+\.(?:gif|png|jpg|jpeg|svg)\"[^>]*>\s*",
+        # Drop KM/oa platform promotion and explicit team attribution blocks.
+        r"<p\b[^>]*>[\s\S]*?(?:https?://[^\"'<\s]*\.(?:oa|woa)\.com|learn\.oa\.com|mk\.woa\.com)[\s\S]*?</p>",
+        r"<p\b[^>]*>\s*(?:From[:：]|作者[:：]|来源[:：])[^<]*</p>",
+        r"<p\b[^>]*>\s*平台与内容事业群[\s\S]*?</p>",
     ]
     for pattern in patterns:
         content = re.sub(pattern, "", content, flags=re.IGNORECASE)
+
+    # Internal KM/OA links identify the source organisation. Preserve useful
+    # anchor text where present, but drop empty in-page anchors and raw URLs.
+    def replace_internal_link(match: re.Match) -> str:
+        label = re.sub(r"<[^>]+>", "", match.group(1)).strip()
+        if not label or re.fullmatch(r"https?://\S+", label):
+            return ""
+        return label
+
+    internal_link = (
+        r'<a\b(?=[^>]*href=["\'][^"\']*(?:\.oa\.com|\.woa\.com)[^"\']*["\'])'
+        r'[^>]*>([\s\S]*?)</a>'
+    )
+    content = re.sub(internal_link, replace_internal_link, content, flags=re.IGNORECASE)
+    content = re.sub(r"https?://[^\s<]*(?:\.oa\.com|\.woa\.com)[^\s<]*", "", content, flags=re.IGNORECASE)
+    content = re.sub(
+        r"<blockquote\b[^>]*>[\s\S]*?(?:KM知识分享|K吧|技术分享|团队|部门)[\s\S]*?</blockquote>",
+        "",
+        content,
+        flags=re.IGNORECASE,
+    )
 
     content = re.sub(r"\s*<div[^>]*class=\"cl-preview-section\"[^>]*>\s*</div>\s*", "\n", content, flags=re.IGNORECASE)
     content = re.sub(r"<div[^>]*class=\"cl-preview-section\"[^>]*>", "", content, flags=re.IGNORECASE)
@@ -398,12 +489,24 @@ def iter_source_files(path: Path) -> Iterable[Path]:
     )
 
 
-def write_article(category: str, source_path: Path, overwrite: bool = True) -> ImportedArticle:
+def write_article(
+    category: str,
+    source_path: Path,
+    used_slugs: set[str],
+    overwrite: bool = True,
+) -> ImportedArticle:
     title = clean_title(source_path.name)
     destination_dir = POSTS_ROOT / category
     destination_dir.mkdir(parents=True, exist_ok=True)
     slug = safe_filename(title)
     output_path = destination_dir / f"{slug}.md"
+    if slug in used_slugs:
+        # Different KM exports can normalize to the same personal title after
+        # company/team suffixes are removed. Keep both articles deterministically.
+        suffix = hashlib.sha1(source_path.name.encode("utf-8")).hexdigest()[:8]
+        slug = f"{slug} ({suffix})"
+        output_path = destination_dir / f"{slug}.md"
+    used_slugs.add(slug)
 
     html_text = source_path.read_text(encoding="utf-8", errors="ignore")
     article_html = extract_article_html(html_text)
@@ -480,9 +583,10 @@ def process_images(html: str, source_path: Path, category: str, slug: str) -> st
 
 
 def update_readme(imported: list[ImportedArticle]) -> None:
-    grouped: dict[str, list[ImportedArticle]] = {}
-    for article in imported:
-        grouped.setdefault(article.category, []).append(article)
+    """Regenerate the inventory from disk so selective imports keep prior categories."""
+    grouped: dict[str, list[Path]] = {}
+    for category_dir in sorted(path for path in POSTS_ROOT.iterdir() if path.is_dir()):
+        grouped[category_dir.name] = sorted(category_dir.glob("*.md"))
 
     lines = [
         "# logbook",
@@ -493,6 +597,7 @@ def update_readme(imported: list[ImportedArticle]) -> None:
         "",
         "来源目录默认使用：",
         "",
+        "- `~/Documents/深度学习`",
         "- `~/Documents/kubernetes`",
         "- `~/Documents/linux`",
         "- `~/Documents/es`",
@@ -501,6 +606,8 @@ def update_readme(imported: list[ImportedArticle]) -> None:
         "",
         "```zsh",
         "python3 tools/import_km_html.py",
+        "# 仅导入深度学习资料",
+        "python3 tools/import_km_html.py --only deep-learning",
         "```",
         "",
         "本地预览：",
@@ -519,8 +626,8 @@ def update_readme(imported: list[ImportedArticle]) -> None:
     for category in sorted(grouped):
         lines.append(f"### {category}")
         lines.append("")
-        for article in sorted(grouped[category], key=lambda item: item.title):
-            rel = article.output_path.relative_to(REPO_ROOT)
+        for article_path in grouped[category]:
+            rel = article_path.relative_to(REPO_ROOT)
             lines.append(f"- `{rel}`")
         lines.append("")
 
@@ -529,25 +636,55 @@ def update_readme(imported: list[ImportedArticle]) -> None:
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Import KM HTML articles into Hexo posts")
+    parser.add_argument("--deep-learning-dir", default=str(DEFAULT_SOURCES["deep-learning"]))
     parser.add_argument("--kubernetes-dir", default=str(DEFAULT_SOURCES["kubernetes"]))
     parser.add_argument("--linux-dir", default=str(DEFAULT_SOURCES["linux"]))
     parser.add_argument("--es-dir", default=str(DEFAULT_SOURCES["es"]))
+    parser.add_argument(
+        "--only",
+        action="append",
+        choices=sorted(DEFAULT_SOURCES),
+        help="Import only the named category; may be specified more than once.",
+    )
+    parser.add_argument(
+        "--replace-category",
+        action="store_true",
+        help="Delete generated posts and image assets for selected --only categories before importing.",
+    )
     return parser.parse_args()
 
 
 def main() -> None:
     args = parse_args()
     sources = {
+        "deep-learning": Path(args.deep_learning_dir).expanduser(),
         "kubernetes": Path(args.kubernetes_dir).expanduser(),
         "linux": Path(args.linux_dir).expanduser(),
         "es": Path(args.es_dir).expanduser(),
     }
+    if args.only:
+        sources = {category: sources[category] for category in args.only}
+    if args.replace_category and not args.only:
+        raise SystemExit("--replace-category requires at least one --only category")
+    if "deep-learning" in sources and (REPO_ROOT / "tools/deep-learning-import-manifest.json").exists():
+        raise SystemExit(
+            "Deep Learning is now managed by the image-preserving importer. "
+            "Run tools/repair_deep_learning_images.py instead; "
+            "use --only es/linux/kubernetes here for other categories. No files changed."
+        )
 
     imported: list[ImportedArticle] = []
     for category, source_dir in sources.items():
+        if args.replace_category:
+            shutil.rmtree(POSTS_ROOT / category, ignore_errors=True)
+            shutil.rmtree(ASSETS_ROOT / category, ignore_errors=True)
         files = list(iter_source_files(source_dir))
+        used_slugs: set[str] = set()
         for source_path in files:
-            imported.append(write_article(category, source_path))
+            try:
+                imported.append(write_article(category, source_path, used_slugs))
+            except ValueError as exc:
+                print(f"! Skipped [{category}] {source_path.name}: {exc}")
 
     update_readme(imported)
 

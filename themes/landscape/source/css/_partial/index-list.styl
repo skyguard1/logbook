@@ -1,7 +1,7 @@
 // Home page article list — modern card style
 // Applied only when partial('article') is rendered with index: true.
 
-.article
+.article-list-item
   position: relative
   margin: 0 0 24px
   transition: transform 0.25s ease
@@ -88,7 +88,7 @@
   .article-header
     padding: 8px article-padding 0
 
-  .article-title
+  .article-header .article-title
     margin: 0
     font-size: 1.45em
     line-height: 1.4
@@ -137,9 +137,9 @@
       transform: translateX(2px)
 
 @media mq-mobile
-  .article
+  .article-list-item
     margin-bottom: 16px
-    .article-title
+    .article-header .article-title
       font-size: 1.2em
     .article-excerpt
       font-size: 0.9em
