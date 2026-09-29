@@ -2,7 +2,8 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from import_algorithm_platform_html import AlgorithmPlatformScrubber, MANIFEST, POSTS, run
+from import_algorithm_html import run as import_collection
+from import_algorithm_platform_html import AlgorithmPlatformScrubber, MANIFEST, POSTS, IMAGES, TOPICS, TOPIC_GROUPS, classify, prepare_body, run
 from import_recommender_system_html import run as import_system
 from test_import_algorithm_html import tiny_png
 
@@ -39,7 +40,7 @@ class AlgorithmPlatformTests(unittest.TestCase):
     def test_import_content_images_and_redaction(self):
         report = run(self.source, self.repo)
         text = (self.repo / report['articles'][0]['path']).read_text()
-        self.assertIn('  - 算法平台\n  - 图学习与图计算\n', text)
+        self.assertIn('  - 算法平台\n  - 图学习与内容理解\n', text)
         self.assertIn('/logbook/images/algorithm-platform/', text)
         self.assertEqual(report['unique_images'], 1)
         self.assertEqual(report['images']['missing_images'], 1)
@@ -47,6 +48,28 @@ class AlgorithmPlatformTests(unittest.TestCase):
             self.assertIn(value, text)
         for value in ('腾讯', 'WXG', '信息安全部', '技术研发中心', 'Google模型', 'Tencent模型', 'woa.com', '<span', '不应保留'):
             self.assertNotIn(value, text)
+
+    def test_simplified_categories_preserve_legacy_paths_and_content(self):
+        self.assertEqual(set(TOPIC_GROUPS), {name for name, _ in TOPICS} | {'平台架构与系统设计'})
+        self.assertEqual(set(TOPIC_GROUPS.values()), {'召回排序与特征', '图学习与内容理解', '平台工程与评估'})
+        for title in ('评估', '图计算', '多模态', '特征', '召回', '排序', '训练', '架构'):
+            (self.source / f'{title}.html').write_text('<div id="article_content">保留正文</div>')
+        old = import_collection(self.source, self.repo, post_root=POSTS, images_root=IMAGES,
+                                manifest_path=MANIFEST, category_label='算法平台',
+                                classify_title=classify, scrubber_class=AlgorithmPlatformScrubber,
+                                prepare_body=prepare_body)
+        before = {p: (self.repo / p).read_bytes() for p in old['files']}
+        new = run(self.source, self.repo)
+        self.assertEqual(old['articles'], new['articles'])
+        self.assertEqual(set(old['files']), set(new['files']))
+        self.assertEqual(len(new['topics']), 3)
+        for path, data in before.items():
+            expected = data
+            if path.endswith('.md'):
+                topic = Path(path).parent.name
+                expected = data.replace(f'  - 算法平台\n  - {topic}\n'.encode(),
+                                        f'  - 算法平台\n  - {TOPIC_GROUPS[topic]}\n'.encode(), 1)
+            self.assertEqual((self.repo / path).read_bytes(), expected)
 
     def test_repeat_import_and_other_category_untouched(self):
         previous = import_system(self.source, self.repo)

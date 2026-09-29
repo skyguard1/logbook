@@ -3,7 +3,7 @@ title: "【智能钛TI】 基于Spark on Angel的高性能图计算平台"
 date: 2022-04-15 10:01:41
 categories:
   - 算法平台
-  - 图学习与图计算
+  - 图学习与内容理解
 ---
 
 {% raw %}

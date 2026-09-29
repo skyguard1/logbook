@@ -3,7 +3,7 @@ title: "user embedding技术5：GraphSage在社交网络上的实践"
 date: 2022-04-16 10:38:24
 categories:
   - 算法平台
-  - 图学习与图计算
+  - 图学习与内容理解
 ---
 
 {% raw %}

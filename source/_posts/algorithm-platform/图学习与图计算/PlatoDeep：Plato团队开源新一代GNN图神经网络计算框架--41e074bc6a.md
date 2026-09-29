@@ -3,7 +3,7 @@ title: "PlatoDeep：Plato团队开源新一代GNN图神经网络计算框架"
 date: 2022-04-16 10:29:34
 categories:
   - 算法平台
-  - 图学习与图计算
+  - 图学习与内容理解
 ---
 
 {% raw %}

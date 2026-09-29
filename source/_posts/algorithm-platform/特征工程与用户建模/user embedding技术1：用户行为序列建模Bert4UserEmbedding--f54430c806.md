@@ -3,7 +3,7 @@ title: "user embedding技术1：用户行为序列建模Bert4UserEmbedding"
 date: 2022-04-14 18:59:08
 categories:
   - 算法平台
-  - 特征工程与用户建模
+  - 召回排序与特征
 ---
 
 {% raw %}

@@ -3,7 +3,7 @@ title: "Sub-model Ensemble，一种新的召回模型在PC端看一看的优化�
 date: 2022-04-14 16:09:18
 categories:
   - 算法平台
-  - 召回与向量检索
+  - 召回排序与特征
 ---
 
 {% raw %}

@@ -3,7 +3,7 @@ title: "Graph embedding在视频的实践"
 date: 2022-04-08 11:19:30
 categories:
   - 算法平台
-  - 图学习与图计算
+  - 图学习与内容理解
 ---
 
 {% raw %}

@@ -3,7 +3,7 @@ title: "基于Pytorch on Angel的推荐算法中的Embedding性能优化 ——�
 date: 2022-04-15 10:00:03
 categories:
   - 算法平台
-  - 排序与预估模型
+  - 召回排序与特征
 ---
 
 {% raw %}

@@ -3,7 +3,7 @@ title: "支付Graph Embedding研究与实践"
 date: 2022-04-08 11:25:12
 categories:
   - 算法平台
-  - 图学习与图计算
+  - 图学习与内容理解
 ---
 
 {% raw %}

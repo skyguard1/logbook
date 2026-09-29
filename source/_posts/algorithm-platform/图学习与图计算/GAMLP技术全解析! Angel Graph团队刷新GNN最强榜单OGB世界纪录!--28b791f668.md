@@ -3,7 +3,7 @@ title: "GAMLP技术全解析! Angel Graph团队刷新GNN最强榜单OGB世界纪
 date: 2022-04-15 09:55:44
 categories:
   - 算法平台
-  - 图学习与图计算
+  - 图学习与内容理解
 ---
 
 {% raw %}

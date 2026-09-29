@@ -3,7 +3,7 @@ title: "推荐系统中的评价指标--HR,Recall,Rrecision,ROC,AUC,GAUC"
 date: 2022-04-15 15:28:01
 categories:
   - 算法平台
-  - 实验评估与指标
+  - 平台工程与评估
 ---
 
 {% raw %}

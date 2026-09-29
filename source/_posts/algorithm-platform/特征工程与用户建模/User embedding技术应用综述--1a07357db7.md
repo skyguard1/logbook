@@ -3,7 +3,7 @@ title: "User embedding技术应用综述"
 date: 2022-04-16 10:37:21
 categories:
   - 算法平台
-  - 特征工程与用户建模
+  - 召回排序与特征
 ---
 
 {% raw %}
