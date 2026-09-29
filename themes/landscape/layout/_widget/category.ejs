@@ -2,7 +2,9 @@
   <div class="widget-wrap">
     <h3 class="widget-title"><%= __('categories') %></h3>
     <div class="widget">
-      <%- list_categories({show_count: theme.show_count}) %>
+      <% /* Collapse only the recommendation branch; keep article categories intact. */ %>
+      <% const collapsedIds = site.categories.find({name: '推荐算法', parent: {$exists: false}}).map(category => category._id); %>
+      <%- list_categories(site.categories.find({parent: {$nin: collapsedIds}}), {show_count: theme.show_count}) %>
     </div>
   </div>
 <% } %>
