@@ -42,7 +42,8 @@ body
   position: relative
 
 .mobile-nav-on
-  overflow: hidden
+  @media mq-mobile
+    overflow: hidden
 
 #wrap
   height: 100%
@@ -54,7 +55,8 @@ body
   z-index: 1
   background: color-background
   .mobile-nav-on &
-    left: mobile-nav-width
+    @media mq-mobile
+      left: mobile-nav-width
 
 // Legacy float-based column rules removed. The flex block below is the
 // single source of truth for main + sidebar layout.

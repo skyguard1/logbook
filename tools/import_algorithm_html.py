@@ -330,7 +330,8 @@ def publish_stage(stage: Path, repo: Path, manifest: dict, manifest_path: Path =
 
 def run(source: Path, repo: Path, dry_run: bool = False, *, post_root: Path = POSTS,
         images_root: Path = IMAGES, manifest_path: Path = MANIFEST,
-        category_label: str = '算法', classify_title=classify, scrubber_class=Scrubber) -> dict:
+        category_label: str = '算法', classify_title=classify, scrubber_class=Scrubber,
+        prepare_body=None) -> dict:
     source = source.expanduser().resolve()
     files = source_files(source)
     scrub = scrubber_class(files)
@@ -346,6 +347,8 @@ def run(source: Path, repo: Path, dry_run: bool = False, *, post_root: Path = PO
                 report['skipped'].append({'id': identity, 'title': title, 'reason': '本地导出中未找到正文；需补充原始文档或完整 HTML'})
                 continue
             body, content_path = result
+            if prepare_body is not None:
+                prepare_body(body, content_path, source)
             for tag in list(body.select(DROP)):
                 if tag.parent:
                     tag.decompose()
