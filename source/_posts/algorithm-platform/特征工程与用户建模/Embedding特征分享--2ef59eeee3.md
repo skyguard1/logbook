@@ -3,7 +3,7 @@ title: "Embedding特征分享"
 date: 2022-04-06 17:29:27
 categories:
   - 算法平台
-  - 特征工程与用户建模
+  - 召回排序与特征
 ---
 
 {% raw %}

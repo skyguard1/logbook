@@ -3,7 +3,7 @@ title: "TfModelLibProj 设计简介"
 date: 2022-04-02 14:33:19
 categories:
   - 算法平台
-  - 平台架构与系统设计
+  - 平台工程与评估
 ---
 
 {% raw %}

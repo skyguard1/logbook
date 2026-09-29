@@ -331,7 +331,7 @@ def publish_stage(stage: Path, repo: Path, manifest: dict, manifest_path: Path =
 def run(source: Path, repo: Path, dry_run: bool = False, *, post_root: Path = POSTS,
         images_root: Path = IMAGES, manifest_path: Path = MANIFEST,
         category_label: str = '算法', classify_title=classify, scrubber_class=Scrubber,
-        prepare_body=None) -> dict:
+        prepare_body=None, map_topic=None) -> dict:
     source = source.expanduser().resolve()
     files = source_files(source)
     scrub = scrubber_class(files)
@@ -358,6 +358,9 @@ def run(source: Path, repo: Path, dry_run: bool = False, *, post_root: Path = PO
             clean_dom(body, scrub)
             topic = classify_title(title)
             rel = post_root / topic / f'{safe_slug(title)}--{identity}.md'
+            # Keep historical paths (and Hexo slugs) when grouping categories.
+            if map_topic is not None:
+                topic = map_topic(topic)
             write_post(stage, rel, title, topic, path, body, category_label)
             topics[topic] += 1
             report['articles'].append({'id': identity, 'title': title, 'path': rel.as_posix(), 'source_chars': original_chars, 'output_chars': len(body.get_text(strip=True)), 'images': dict(article_images)})

@@ -30,15 +30,20 @@ async function render(rows, showCount = true) {
     {_id: 'rec-child', name: '推荐子类', parent: 'rec', path: 'categories/rec/child/', length: 10},
     {_id: 'rec-leaf', name: '推荐三级', parent: 'rec-child', path: 'categories/rec/child/leaf/', length: 2},
     {_id: 'algo', name: '算法', path: 'categories/algo/', length: 110},
-    {_id: 'algo-child', name: '算法子类', parent: 'algo', path: 'categories/algo/child/', length: 12}
+    {_id: 'algo-child', name: '算法子类', parent: 'algo', path: 'categories/algo/child/', length: 12},
+    {_id: 'flink', name: 'flink', path: 'categories/flink/', length: 5},
+    {_id: 'flink-child', name: 'Flink子类', parent: 'flink', path: 'categories/flink/child/', length: 2},
+    {_id: 'flink-leaf', name: 'Flink三级', parent: 'flink-child', path: 'categories/flink/child/leaf/', length: 1}
   ];
   const html = await render(rows);
   assert.match(html, /href="\/logbook\/categories\/rec\/">推荐算法<\/a><span class="category-list-count">32<\/span>/);
   assert.doesNotMatch(html, /推荐子类|推荐三级/);
+  assert.match(html, /href="\/logbook\/categories\/flink\/">flink<\/a><span class="category-list-count">5<\/span>/);
+  assert.doesNotMatch(html, /Flink子类|Flink三级/);
   assert.match(html, /category-list-child/);
   assert.match(html, /算法子类/);
   assert.doesNotMatch(await render(rows, false), /category-list-count/);
   assert.match(await render(rows.slice(3)), /算法子类/);
   assert.equal((await render([])).trim(), '');
-  console.log('PASS: recommendation collapsed, counts and other branches preserved, no metadata mutation');
+  console.log('PASS: recommendation and flink collapsed, counts and other branches preserved, no metadata mutation');
 })().catch(error => { console.error(error); process.exitCode = 1; });

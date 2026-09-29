@@ -3,7 +3,7 @@ title: "Pyspark开发word2vec任务并部署在TDW统一调度平台全流程，
 date: 2022-04-06 13:59:14
 categories:
   - 算法平台
-  - 训练与工程优化
+  - 平台工程与评估
 ---
 
 {% raw %}

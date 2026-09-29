@@ -3,7 +3,7 @@ title: "超越 PeterRec！自研迁移学习推荐算法架构 UDARec"
 date: 2022-04-14 16:07:53
 categories:
   - 算法平台
-  - 特征工程与用户建模
+  - 召回排序与特征
 ---
 
 {% raw %}

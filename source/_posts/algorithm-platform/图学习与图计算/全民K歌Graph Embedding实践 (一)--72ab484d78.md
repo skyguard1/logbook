@@ -3,7 +3,7 @@ title: "全民K歌Graph Embedding实践 (一)"
 date: 2022-04-08 11:27:16
 categories:
   - 算法平台
-  - 图学习与图计算
+  - 图学习与内容理解
 ---
 
 {% raw %}

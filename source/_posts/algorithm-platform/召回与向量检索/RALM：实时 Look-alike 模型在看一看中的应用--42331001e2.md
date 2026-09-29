@@ -3,7 +3,7 @@ title: "RALM：实时 Look-alike 模型在看一看中的应用"
 date: 2022-04-12 19:52:18
 categories:
   - 算法平台
-  - 召回与向量检索
+  - 召回排序与特征
 ---
 
 {% raw %}

@@ -3,7 +3,7 @@ title: "user embedding技术3 – SocialTrans：BERT与GNN的结合"
 date: 2022-04-16 10:34:49
 categories:
   - 算法平台
-  - 图学习与图计算
+  - 图学习与内容理解
 ---
 
 {% raw %}

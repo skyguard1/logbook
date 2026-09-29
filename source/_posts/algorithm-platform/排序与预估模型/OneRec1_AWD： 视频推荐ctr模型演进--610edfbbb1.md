@@ -3,7 +3,7 @@ title: "OneRec1_AWD： 视频推荐ctr模型演进"
 date: 2022-04-06 09:54:38
 categories:
   - 算法平台
-  - 排序与预估模型
+  - 召回排序与特征
 ---
 
 {% raw %}

@@ -3,7 +3,7 @@ title: "大规模user embedding在社交广告LookAlike中的应用"
 date: 2022-04-15 11:44:03
 categories:
   - 算法平台
-  - 特征工程与用户建模
+  - 召回排序与特征
 ---
 
 {% raw %}

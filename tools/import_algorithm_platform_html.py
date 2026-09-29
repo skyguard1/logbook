@@ -15,6 +15,17 @@ from import_recommender_system_html import RecommenderSystemScrubber
 POSTS = Path('source/_posts/algorithm-platform')
 IMAGES = Path('source/images/algorithm-platform')
 MANIFEST = Path('tools/algorithm-platform-import-manifest.json')
+# Legacy topics remain the storage directories to preserve published URLs.
+TOPIC_GROUPS = {
+    '召回与向量检索': '召回排序与特征',
+    '排序与预估模型': '召回排序与特征',
+    '特征工程与用户建模': '召回排序与特征',
+    '图学习与图计算': '图学习与内容理解',
+    '多模态与内容理解': '图学习与内容理解',
+    '平台架构与系统设计': '平台工程与评估',
+    '训练与工程优化': '平台工程与评估',
+    '实验评估与指标': '平台工程与评估',
+}
 TOPICS = (
     ('实验评估与指标', r'ABtest|A/B|CUPED|评价指标|评估|多样性分析'),
     ('图学习与图计算', r'Graph|GNN|Plato|Embedx2|图卷积|图神经|图计算|图表示|图排序|图召回'),
@@ -111,7 +122,7 @@ def run(source: Path, repo: Path = REPO, dry_run: bool = False):
     return import_collection(source, repo, dry_run, post_root=POSTS, images_root=IMAGES,
                              manifest_path=MANIFEST, category_label='算法平台',
                              classify_title=classify, scrubber_class=AlgorithmPlatformScrubber,
-                             prepare_body=prepare_body)
+                             prepare_body=prepare_body, map_topic=TOPIC_GROUPS.__getitem__)
 
 
 def main():

@@ -3,7 +3,7 @@ title: "【看点】小流量ABTest优化——CUPED-Plus方法"
 date: 2022-04-11 08:19:05
 categories:
   - 算法平台
-  - 实验评估与指标
+  - 平台工程与评估
 ---
 
 {% raw %}
